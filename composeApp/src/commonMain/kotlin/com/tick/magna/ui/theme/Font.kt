@@ -14,7 +14,7 @@ import magna.composeapp.generated.resources.magna_sans_display_semi_bold
 import org.jetbrains.compose.resources.Font
 
 @Composable
-fun MagnaFontFamily() = FontFamily(
+fun magnaFontFamily() = FontFamily(
     Font(Res.font.magna_sans_display_extra_light, FontWeight.ExtraLight, FontStyle.Normal),
     Font(Res.font.magna_sans_display_light, FontWeight.Light, FontStyle.Normal),
     Font(Res.font.magna_sans_display_medium, FontWeight.Medium, FontStyle.Normal),

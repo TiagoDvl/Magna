@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun MagnaTheme(
@@ -16,9 +17,13 @@ fun MagnaTheme(
         lightColorScheme()
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = MagnaTypography(),
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalDimensions provides LocalDimensions.current,
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = magnaTypography(),
+            content = content
+        )
+    }
 }

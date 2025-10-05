@@ -8,6 +8,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.request.crossfade
 import com.tick.magna.features.home.MagnaHome
 import com.tick.magna.ui.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -15,6 +18,12 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun App() {
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .crossfade(true)
+            .build()
+    }
+
     MagnaTheme {
         Surface(
             modifier = Modifier

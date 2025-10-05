@@ -7,8 +7,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun MagnaTypography(): Typography {
-    val magnaFontFamily = MagnaFontFamily()
+fun magnaTypography(): Typography {
+    val magnaFontFamily = magnaFontFamily()
 
     return Typography(
         displayLarge = TextStyle(

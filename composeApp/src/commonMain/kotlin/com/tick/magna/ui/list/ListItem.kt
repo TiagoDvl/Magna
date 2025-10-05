@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.tick.magna.ui.theme.LocalDimensions
 
 @Composable
 fun ListItem(
@@ -21,7 +22,7 @@ fun ListItem(
     ) {
         Row(
             modifier = Modifier.weight(0.8f),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
         ) {
             leftIcon?.invoke()
             content()

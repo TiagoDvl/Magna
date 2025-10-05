@@ -49,6 +49,9 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
 
             implementation(libs.napier)
+
+            implementation(libs.coil3.coil.compose)
+            implementation(libs.coil.network.ktor3)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -62,7 +65,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            implementation("androidx.collection:collection:1.4.0")
+            //implementation("androidx.collection:collection:1.4.0")
         }
 
         commonTest.dependencies {

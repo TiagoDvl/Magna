@@ -4,18 +4,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.model.Deputado
 import com.tick.magna.data.model.deputadosMock
@@ -23,9 +20,11 @@ import com.tick.magna.ui.avatar.Avatar
 import com.tick.magna.ui.button.CtaButton
 import com.tick.magna.ui.list.ListItem
 import com.tick.magna.ui.text.BaseText
-import com.tick.magna.ui.utils.PreviewWrapper
+import com.tick.magna.ui.theme.LocalDimensions
+import com.tick.magna.ui.topbar.MagnaTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
+import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -52,25 +51,24 @@ private fun MagnaHomeContent(
 ) {
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Magna Home", style = MaterialTheme.typography.headlineMedium)
-                }
-            )
-        }
+        topBar = { MagnaTopBar(titleText = "Magna Home") }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(paddingValues)
-                .then(Modifier.padding(16.dp)),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .then(Modifier.padding(LocalDimensions.current.grid8)),
+            verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
         ) {
             items(deputadosState) { deputado ->
                 ListItem(
                     modifier = Modifier.fillMaxWidth(),
-                    leftIcon = { Avatar(label = deputado.nome) },
+                    leftIcon = {
+                        Avatar(
+                            photoUrl = deputado.fotoUrl,
+                            placeholder = painterResource(Res.drawable.ic_light_users)
+                        )
+                    },
                     rightIcon = {
                         CtaButton(
                             icon = painterResource(Res.drawable.ic_chevron_right),
@@ -79,7 +77,7 @@ private fun MagnaHomeContent(
                     },
                     content = {
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
                         ) {
                             BaseText(
                                 text = deputado.nome,
