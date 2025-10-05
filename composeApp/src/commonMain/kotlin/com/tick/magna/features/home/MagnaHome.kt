@@ -3,26 +3,34 @@ package com.tick.magna.features.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tick.magna.data.model.Deputado
+import com.tick.magna.data.model.deputadosMock
 import com.tick.magna.ui.avatar.Avatar
 import com.tick.magna.ui.button.CtaButton
 import com.tick.magna.ui.list.ListItem
 import com.tick.magna.ui.text.BaseText
-import com.tick.magna.ui.text.BaseTextType
+import com.tick.magna.ui.utils.PreviewWrapper
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MagnaHome(
     modifier: Modifier = Modifier,
@@ -30,11 +38,35 @@ fun MagnaHome(
 ) {
     val deputadosState by viewModel.deputadosListState.collectAsStateWithLifecycle()
 
+    MagnaHomeContent(
+        modifier = modifier,
+        deputadosState = deputadosState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MagnaHomeContent(
+    modifier: Modifier = Modifier,
+    deputadosState: List<Deputado>
+) {
     Scaffold(
         modifier = modifier,
-        topBar = { Text("Vish") }
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "Magna Home", style = MaterialTheme.typography.headlineMedium)
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(paddingValues)
+                .then(Modifier.padding(16.dp)),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             items(deputadosState) { deputado ->
                 ListItem(
                     modifier = Modifier.fillMaxWidth(),
@@ -47,20 +79,19 @@ fun MagnaHome(
                     },
                     content = {
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             BaseText(
                                 text = deputado.nome,
-                                type = BaseTextType.TITLE
+                                style = MaterialTheme.typography.bodyLarge
                             )
                             BaseText(
                                 text = deputado.email,
-                                type = BaseTextType.SUBTITLE
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             BaseText(
                                 text = deputado.partido,
-                                type = BaseTextType.BODY
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
@@ -73,5 +104,5 @@ fun MagnaHome(
 @Preview
 @Composable
 fun PreviewMagnaHome() {
-    MagnaHome()
+    MagnaHomeContent(deputadosState = deputadosMock)
 }

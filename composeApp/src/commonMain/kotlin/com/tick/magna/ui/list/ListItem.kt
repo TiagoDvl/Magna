@@ -1,10 +1,12 @@
 package com.tick.magna.ui.list
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ListItem(
@@ -14,24 +16,17 @@ fun ListItem(
     content: @Composable () -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
-        Column(
-            modifier = Modifier.weight(0.2F)
+        Row(
+            modifier = Modifier.weight(0.8f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             leftIcon?.invoke()
-        }
-
-        Column(
-            modifier = Modifier.weight(0.8F)
-        ) {
             content()
         }
 
-        Column(
-            modifier = Modifier.weight(0.2F)
-        ) {
-            rightIcon?.invoke()
-        }
+        rightIcon?.invoke()
     }
 }
