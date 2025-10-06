@@ -38,7 +38,9 @@ kotlin {
 
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
+            //implementation(compose.material3) Expressive Material Theme is only available in alpha
+            implementation("org.jetbrains.compose.material3:material3:1.9.0-alpha04")
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -65,12 +67,17 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            //implementation("androidx.collection:collection:1.4.0")
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+    }
+
+    compilerOptions {
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }
 
