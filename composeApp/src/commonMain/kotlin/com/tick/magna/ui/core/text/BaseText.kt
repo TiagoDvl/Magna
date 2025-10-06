@@ -1,4 +1,4 @@
-package com.tick.magna.ui.text
+package com.tick.magna.ui.core.text
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text

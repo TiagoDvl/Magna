@@ -1,4 +1,4 @@
-package com.tick.magna.features.home.plenario
+package com.tick.magna.features.plenario
 
 import com.tick.magna.data.model.Deputado
 

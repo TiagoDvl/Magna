@@ -1,4 +1,4 @@
-package com.tick.magna.features.home.plenario
+package com.tick.magna.features.plenario
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

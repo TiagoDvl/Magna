@@ -4,7 +4,7 @@ import com.tick.magna.data.mapper.DeputadoMapper
 import com.tick.magna.data.model.Deputado
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 
-class PlenarioRepository(
+internal class PlenarioRepository(
     private val api: DeputadosApiInterface
 ): PlenarioRepositoryInterface {
 

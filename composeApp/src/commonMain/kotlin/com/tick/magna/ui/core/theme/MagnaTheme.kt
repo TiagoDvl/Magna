@@ -1,4 +1,4 @@
-package com.tick.magna.ui.theme
+package com.tick.magna.ui.core.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme

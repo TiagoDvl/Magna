@@ -1,13 +1,11 @@
-package com.tick.magna.ui.list
+package com.tick.magna.ui.core.list
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.tick.magna.ui.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.LocalDimensions
 
 @Composable
 fun ListItem(

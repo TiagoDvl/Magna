@@ -1,4 +1,4 @@
-package com.tick.magna.ui.avatar
+package com.tick.magna.ui.core.avatar
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import com.tick.magna.ui.image.Image
-import com.tick.magna.ui.theme.LocalDimensions
+import com.tick.magna.ui.core.image.Image
+import com.tick.magna.ui.core.theme.LocalDimensions
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable

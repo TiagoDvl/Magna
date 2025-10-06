@@ -1,4 +1,4 @@
-package com.tick.magna.ui.topbar
+package com.tick.magna.ui.core.topbar
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme

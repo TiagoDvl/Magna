@@ -1,4 +1,4 @@
-package com.tick.magna.ui.theme
+package com.tick.magna.ui.core.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp
