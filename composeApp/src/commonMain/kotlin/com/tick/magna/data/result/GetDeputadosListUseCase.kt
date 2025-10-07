@@ -1,16 +1,16 @@
 package com.tick.magna.data.result
 
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.model.Deputado
+import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.repository.PlenarioRepositoryInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class DeputadosListUseCase(
+class GetDeputadosListUseCase(
     private val plenarioRepository: PlenarioRepositoryInterface,
     private val logger: AppLoggerInterface,
 ) {
-    companion object {
+    companion object Companion {
         private const val TAG = "DeputadosListUseCase"
     }
 

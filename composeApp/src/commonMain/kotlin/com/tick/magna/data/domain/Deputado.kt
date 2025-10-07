@@ -1,4 +1,4 @@
-package com.tick.magna.data.model
+package com.tick.magna.data.domain
 
 data class Deputado(
     val id: Int,

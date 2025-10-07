@@ -1,6 +1,6 @@
 package com.tick.magna.data.repository
 
-import com.tick.magna.data.model.Deputado
+import com.tick.magna.data.domain.Deputado
 
 interface PlenarioRepositoryInterface {
 

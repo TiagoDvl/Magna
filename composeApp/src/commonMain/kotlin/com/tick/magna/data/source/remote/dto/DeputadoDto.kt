@@ -12,5 +12,5 @@ data class DeputadoDto(
     val siglaUf: String,
     val idLegislatura: Int,
     val urlFoto: String,
-    val email: String
+    val email: String?
 )

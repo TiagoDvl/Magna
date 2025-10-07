@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.result.DeputadosListState
-import com.tick.magna.data.result.DeputadosListUseCase
+import com.tick.magna.data.result.GetDeputadosListUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.stateIn
 
 class HomeViewModel(
     dispatcher: DispatcherInterface,
-    deputadosList: DeputadosListUseCase,
+    getDeputadosList: GetDeputadosListUseCase,
 ): ViewModel() {
 
-    val deputadosListState: StateFlow<DeputadosListState> = deputadosList()
+    val deputadosListState: StateFlow<DeputadosListState> = getDeputadosList()
         .flowOn(dispatcher.io)
         .stateIn(
             scope = viewModelScope,

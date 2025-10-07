@@ -2,7 +2,6 @@ package com.tick.magna.features.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,10 +11,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.tick.magna.data.model.deputadosMock
+import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.data.result.DeputadosListState
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent

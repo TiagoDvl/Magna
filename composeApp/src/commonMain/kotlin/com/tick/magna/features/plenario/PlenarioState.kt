@@ -1,6 +1,6 @@
 package com.tick.magna.features.plenario
 
-import com.tick.magna.data.model.Deputado
+import com.tick.magna.data.domain.Deputado
 
 data class PlenarioState(
     val isLoading: Boolean = false,

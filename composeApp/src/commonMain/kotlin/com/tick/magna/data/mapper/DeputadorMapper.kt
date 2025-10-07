@@ -1,6 +1,6 @@
 package com.tick.magna.data.mapper
 
-import com.tick.magna.data.model.Deputado
+import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.source.remote.dto.DeputadoDto
 
 internal object DeputadoMapper {
@@ -11,7 +11,7 @@ internal object DeputadoMapper {
             partido = dto.siglaPartido,
             uf = dto.siglaUf,
             fotoUrl = dto.urlFoto,
-            email = dto.email
+            email = dto.email.orEmpty()
         )
     }
 
