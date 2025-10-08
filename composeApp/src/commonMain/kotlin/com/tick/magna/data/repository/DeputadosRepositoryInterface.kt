@@ -2,7 +2,7 @@ package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Deputado
 
-interface PlenarioRepositoryInterface {
+interface DeputadosRepositoryInterface {
 
     suspend fun getDeputados(pagina: Int = 1, itens: Int = 20, ordem: String = "ASC"): Result<List<Deputado>>
 

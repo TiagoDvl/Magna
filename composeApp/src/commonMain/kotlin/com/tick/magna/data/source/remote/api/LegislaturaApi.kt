@@ -11,17 +11,9 @@ internal class LegislaturaApi(private val httpClient: HttpClient): LegislaturaAp
     private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
 
     override suspend fun getLegislaturas(
-        pagina: Int,
-        itens: Int,
-        ordem: String,
-        ordenarPor: String,
         date: String
     ): LegislaturasResponse {
         return httpClient.get("$baseUrl/legislaturas") {
-            parameter("pagina", pagina)
-            parameter("itens", itens)
-            parameter("ordem", ordem)
-            parameter("ordenarPor", ordenarPor)
             parameter("data", date)
         }.body()
     }

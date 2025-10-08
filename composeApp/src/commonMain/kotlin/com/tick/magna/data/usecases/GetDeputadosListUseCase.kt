@@ -1,13 +1,13 @@
-package com.tick.magna.data.result
+package com.tick.magna.data.usecases
 
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.repository.PlenarioRepositoryInterface
+import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class GetDeputadosListUseCase(
-    private val plenarioRepository: PlenarioRepositoryInterface,
+    private val plenarioRepository: DeputadosRepositoryInterface,
     private val logger: AppLoggerInterface,
 ) {
     companion object Companion {

@@ -6,13 +6,13 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
 
-internal class PlenarioRepository(
+internal class DeputadosRepository(
     private val deputadosApi: DeputadosApiInterface,
     private val legislaturaApi: LegislaturaApiInterface,
     private val loggerInterface: AppLoggerInterface
-): PlenarioRepositoryInterface {
+): DeputadosRepositoryInterface {
 
-    companion object {
+    companion object Companion {
         private const val TAG = "PlenarioRepository"
     }
 
