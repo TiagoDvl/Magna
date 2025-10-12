@@ -10,8 +10,6 @@ internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInt
     private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
 
     override suspend fun getDeputados(
-        ordem: String,
-        ordenarPor: String,
         legislaturaId: String
     ): DeputadosResponse {
         return httpClient.get("$baseUrl/deputados") {

@@ -14,12 +14,12 @@ class GetPartidosListUseCase(
         private const val TAG = "DeputadosListUseCase"
     }
 
-    operator fun invoke(): Flow<PartidosListState> {
+    operator fun invoke(legislaturaId: String): Flow<PartidosListState> {
         return flow {
             logger.d("Loading partidos... ", TAG)
             emit(PartidosListState.Loading)
 
-            val partidos = partidoRepository.getPartidos()
+            val partidos = partidoRepository.getPartidos(legislaturaId)
             if (partidos.isSuccess) {
                 logger.d("Partidos response: ${partidos.getOrNull()} ", TAG)
                 emit(PartidosListState.Success(partidos.getOrDefault(emptyList())))

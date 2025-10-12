@@ -5,8 +5,8 @@ import com.tick.magna.data.source.remote.dto.LinkDto
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LegislaturasResponse(
-    val dados: List<LegislaturaDto>,
+data class LegislaturaResponse(
+    val dados: LegislaturaDto,
     val links: List<LinkDto>
 )
 

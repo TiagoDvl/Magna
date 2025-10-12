@@ -5,20 +5,33 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.data.domain.partidosMock
 import com.tick.magna.data.usecases.DeputadosListState
 import com.tick.magna.data.usecases.PartidosListState
+import com.tick.magna.data.usecases.UserConfigurationState
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
@@ -27,6 +40,7 @@ import com.tick.magna.ui.core.list.ListItem
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.topbar.MagnaTopBar
+import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.ic_light_users
@@ -37,16 +51,12 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MagnaHome(
-    modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
 
 
-    MagnaHomeContent(
-        modifier = modifier,
-        homeState = homeState
-    )
+    MagnaHomeContent(homeState = homeState)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,9 +65,50 @@ private fun MagnaHomeContent(
     modifier: Modifier = Modifier,
     homeState: HomeState
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = { MagnaTopBar(titleText = "Magna Home") }
+    val bottomSheetState: SheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        skipHiddenState = false
+    )
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(bottomSheetState)
+    val scope = rememberCoroutineScope()
+    var localSheetState by remember { mutableStateOf<HomeSheetState?>(null) }
+
+    fun showSheet(homeSheetState: HomeSheetState) {
+        scope.launch {
+            localSheetState = homeSheetState
+            bottomSheetState.expand()
+        }
+    }
+
+    fun hideSheet() {
+        scope.launch {
+            bottomSheetState.hide()
+        }
+    }
+
+    if (homeState.userConfigurationState == UserConfigurationState.Onboarding) {
+        showSheet(HomeSheetState.ONBOARDING)
+    }
+
+    BottomSheetScaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = { MagnaTopBar(titleText = "Magna Home") },
+        scaffoldState = bottomSheetScaffoldState,
+        sheetContent = {
+            when (localSheetState) {
+                HomeSheetState.ONBOARDING -> {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        BaseText(text = "Onboading time")
+                        Button(onClick = { hideSheet() }) {
+                            Text("Dissmiss")
+                        }
+                    }
+                }
+                null -> Unit
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
@@ -196,6 +247,17 @@ private fun ColumnScope.PartidosList(
 fun LoadingMagnaHomePreview() {
     MagnaHomeContent(
         homeState = HomeState(isLoading = true)
+    )
+}
+
+@Preview
+@Composable
+fun OnboardingMagnaHomePreview() {
+    MagnaHomeContent(
+        homeState = HomeState(
+            isLoading = true,
+            userConfigurationState = UserConfigurationState.Onboarding
+        )
     )
 }
 

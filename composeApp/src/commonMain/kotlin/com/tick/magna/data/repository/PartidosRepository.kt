@@ -2,13 +2,11 @@ package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.mapper.toDomain
-import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
 import com.tick.magna.data.source.remote.api.PartidoApiInterface
+import com.tick.magna.data.source.remote.dto.toDomain
 
 internal class PartidosRepository(
     private val partidosApi: PartidoApiInterface,
-    private val legislaturaApiInterface: LegislaturaApiInterface,
     private val loggerInterface: AppLoggerInterface
 ): PartidosRepositoryInterface {
 
@@ -16,20 +14,17 @@ internal class PartidosRepository(
         private const val TAG = "PartidosRepository"
     }
 
-    override suspend fun getPartidos(): Result<List<Partido>> {
+    override suspend fun getPartidos(legislaturaId: String): Result<List<Partido>> {
+        loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
         return try {
-            legislaturaApiInterface.getLegislaturas().dados.firstOrNull()?.let { legislatura ->
-                loggerInterface.d("Fetching partidos for legislatura: ${legislatura.id}", TAG)
-                val partidosResponse = partidosApi.getPartidos(legislatura.id.toString())
-
-                loggerInterface.d("Fetching details for partidos...", TAG)
-                val partidos = partidosResponse.dados.map {
-                    val partidoResponse = partidosApi.getPartidoById(it.id)
-                    partidoResponse.dados.toDomain()
-                }
-                Result.success(partidos)
-            } ?: Result.failure(Exception("No legislatura found"))
+            val partidosResponse = partidosApi.getPartidos(legislaturaId)
+            val partidos = partidosResponse.dados.map {
+                val partidoResponse = partidosApi.getPartidoById(it.id)
+                partidoResponse.dados.toDomain()
+            }
+            Result.success(partidos)
         } catch (e: Exception) {
+            loggerInterface.e("Failed to fetch partidos", e, TAG)
             Result.failure(e)
         }
     }

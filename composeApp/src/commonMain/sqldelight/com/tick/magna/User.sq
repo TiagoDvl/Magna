@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS User (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    legislaturaid TEXT,
+    last_sync TEXT,
+    FOREIGN KEY(legislaturaid) REFERENCES Legislatura(id)
+);
+
+-- Create
+insertUser:
+INSERT OR REPLACE INTO User(id, legislaturaid, last_sync)
+VALUES (?, ?, ?);
+
+-- Read all
+selectAllUsers:
+SELECT * FROM User;
+
+-- Read by ID
+selectUserById:
+SELECT * FROM User WHERE id = ?;
+
+-- Update
+updateUser:
+UPDATE User
+SET legislaturaid = ?, last_sync = ?
+WHERE id = ?;
+
+-- Delete
+deleteUserById:
+DELETE FROM User WHERE id = ?;

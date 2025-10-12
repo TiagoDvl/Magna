@@ -29,9 +29,7 @@ fun App() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
-            MagnaHome(
-                modifier = Modifier.fillMaxSize().imePadding()
-            )
+            MagnaHome()
         }
     }
 }

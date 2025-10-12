@@ -14,12 +14,12 @@ class GetDeputadosListUseCase(
         private const val TAG = "DeputadosListUseCase"
     }
 
-    operator fun invoke(): Flow<DeputadosListState> {
+    operator fun invoke(legislaturaId: String): Flow<DeputadosListState> {
         return flow {
             logger.d("Loading deputados... ", TAG)
             emit(DeputadosListState.Loading)
 
-            val deputados = plenarioRepository.getDeputados()
+            val deputados = plenarioRepository.getDeputados(legislaturaId)
             if (deputados.isSuccess) {
                 logger.d("Deputados response: ${deputados.getOrNull()} ", TAG)
                 emit(DeputadosListState.Success(deputados.getOrDefault(emptyList())))
@@ -32,8 +32,8 @@ class GetDeputadosListUseCase(
     }
 }
 
-sealed class DeputadosListState {
-    data object Loading: DeputadosListState()
-    data class Success(val deputados: List<Deputado>): DeputadosListState()
-    data object Error: DeputadosListState()
+sealed interface DeputadosListState {
+    data object Loading: DeputadosListState
+    data class Success(val deputados: List<Deputado>): DeputadosListState
+    data object Error: DeputadosListState
 }
