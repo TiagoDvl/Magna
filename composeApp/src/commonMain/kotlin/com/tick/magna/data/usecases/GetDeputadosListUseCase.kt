@@ -5,12 +5,10 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class GetDeputadosListUseCase(
-    private val plenarioRepository: DeputadosRepositoryInterface,
+    private val deputadosRepository: DeputadosRepositoryInterface,
     private val userDao: UserDaoInterface,
     private val logger: AppLoggerInterface,
 ) {
@@ -20,8 +18,8 @@ class GetDeputadosListUseCase(
 
     suspend operator fun invoke(): Flow<DeputadosListState> {
         return userDao.getUser().map { user ->
-            if (user.legislaturaid != null) {
-                val deputados = plenarioRepository.getDeputados(user.legislaturaid)
+            if (user.legislaturaId != null) {
+                val deputados = deputadosRepository.getDeputados(user.legislaturaId)
                 if (deputados.isSuccess) {
                     logger.d("Deputados response: ${deputados.getOrNull()} ", TAG)
                     DeputadosListState.Success(deputados.getOrDefault(emptyList()))

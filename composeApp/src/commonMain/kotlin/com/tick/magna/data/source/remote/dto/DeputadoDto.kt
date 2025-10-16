@@ -19,10 +19,10 @@ data class DeputadoDto(
 fun DeputadoDto.toDomain(): Deputado {
     return Deputado(
         id = this.id,
-        nome = this.nome,
+        name = this.nome,
         partido = this.siglaPartido.orEmpty(),
         uf = this.siglaUf,
-        fotoUrl = this.urlFoto,
+        profilePicture = this.urlFoto,
         email = this.email ?: ""
     )
 }

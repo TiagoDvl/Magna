@@ -14,6 +14,10 @@ internal class DeputadosRepository(
         private const val TAG = "PlenarioRepository"
     }
 
+    override suspend fun getRecentDeputados(): Result<List<Deputado>> {
+        return Result.success(listOf())
+    }
+
     override suspend fun getDeputados(legislaturaId: String): Result<List<Deputado>> {
         return try {
             loggerInterface.d("Fetching deputados for legislatura ID: $legislaturaId", TAG)

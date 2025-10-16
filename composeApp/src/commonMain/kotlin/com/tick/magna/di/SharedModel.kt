@@ -31,6 +31,8 @@ import com.tick.magna.data.source.remote.api.PartidoApiInterface
 import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
 import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetPartidosListUseCase
+import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
+import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.onboarding.OnboardingViewModel
 import io.ktor.client.HttpClient
@@ -68,9 +70,10 @@ val dataModule = module {
 }
 
 val useCaseModule = module {
+    single { GetRecentDeputadosUseCase(get(), get(), get()) }
     single { GetDeputadosListUseCase(get(), get(), get()) }
     single { GetPartidosListUseCase(get(), get()) }
-    single { CheckUserConfigurationUseCase(get(), get(), get()) }
+    single { CheckUserConfigurationUseCase(get(), get()) }
     single { ConfigureLegislaturaUseCase(get(), get(), get()) }
 }
 
@@ -79,8 +82,9 @@ val loggingModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get(), get(), get()) }
+    viewModel { RecentDeputadosViewModel(get(), get()) }
 }
 
 val appModules = listOf(

@@ -29,7 +29,7 @@ internal class UserDao(
         withContext(dispatcherInterface.default) {
             userQueries.insertUser(
                 id = user.id,
-                legislaturaid = user.legislaturaid,
+                legislaturaId = user.legislaturaId,
                 last_sync = user.last_sync
             )
         }
