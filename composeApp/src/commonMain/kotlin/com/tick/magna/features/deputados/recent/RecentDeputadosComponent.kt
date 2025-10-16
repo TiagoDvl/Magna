@@ -1,6 +1,7 @@
 package com.tick.magna.features.deputados.recent
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -18,7 +19,10 @@ fun RecentDeputadosComponent(
 ) {
     val state = viewModel.recentDeputadosState.collectAsStateWithLifecycle()
 
-    RecentDeputadosComponentContent(state = state.value)
+    RecentDeputadosComponentContent(
+        modifier = modifier,
+        state = state.value
+    )
 }
 
 @Composable
@@ -27,7 +31,10 @@ private fun RecentDeputadosComponentContent(
     state: RecentDeputadosState
 ) {
     Column(
-        modifier = modifier.padding(16.dp).height(200.dp)
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(200.dp)
     ) {
         when (state) {
             RecentDeputadosState.ConfigurationError -> SomethingWentWrongComponent()

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DeputadoDto(
-    val id: Int,
+    val id: String,
     val uri: String,
     val nome: String,
     val siglaPartido: String?,

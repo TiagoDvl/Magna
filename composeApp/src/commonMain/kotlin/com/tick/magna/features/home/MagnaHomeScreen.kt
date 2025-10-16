@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.usecases.UserConfigurationState
+import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.onboarding.OnboardingSheet
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
@@ -90,7 +91,7 @@ private fun MagnaHomeContent(
                 UserConfigurationState.Loading -> LoadingComponent()
                 UserConfigurationState.Onboarding -> showSheet(HomeSheetState.ONBOARDING)
                 UserConfigurationState.Configured -> {
-
+                    RecentDeputadosComponent()
                 }
             }
         }
