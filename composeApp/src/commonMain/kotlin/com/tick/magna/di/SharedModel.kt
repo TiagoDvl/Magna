@@ -10,6 +10,8 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.logger.NapierLogger
 import com.tick.magna.data.repository.DeputadosRepository
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.LegislaturaRepository
+import com.tick.magna.data.repository.LegislaturaRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
@@ -27,12 +29,13 @@ import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
 import com.tick.magna.data.source.remote.api.PartidoApi
 import com.tick.magna.data.source.remote.api.PartidoApiInterface
 import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
+import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetPartidosListUseCase
 import com.tick.magna.features.home.HomeViewModel
+import com.tick.magna.features.onboarding.OnboardingViewModel
 import io.ktor.client.HttpClient
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
-
 
 val databaseModule = module {
     single<SqlDriver> { get<DatabaseDriverFactory>().createDriver() }
@@ -55,18 +58,20 @@ val dataModule = module {
 
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
-    single<LegislaturaApiInterface> { LegislaturaApi(get()) }
     single<PartidoApiInterface> { PartidoApi(get()) }
+    single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
     single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get()) }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get()) }
+    single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }
 
 val useCaseModule = module {
-    single { GetDeputadosListUseCase(get(), get()) }
+    single { GetDeputadosListUseCase(get(), get(), get()) }
     single { GetPartidosListUseCase(get(), get()) }
-    single { CheckUserConfigurationUseCase(get(), get()) }
+    single { CheckUserConfigurationUseCase(get(), get(), get()) }
+    single { ConfigureLegislaturaUseCase(get(), get(), get()) }
 }
 
 val loggingModule = module {
@@ -74,7 +79,8 @@ val loggingModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
+    viewModel { OnboardingViewModel(get(), get(), get()) }
 }
 
 val appModules = listOf(

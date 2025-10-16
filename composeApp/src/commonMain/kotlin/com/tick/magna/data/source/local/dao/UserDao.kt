@@ -1,8 +1,11 @@
 package com.tick.magna.data.source.local.dao
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOne
 import com.tick.magna.User
 import com.tick.magna.UserQueries
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 internal class UserDao(
@@ -38,9 +41,13 @@ internal class UserDao(
         }
     }
 
-    override suspend fun getUser(): User? {
-        return withContext(dispatcherInterface.default) {
-            userQueries.selectAllUsers().executeAsOneOrNull()
-        }
+    override suspend fun getUser(): Flow<User> {
+        return userQueries.selectAllUsers()
+            .asFlow()
+            .mapToOne(dispatcherInterface.default)
+    }
+
+    override suspend fun setUserLegislatura(legislaturaId: String) {
+        userQueries.updateUserLegislatura(legislaturaId)
     }
 }

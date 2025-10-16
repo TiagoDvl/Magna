@@ -10,6 +10,10 @@ import io.ktor.client.request.parameter
 internal class LegislaturaApi(private val httpClient: HttpClient): LegislaturaApiInterface {
     private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
 
+    override suspend fun getAllLegislaturas(): LegislaturasResponse {
+        return httpClient.get("$baseUrl/legislaturas").body()
+    }
+
     override suspend fun getLegislaturas(date: String): LegislaturasResponse {
         return httpClient.get("$baseUrl/legislaturas") {
             parameter("data", date)

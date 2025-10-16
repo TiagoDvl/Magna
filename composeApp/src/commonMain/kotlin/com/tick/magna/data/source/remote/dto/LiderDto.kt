@@ -7,7 +7,7 @@ data class LiderDto(
     val uri: String,
     val nome: String,
     val siglaPartido: String,
-    val uriPartido: String,
+    val uriPartido: String?,
     val uf: String,
     val idLegislatura: Int,
     val urlFoto: String

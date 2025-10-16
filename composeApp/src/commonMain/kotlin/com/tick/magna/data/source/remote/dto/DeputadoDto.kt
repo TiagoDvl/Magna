@@ -8,8 +8,8 @@ data class DeputadoDto(
     val id: Int,
     val uri: String,
     val nome: String,
-    val siglaPartido: String,
-    val uriPartido: String,
+    val siglaPartido: String?,
+    val uriPartido: String?,
     val siglaUf: String,
     val idLegislatura: Int,
     val urlFoto: String,
@@ -20,7 +20,7 @@ fun DeputadoDto.toDomain(): Deputado {
     return Deputado(
         id = this.id,
         nome = this.nome,
-        partido = this.siglaPartido,
+        partido = this.siglaPartido.orEmpty(),
         uf = this.siglaUf,
         fotoUrl = this.urlFoto,
         email = this.email ?: ""

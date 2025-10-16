@@ -4,6 +4,7 @@ import coil3.network.HttpException
 import com.tick.magna.data.domain.Legislatura
 import com.tick.magna.data.repository.result.AsyncResult
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
+import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
@@ -16,18 +17,27 @@ internal class LegislaturaRepository(
     private val legislaturaDao: LegislaturaDaoInterface
 ): LegislaturaRepositoryInterface {
 
-    override suspend fun getLegislatura(date: String): Flow<AsyncResult<Legislatura>> {
+    override fun getAllLegislaturas(): Flow<AsyncResult<List<Legislatura>>> {
         return flow {
             emit(AsyncResult.Loading)
 
             try {
-                val response = legislaturaApi.getLegislaturas(date).dados.firstOrNull()
-                response?.let { legislaturaDao.insertLegislatura(it.toLocal()) }
+                val localLegislaturas = legislaturaDao.getAllLegislaturas()
 
-                val emitValue = if (response != null) {
-                    AsyncResult.Success(response.toDomain())
+                val emitValue = if (localLegislaturas.isEmpty()) {
+                    val response = legislaturaApi.getAllLegislaturas().dados
+                    if (response.isNotEmpty()) {
+                        AsyncResult.Success(
+                            response.map {
+                                legislaturaDao.insertLegislatura(it.toLocal())
+                                it.toDomain()
+                            }
+                        )
+                    } else {
+                        AsyncResult.Failure(Exception("Empty response"))
+                    }
                 } else {
-                    AsyncResult.Failure(Exception("Empty response"))
+                    AsyncResult.Success(localLegislaturas.map { it.toDomain() })
                 }
 
                 emit(emitValue)
@@ -41,7 +51,19 @@ internal class LegislaturaRepository(
         }
     }
 
+    override suspend fun getLegislatura(startDate: String): Legislatura? {
+        return legislaturaDao
+            .getAllLegislaturas()
+            .firstOrNull { it.startDate == startDate }
+            ?.toDomain()
+    }
+
     override suspend fun getLegislatura(id: Int): Flow<AsyncResult<Legislatura>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun setLegislatura(periodDate: String): Flow<AsyncResult<Legislatura>> {
+
         TODO("Not yet implemented")
     }
 }

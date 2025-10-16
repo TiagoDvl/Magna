@@ -31,6 +31,7 @@ coil-network-ktor = { module = "io.coil-kt:coil-network-ktor", version.ref = "co
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
 coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "nativeDriver" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koinComposeViewmodel" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koinComposeViewmodel" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinComposeViewmodel" }

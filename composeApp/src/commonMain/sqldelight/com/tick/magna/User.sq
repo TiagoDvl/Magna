@@ -19,10 +19,10 @@ selectUserById:
 SELECT * FROM User WHERE id = ?;
 
 -- Update
-updateUser:
+updateUserLegislatura:
 UPDATE User
-SET legislaturaid = ?, last_sync = ?
-WHERE id = ?;
+SET legislaturaid = ?
+WHERE id = 1;
 
 -- Delete
 deleteUserById:

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,13 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.data.domain.partidosMock
 import com.tick.magna.data.usecases.DeputadosListState
 import com.tick.magna.data.usecases.PartidosListState
 import com.tick.magna.data.usecases.UserConfigurationState
+import com.tick.magna.features.onboarding.OnboardingSheet
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
@@ -55,15 +54,17 @@ fun MagnaHome(
 ) {
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
 
-
-    MagnaHomeContent(homeState = homeState)
+    MagnaHomeContent(
+        homeState = homeState,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MagnaHomeContent(
     modifier: Modifier = Modifier,
-    homeState: HomeState
+    homeState: HomeState,
+    sendAction: (HomeAction) -> Unit = {}
 ) {
     val bottomSheetState: SheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
@@ -86,7 +87,7 @@ private fun MagnaHomeContent(
         }
     }
 
-    if (homeState.userConfigurationState == UserConfigurationState.Onboarding) {
+    if (homeState.userConfigurationState is UserConfigurationState.Onboarding) {
         showSheet(HomeSheetState.ONBOARDING)
     }
 
@@ -97,14 +98,12 @@ private fun MagnaHomeContent(
         sheetContent = {
             when (localSheetState) {
                 HomeSheetState.ONBOARDING -> {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        BaseText(text = "Onboading time")
-                        Button(onClick = { hideSheet() }) {
-                            Text("Dissmiss")
+                    OnboardingSheet(
+                        closeSheet = {
+
+                            hideSheet()
                         }
-                    }
+                    )
                 }
                 null -> Unit
             }
@@ -128,6 +127,7 @@ private fun MagnaHomeContent(
                             DeputadosListState.Error -> SomethingWentWrongComponent(
                                 modifier = Modifier.padding(paddingValues),
                             )
+                            DeputadosListState.NoLegislaturaConfigured -> LoadingComponent()
                         }
                     }
 
@@ -246,7 +246,7 @@ private fun ColumnScope.PartidosList(
 @Composable
 fun LoadingMagnaHomePreview() {
     MagnaHomeContent(
-        homeState = HomeState(isLoading = true)
+        homeState = HomeState(isLoading = true),
     )
 }
 
@@ -257,7 +257,7 @@ fun OnboardingMagnaHomePreview() {
         homeState = HomeState(
             isLoading = true,
             userConfigurationState = UserConfigurationState.Onboarding
-        )
+        ),
     )
 }
 
@@ -269,7 +269,7 @@ fun SuccessMagnaHomePreview() {
             isLoading = false,
             deputadosState = DeputadosListState.Success(deputadosMock),
             partidosState = PartidosListState.Success(partidosMock)
-        )
+        ),
     )
 }
 
@@ -277,6 +277,6 @@ fun SuccessMagnaHomePreview() {
 @Composable
 fun ErrorMagnaHomePreview() {
     MagnaHomeContent(
-        homeState = HomeState(isError = true)
+        homeState = HomeState(isError = true),
     )
 }

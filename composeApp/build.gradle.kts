@@ -55,6 +55,7 @@ kotlin {
 
             implementation(libs.coil3.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.coroutines.extensions)
         }
         androidMain.dependencies {
             implementation(compose.preview)

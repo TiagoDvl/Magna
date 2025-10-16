@@ -11,7 +11,7 @@ class GetPartidosListUseCase(
     private val logger: AppLoggerInterface,
 ) {
     companion object Companion {
-        private const val TAG = "DeputadosListUseCase"
+        private const val TAG = "GetPartidosListUseCase"
     }
 
     operator fun invoke(legislaturaId: String): Flow<PartidosListState> {
