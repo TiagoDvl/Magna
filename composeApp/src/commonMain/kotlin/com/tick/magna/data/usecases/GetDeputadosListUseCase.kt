@@ -1,7 +1,7 @@
 package com.tick.magna.data.usecases
 
-import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.domain.Deputado
+import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
@@ -17,8 +17,10 @@ class GetDeputadosListUseCase(
     }
 
     suspend operator fun invoke(): Flow<DeputadosListState> {
-        return userDao.getUser().map { user ->
-            if (user.legislaturaId != null) {
+        return userDao.getUser().map {
+            val user = it.firstOrNull()
+
+            if (user == null && user?.legislaturaId != null) {
                 val deputados = deputadosRepository.getDeputados(user.legislaturaId)
                 if (deputados.isSuccess) {
                     logger.d("Deputados response: ${deputados.getOrNull()} ", TAG)

@@ -1,7 +1,7 @@
 CREATE TABLE Legislatura (
     id TEXT NOT NULL PRIMARY KEY,
     startDate TEXT NOT NULL,
-    endDate TEXT
+    endDate TEXT NOT NULL
 );
 
 -- Create

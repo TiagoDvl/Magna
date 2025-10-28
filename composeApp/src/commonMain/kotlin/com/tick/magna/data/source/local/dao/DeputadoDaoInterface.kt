@@ -5,4 +5,6 @@ import com.tick.magna.Deputado
 interface DeputadoDaoInterface {
 
     suspend fun getDeputados(legislaturaId: String): List<Deputado>
+
+    suspend fun insertDeputado(deputado: Deputado)
 }

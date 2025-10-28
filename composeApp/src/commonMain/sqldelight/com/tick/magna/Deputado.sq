@@ -12,7 +12,16 @@ CREATE TABLE Deputado (
 
 -- Create
 insertDeputado:
-INSERT OR REPLACE INTO Deputado(id, legislaturaId, partidoId, favorite, name,  uf, profile_picture, email)
+INSERT OR REPLACE INTO Deputado(
+    id,
+    legislaturaId,
+    partidoId,
+    favorite,
+    name,
+    uf,
+    profile_picture,
+    email
+)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Read all

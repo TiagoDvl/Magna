@@ -1,7 +1,7 @@
 package com.tick.magna.data.source.local.dao
 
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOne
+import app.cash.sqldelight.coroutines.mapToList
 import com.tick.magna.User
 import com.tick.magna.UserQueries
 import com.tick.magna.data.dispatcher.DispatcherInterface
@@ -19,9 +19,9 @@ internal class UserDao(
         }
     }
 
-    override suspend fun getAllUsers(): List<User> {
+    override suspend fun getAllUsers(): Flow<List<User>> {
         return withContext(dispatcherInterface.default) {
-            userQueries.selectAllUsers().executeAsList()
+            userQueries.selectAllUsers().asFlow().mapToList(dispatcherInterface.io)
         }
     }
 
@@ -29,8 +29,7 @@ internal class UserDao(
         withContext(dispatcherInterface.default) {
             userQueries.insertUser(
                 id = user.id,
-                legislaturaId = user.legislaturaId,
-                last_sync = user.last_sync
+                legislaturaId = user.legislaturaId
             )
         }
     }
@@ -41,10 +40,10 @@ internal class UserDao(
         }
     }
 
-    override suspend fun getUser(): Flow<User> {
+    override suspend fun getUser(): Flow<List<User>> {
         return userQueries.selectAllUsers()
             .asFlow()
-            .mapToOne(dispatcherInterface.default)
+            .mapToList(dispatcherInterface.io)
     }
 
     override suspend fun setUserLegislatura(legislaturaId: String) {

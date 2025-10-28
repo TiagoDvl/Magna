@@ -69,7 +69,7 @@ val dataModule = module {
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
-    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get()) }
+    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get()) }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }

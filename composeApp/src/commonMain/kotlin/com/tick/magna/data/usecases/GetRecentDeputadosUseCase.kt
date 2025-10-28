@@ -2,16 +2,15 @@ package com.tick.magna.data.usecases
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
+import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
-import com.tick.magna.data.source.local.mapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
 class GetRecentDeputadosUseCase(
     private val userDao: UserDaoInterface,
-    private val deputadoDao: DeputadoDaoInterface,
+    private val deputadosRepository: DeputadosRepositoryInterface,
     private val logger: AppLoggerInterface,
 ) {
     companion object Companion {
@@ -19,14 +18,17 @@ class GetRecentDeputadosUseCase(
     }
 
     suspend operator fun invoke(): Flow<RecentDeputadosState> {
-        return userDao.getUser().map { user ->
-            if (user.legislaturaId != null) {
-                val deputados = deputadoDao.getDeputados(user.legislaturaId)
+        return userDao.getUser().map {
+            val user = it.firstOrNull()
 
-                if (deputados.isNotEmpty()) {
-                    RecentDeputadosState.Peak(
-                        deputados.map { it.toDomain() }.take(7)
-                    )
+            if (user?.legislaturaId != null) {
+                val deputadosResult = deputadosRepository.getDeputados(user.legislaturaId)
+
+                if (deputadosResult.isSuccess) {
+                    val deputados = deputadosResult.getOrNull()
+                    deputados?.let {
+                        RecentDeputadosState.Peak(it.take(7))
+                    } ?: RecentDeputadosState.Empty
                 } else {
                     RecentDeputadosState.Empty
                 }

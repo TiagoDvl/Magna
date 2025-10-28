@@ -8,6 +8,7 @@ import com.tick.magna.MagnaDatabase
 actual class DatabaseDriverFactory(private val context: Context) {
 
     actual fun createDriver(): SqlDriver {
+        println("Tiago - createDriver")
         return AndroidSqliteDriver(MagnaDatabase.Schema, context, "magna.db")
     }
 }

@@ -2,6 +2,7 @@ package com.tick.magna.data.source.remote.dto
 
 import com.tick.magna.data.domain.Deputado
 import kotlinx.serialization.Serializable
+import com.tick.magna.Deputado as DeputadoEntity
 
 @Serializable
 data class DeputadoDto(
@@ -24,5 +25,18 @@ fun DeputadoDto.toDomain(): Deputado {
         uf = this.siglaUf,
         profilePicture = this.urlFoto,
         email = this.email ?: ""
+    )
+}
+
+fun DeputadoDto.toLocal(): DeputadoEntity {
+    return DeputadoEntity(
+        id = this.id,
+        legislaturaId = "",
+        partidoId = null,
+        favorite = 0,
+        name = this.nome,
+        uf = this.siglaUf,
+        profile_picture = this.urlFoto,
+        email = this.email
     )
 }

@@ -14,9 +14,10 @@ class CheckUserConfigurationUseCase(
     }
 
     suspend operator fun invoke(): Flow<UserConfigurationState> {
-        return userDao.getUser().map { user ->
+        return userDao.getUser().map {
+            val user = it.firstOrNull()
             logger.d("CheckUserConfigurationUseCase -> User: $user")
-            if (user.legislaturaId == null) {
+            if (user?.legislaturaId == null) {
                 logger.d("CheckUserConfigurationUseCase -> Onboarding", TAG)
                 UserConfigurationState.Onboarding
             } else {

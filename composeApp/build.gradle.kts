@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.sqlDelight)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -55,6 +55,7 @@ kotlin {
 
             implementation(libs.coil3.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.sqldelight.runtime)
             implementation(libs.coroutines.extensions)
         }
         androidMain.dependencies {
@@ -70,7 +71,6 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            implementation(libs.sqlite.driver)
         }
 
         commonTest.dependencies {
@@ -116,6 +116,7 @@ sqldelight {
     databases {
         create("MagnaDatabase") {
             packageName.set("com.tick.magna")
+            srcDirs.setFrom("src/commonMain/sqldelight")
         }
     }
 }

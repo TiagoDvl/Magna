@@ -15,4 +15,19 @@ class DeputadoDao(
             deputadoQueries.getDeputados(legislaturaId).executeAsList()
         }
     }
+
+    override suspend fun insertDeputado(deputado: Deputado) {
+        return withContext(dispatcherInterface.default) {
+            deputadoQueries.insertDeputado(
+                id = deputado.id,
+                legislaturaId = deputado.legislaturaId,
+                partidoId = deputado.partidoId,
+                favorite = deputado.favorite,
+                name = deputado.name,
+                uf = deputado.uf,
+                profile_picture = deputado.profile_picture,
+                email = deputado.email
+            )
+        }
+    }
 }

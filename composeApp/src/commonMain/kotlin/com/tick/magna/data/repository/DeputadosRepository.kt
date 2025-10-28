@@ -2,11 +2,14 @@ package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
+import com.tick.magna.data.source.remote.dto.toLocal
 
 internal class DeputadosRepository(
     private val deputadosApi: DeputadosApiInterface,
+    private val deputadoDao: DeputadoDaoInterface,
     private val loggerInterface: AppLoggerInterface
 ): DeputadosRepositoryInterface {
 
@@ -22,6 +25,8 @@ internal class DeputadosRepository(
         return try {
             loggerInterface.d("Fetching deputados for legislatura ID: $legislaturaId", TAG)
             val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+
+            deputadosResponse.dados.map { deputadoDao.insertDeputado(it.toLocal()) }
             Result.success(deputadosResponse.dados.map { it.toDomain() })
         } catch (e: Exception) {
             Result.failure(Exception("Falha ao buscar deputados: ${e.message}"))
