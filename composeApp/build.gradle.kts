@@ -57,6 +57,7 @@ kotlin {
             implementation(libs.coil.network.ktor3)
             implementation(libs.sqldelight.runtime)
             implementation(libs.coroutines.extensions)
+            implementation(libs.navigation.compose)
         }
         androidMain.dependencies {
             implementation(compose.preview)

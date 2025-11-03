@@ -18,8 +18,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.tick.magna.data.usecases.UserConfigurationState
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
+import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.onboarding.OnboardingSheet
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
@@ -32,12 +34,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MagnaHomeScreen(
-    viewModel: HomeViewModel = koinViewModel()
+    viewModel: HomeViewModel = koinViewModel(),
+    navController: NavController
 ) {
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
 
     MagnaHomeContent(
         homeState = homeState,
+        navigateTo = { navController.navigate(it) }
     )
 }
 
@@ -46,7 +50,8 @@ fun MagnaHomeScreen(
 private fun MagnaHomeContent(
     modifier: Modifier = Modifier,
     homeState: HomeState,
-    sendAction: (HomeAction) -> Unit = {}
+    sendAction: (HomeAction) -> Unit = {},
+    navigateTo: (Any) -> Unit = {}
 ) {
     val bottomSheetState: SheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
@@ -91,7 +96,9 @@ private fun MagnaHomeContent(
                 UserConfigurationState.Loading -> LoadingComponent()
                 UserConfigurationState.Onboarding -> showSheet(HomeSheetState.ONBOARDING)
                 UserConfigurationState.Configured -> {
-                    RecentDeputadosComponent()
+                    RecentDeputadosComponent(
+                        onNavigate = { navigateTo(DeputadosSearchArgs) }
+                    )
                 }
             }
         }

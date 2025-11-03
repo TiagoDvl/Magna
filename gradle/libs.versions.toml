@@ -1,5 +1,6 @@
 [versions]
 agp = "8.13.0"
+navigationCompose = "2.9.1"
 sqlDelight = "2.1.0"
 android-compileSdk = "36"
 android-minSdk = "29"
@@ -46,6 +47,7 @@ napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqlDelight" }
 
 [plugins]

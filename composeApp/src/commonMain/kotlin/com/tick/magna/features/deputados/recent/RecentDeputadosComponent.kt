@@ -20,20 +20,23 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun RecentDeputadosComponent(
     modifier: Modifier = Modifier,
-    viewModel: RecentDeputadosViewModel = koinViewModel()
+    viewModel: RecentDeputadosViewModel = koinViewModel(),
+    onNavigate: () -> Unit
 ) {
     val state = viewModel.recentDeputadosState.collectAsStateWithLifecycle()
 
     RecentDeputadosComponentContent(
         modifier = modifier,
-        state = state.value
+        state = state.value,
+        onNavigate = onNavigate
     )
 }
 
 @Composable
 private fun RecentDeputadosComponentContent(
     modifier: Modifier = Modifier,
-    state: RecentDeputadosState
+    state: RecentDeputadosState,
+    onNavigate: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -43,16 +46,18 @@ private fun RecentDeputadosComponentContent(
     ) {
         when (state) {
             RecentDeputadosState.ConfigurationError -> SomethingWentWrongComponent()
-            RecentDeputadosState.Empty -> FeatureDiscovery()
+            RecentDeputadosState.Empty -> FeatureDiscovery(
+                onNavigate = onNavigate
+            )
             is RecentDeputadosState.Peak -> RecentDeputados()
         }
     }
 }
 
 @Composable
-private fun FeatureDiscovery() {
+private fun FeatureDiscovery(onNavigate: () -> Unit) {
     BaseText(modifier = Modifier.fillMaxWidth(), text = "No recent deputados")
-    CtaButton(icon = painterResource(Res.drawable.ic_chevron_right), onClick = {})
+    CtaButton(icon = painterResource(Res.drawable.ic_chevron_right), onClick = onNavigate)
 }
 
 @Composable
