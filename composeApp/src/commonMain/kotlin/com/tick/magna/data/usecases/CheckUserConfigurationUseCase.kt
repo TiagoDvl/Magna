@@ -1,5 +1,6 @@
 package com.tick.magna.data.usecases
 
+import com.tick.magna.User
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
@@ -14,15 +15,20 @@ class CheckUserConfigurationUseCase(
     }
 
     suspend operator fun invoke(): Flow<UserConfigurationState> {
-        return userDao.getUser().map {
-            val user = it.firstOrNull()
-            logger.d("CheckUserConfigurationUseCase -> User: $user")
-            if (user?.legislaturaId == null) {
-                logger.d("CheckUserConfigurationUseCase -> Onboarding", TAG)
-                UserConfigurationState.Onboarding
+        return userDao.getUser().map { user ->
+            if (user == null) {
+                logger.d("No user found - Creating", TAG)
+                userDao.insertUser(User(0, null))
+                UserConfigurationState.Loading
             } else {
-                logger.d("CheckUserConfigurationUseCase -> Configured", TAG)
-                UserConfigurationState.Configured
+                logger.d("User: $user", TAG)
+                if (user.legislaturaId == null) {
+                    logger.d("Onboarding", TAG)
+                    UserConfigurationState.Onboarding
+                } else {
+                    logger.d("Configured", TAG)
+                    UserConfigurationState.Configured
+                }
             }
         }
     }

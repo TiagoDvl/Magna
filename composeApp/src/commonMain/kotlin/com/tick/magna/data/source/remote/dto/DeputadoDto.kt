@@ -33,7 +33,7 @@ fun DeputadoDto.toLocal(): DeputadoEntity {
         id = this.id,
         legislaturaId = "",
         partidoId = null,
-        favorite = 0,
+        last_seen = 0,
         name = this.nome,
         uf = this.siglaUf,
         profile_picture = this.urlFoto,

@@ -17,10 +17,8 @@ class GetDeputadosListUseCase(
     }
 
     suspend operator fun invoke(): Flow<DeputadosListState> {
-        return userDao.getUser().map {
-            val user = it.firstOrNull()
-
-            if (user == null && user?.legislaturaId != null) {
+        return userDao.getUser().map { user ->
+            if (user?.legislaturaId != null) {
                 val deputados = deputadosRepository.getDeputados(user.legislaturaId)
                 if (deputados.isSuccess) {
                     logger.d("Deputados response: ${deputados.getOrNull()} ", TAG)

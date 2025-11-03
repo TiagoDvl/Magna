@@ -10,6 +10,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.usecases.RecentDeputadosState
 import com.tick.magna.ui.component.SomethingWentWrongComponent
+import com.tick.magna.ui.core.button.CtaButton
+import com.tick.magna.ui.core.text.BaseText
+import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.ic_chevron_right
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -46,6 +51,8 @@ private fun RecentDeputadosComponentContent(
 
 @Composable
 private fun FeatureDiscovery() {
+    BaseText(modifier = Modifier.fillMaxWidth(), text = "No recent deputados")
+    CtaButton(icon = painterResource(Res.drawable.ic_chevron_right), onClick = {})
 }
 
 @Composable

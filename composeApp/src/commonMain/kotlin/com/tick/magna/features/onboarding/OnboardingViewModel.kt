@@ -1,6 +1,5 @@
 package com.tick.magna.features.onboarding
 
-import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface

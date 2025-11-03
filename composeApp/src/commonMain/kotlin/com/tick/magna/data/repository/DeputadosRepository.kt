@@ -3,9 +3,12 @@ package com.tick.magna.data.repository
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
+import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 internal class DeputadosRepository(
     private val deputadosApi: DeputadosApiInterface,
@@ -17,8 +20,11 @@ internal class DeputadosRepository(
         private const val TAG = "PlenarioRepository"
     }
 
-    override suspend fun getRecentDeputados(): Result<List<Deputado>> {
-        return Result.success(listOf())
+    override suspend fun getRecentDeputados(): Flow<List<Deputado>> {
+        loggerInterface.d("Fetching recent deputados", TAG)
+        return deputadoDao.getRecentDeputados().map { recentDeputados ->
+            recentDeputados.map { it.toDomain() }
+        }
     }
 
     override suspend fun getDeputados(legislaturaId: String): Result<List<Deputado>> {
@@ -29,7 +35,7 @@ internal class DeputadosRepository(
             deputadosResponse.dados.map { deputadoDao.insertDeputado(it.toLocal()) }
             Result.success(deputadosResponse.dados.map { it.toDomain() })
         } catch (e: Exception) {
-            Result.failure(Exception("Falha ao buscar deputados: ${e.message}"))
+            Result.failure(Exception("Failed to fetch deputados: ${e.message}"))
         }
     }
 

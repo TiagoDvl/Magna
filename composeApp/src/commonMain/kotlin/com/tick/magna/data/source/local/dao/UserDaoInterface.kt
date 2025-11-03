@@ -9,7 +9,7 @@ interface UserDaoInterface {
     suspend fun insertUser(user: User)
     suspend fun deleteUserById(id: String)
 
-    suspend fun getUser(): Flow<List<User>>
+    suspend fun getUser(): Flow<User?>
 
     suspend fun setUserLegislatura(legislaturaId: String)
 }
