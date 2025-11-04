@@ -5,7 +5,8 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 
 class GetDeputadosListUseCase(
     private val deputadosRepository: DeputadosRepositoryInterface,
@@ -16,19 +17,22 @@ class GetDeputadosListUseCase(
         private const val TAG = "GetDeputadosListUseCase"
     }
 
-    suspend operator fun invoke(): Flow<DeputadosListState> {
-        return userDao.getUser().map { user ->
-            if (user?.legislaturaId != null) {
+    operator fun invoke(): Flow<DeputadosListState> {
+        return flow {
+            emit(DeputadosListState.Loading)
+            val user = userDao.getUser().firstOrNull()
+            if (user != null && user.legislaturaId != null) {
                 val deputados = deputadosRepository.getDeputados(user.legislaturaId)
-                if (deputados.isSuccess) {
-                    logger.d("Deputados response: ${deputados.getOrNull()} ", TAG)
+                val state = if (deputados.isSuccess) {
+                    logger.d("Deputados response: ${deputados.getOrNull()?.size} ", TAG)
                     DeputadosListState.Success(deputados.getOrDefault(emptyList()))
                 } else {
                     logger.d("Deputados error: ${deputados.exceptionOrNull()} ", TAG)
                     DeputadosListState.Error
                 }
+                emit(state)
             } else {
-                DeputadosListState.NoLegislaturaConfigured
+                emit(DeputadosListState.Error)
             }
         }
     }
@@ -36,7 +40,6 @@ class GetDeputadosListUseCase(
 
 sealed interface DeputadosListState {
     data object Loading: DeputadosListState
-    data object NoLegislaturaConfigured: DeputadosListState
     data class Success(val deputados: List<Deputado>): DeputadosListState
     data object Error: DeputadosListState
 }

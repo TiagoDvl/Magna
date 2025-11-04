@@ -14,7 +14,7 @@ class GetRecentDeputadosUseCase(
     private val logger: AppLoggerInterface,
 ) {
     companion object Companion {
-        private const val TAG = "GetDeputadosListUseCase"
+        private const val TAG = "GetRecentDeputadosUseCase"
     }
 
     suspend operator fun invoke(): Flow<RecentDeputadosState> {

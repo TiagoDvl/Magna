@@ -1,19 +1,14 @@
-package com.tick.magna.features.deputados.search
+package com.tick.magna.features.deputados.detail
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.ui.component.LoadingComponent
-import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
 import com.tick.magna.ui.core.list.ListItem
@@ -24,31 +19,26 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun DeputadosSearchScreen(
-    viewModel: DeputadosSearchViewModel = koinViewModel(),
+fun DeputadoDetailScreen(
+    viewModel: DeputadoDetailsViewModel = koinViewModel(),
     navController: NavController
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle()
 
-    Scaffold {
-        when {
-            state.value.isError -> SomethingWentWrongComponent()
-            state.value.isLoading -> LoadingComponent()
-            else -> DeputadosSearchContent(
-                deputados = state.value.deputados,
-                onDeputadoClick = { navController.navigate(DeputadoDetailsArgs(it)) }
-            )
+    when {
+        state.value.isLoading -> LoadingComponent()
+        else -> {
+            state.value.deputado?.let { DeputadoDetails(deputado = it) }
         }
     }
 }
 
 @Composable
-private fun DeputadosSearchContent(
-    deputados: List<Deputado>,
-    onDeputadoClick: (deputadoId: String) -> Unit
+private fun DeputadoDetails(
+    deputado: Deputado
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(deputados) { deputado ->
+    Scaffold {
+        Column {
             ListItem(
                 modifier = Modifier.fillMaxWidth(),
                 leftIcon = {
@@ -57,7 +47,7 @@ private fun DeputadosSearchContent(
                 rightIcon = {
                     CtaButton(
                         icon = painterResource(Res.drawable.ic_chevron_right),
-                        onClick = { onDeputadoClick(deputado.id) }
+                        onClick = {  }
                     )
                 },
                 content = {
@@ -67,7 +57,6 @@ private fun DeputadosSearchContent(
                     }
                 }
             )
-
         }
     }
 }

@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
+import com.tick.magna.features.deputados.detail.DeputadoDetailScreen
+import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs
@@ -45,7 +47,11 @@ fun App() {
                 }
 
                 composable<DeputadosSearchArgs> {
-                    DeputadosSearchScreen()
+                    DeputadosSearchScreen(navController = navController)
+                }
+
+                composable<DeputadoDetailsArgs> {
+                    DeputadoDetailScreen(navController = navController)
                 }
             }
 

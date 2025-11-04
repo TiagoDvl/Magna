@@ -28,10 +28,10 @@ fun DeputadoDto.toDomain(): Deputado {
     )
 }
 
-fun DeputadoDto.toLocal(): DeputadoEntity {
+fun DeputadoDto.toLocal(legislaturaId: String): DeputadoEntity {
     return DeputadoEntity(
         id = this.id,
-        legislaturaId = "",
+        legislaturaId = legislaturaId,
         partidoId = null,
         last_seen = 0,
         name = this.nome,

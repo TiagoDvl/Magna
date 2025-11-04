@@ -22,11 +22,13 @@ INSERT OR REPLACE INTO Deputado(
     profile_picture,
     email
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+VALUES ?;
 
 getDeputadosOrderedByLastSeen:
 SELECT * FROM Deputado WHERE last_seen IS NOT 0;
 
--- Read all
 getDeputados:
 SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId;
+
+getDeputado:
+SELECT * FROM Deputado WHERE id = :deputadoId;
