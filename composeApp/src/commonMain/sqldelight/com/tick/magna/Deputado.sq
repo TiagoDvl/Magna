@@ -10,7 +10,6 @@ CREATE TABLE Deputado (
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
 
--- Create
 insertDeputado:
 INSERT OR REPLACE INTO Deputado(
     id,

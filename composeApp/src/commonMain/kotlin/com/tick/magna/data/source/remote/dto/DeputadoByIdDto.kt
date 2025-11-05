@@ -1,7 +1,9 @@
 package com.tick.magna.data.source.remote.dto
 
+import androidx.compose.ui.util.fastJoinToString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.tick.magna.DeputadoDetails as DeputadoDetailsEntity
 
 @Serializable
 data class DeputadoByIdDto(
@@ -45,6 +47,15 @@ data class DeputadoByIdDto(
     val escolaridade: String
 )
 
-//todomain
-// to local
-fun DeputadoByIdDto
+fun DeputadoByIdDto.toLocal(legislaturaId: String): DeputadoDetailsEntity {
+    return DeputadoDetailsEntity(
+        deputadoId = id.toString(),
+        legislaturaId = legislaturaId,
+        gabineteBuilding = ultimoStatus.gabinete.predio,
+        gabineteRoom = ultimoStatus.gabinete.sala,
+        gabineteTelephone = ultimoStatus.gabinete.telefone,
+        gabineteEmail = ultimoStatus.gabinete.email,
+        urlWebsite = urlWebsite,
+        socials = redeSocial.fastJoinToString(),
+    )
+}

@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DeputadoByIdResponse(
-    val dado: DeputadoByIdDto,
+    val dados: DeputadoByIdDto,
     val links: List<LinkDto>
 )

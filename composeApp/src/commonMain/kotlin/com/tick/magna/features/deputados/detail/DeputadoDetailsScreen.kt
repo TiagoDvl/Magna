@@ -1,6 +1,7 @@
 package com.tick.magna.features.deputados.detail
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -37,7 +38,7 @@ fun DeputadoDetailScreen(
 private fun DeputadoDetails(
     deputado: Deputado
 ) {
-    Scaffold {
+    Scaffold(modifier = Modifier.fillMaxSize()) {
         Column {
             ListItem(
                 modifier = Modifier.fillMaxWidth(),
@@ -57,6 +58,11 @@ private fun DeputadoDetails(
                     }
                 }
             )
+
+            Column {
+                //BaseText(text = deputado.)
+                //BaseText(text = deputado.uf)
+            }
         }
     }
 }

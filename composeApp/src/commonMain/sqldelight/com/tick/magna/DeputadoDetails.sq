@@ -1,0 +1,28 @@
+CREATE TABLE DeputadoDetails(
+    deputadoId TEXT NOT NULL PRIMARY KEY,
+    legislaturaId TEXT NOT NULL,
+    gabineteBuilding TEXT,
+    gabineteRoom TEXT,
+    gabineteTelephone TEXT,
+    gabineteEmail TEXT,
+    urlWebsite TEXT,
+    socials TEXT,
+    FOREIGN KEY(deputadoId) REFERENCES Deputado(id),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);
+
+insertDeputadoDetails:
+INSERT OR REPLACE INTO DeputadoDetails(
+    deputadoId,
+    legislaturaId,
+    gabineteBuilding,
+    gabineteRoom,
+    gabineteTelephone,
+    gabineteEmail,
+    urlWebsite,
+    socials
+)
+VALUES ?;
+
+getDeputadoDetails:
+SELECT * FROM DeputadoDetails WHERE deputadoId = :deputadoId AND legislaturaId = :legislaturaId;
