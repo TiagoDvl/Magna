@@ -2,6 +2,7 @@ package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.result.DeputadoDetailsResult
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
@@ -9,6 +10,7 @@ import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
 internal class DeputadosRepository(
@@ -41,13 +43,20 @@ internal class DeputadosRepository(
         }
     }
 
-    override suspend fun getDeputadoById(legislaturaId: String, id: String): Flow<Deputado?> {
-        return deputadoDao.getDeputado(id).map { it?.toDomain() }.also {
-            try {
-                val response = deputadosApi.getDeputadoById(id)
+    override suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado> {
+        return deputadoDao.getDeputado(legislaturaId, deputadoId).filterNotNull().map {
+            it.toDomain()
+        }
+    }
+
+    override suspend fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetailsResult> {
+        return deputadoDetailsDao.getDeputado(legislaturaId, deputadoId).map { deputadoDetailsEntity ->
+            if (deputadoDetailsEntity == null) {
+                val response = deputadosApi.getDeputadoById(deputadoId)
                 deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
-            } catch (e: Exception) {
-                loggerInterface.d("Failed to fetch deputado $id details: ${e.message}", TAG)
+                DeputadoDetailsResult.Fetching
+            } else {
+                DeputadoDetailsResult.Success(deputadoDetailsEntity.toDomain())
             }
         }
     }

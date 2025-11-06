@@ -30,4 +30,4 @@ getDeputados:
 SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId;
 
 getDeputado:
-SELECT * FROM Deputado WHERE id = :deputadoId;
+SELECT * FROM Deputado WHERE id = :deputadoId AND legislaturaId = :legislaturaId;

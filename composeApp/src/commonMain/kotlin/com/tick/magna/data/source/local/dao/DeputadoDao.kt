@@ -19,9 +19,9 @@ class DeputadoDao(
         return deputadoQueries.getDeputados(legislaturaId).executeAsList()
     }
 
-    override suspend fun getDeputado(deputadoId: String): Flow<Deputado?> {
+    override suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado?> {
         return deputadoQueries
-            .getDeputado(deputadoId)
+            .getDeputado(deputadoId, legislaturaId)
             .asFlow()
             .mapToOneOrNull(dispatcherInterface.io)
     }

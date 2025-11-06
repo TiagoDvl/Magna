@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.tick.magna.data.domain.Deputado
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
@@ -29,21 +28,21 @@ fun DeputadoDetailScreen(
     when {
         state.value.isLoading -> LoadingComponent()
         else -> {
-            state.value.deputado?.let { DeputadoDetails(deputado = it) }
+            DeputadoDetails(state = state.value)
         }
     }
 }
 
 @Composable
 private fun DeputadoDetails(
-    deputado: Deputado
+    state: DeputadoDetailsState
 ) {
     Scaffold(modifier = Modifier.fillMaxSize()) {
         Column {
             ListItem(
                 modifier = Modifier.fillMaxWidth(),
                 leftIcon = {
-                    Avatar(photoUrl = deputado.profilePicture)
+                    Avatar(photoUrl = state.deputado?.profilePicture)
                 },
                 rightIcon = {
                     CtaButton(
@@ -53,15 +52,18 @@ private fun DeputadoDetails(
                 },
                 content = {
                     Column {
-                        BaseText(text = deputado.name)
-                        BaseText(text = deputado.uf)
+                        BaseText(text = state.deputado?.name.orEmpty())
+                        BaseText(text = state.deputado?.uf.orEmpty())
                     }
                 }
             )
 
             Column {
-                //BaseText(text = deputado.)
-                //BaseText(text = deputado.uf)
+                BaseText(text = "Building: " + state.deputadoDetails?.gabineteBuilding)
+
+                state.deputadoDetails?.socials?.forEach {
+                    BaseText(text = "Social: $it")
+                }
             }
         }
     }

@@ -6,5 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface DeputadoDetailsDaoInterface {
 
     suspend fun insertDeputadosDetails(deputadosDetails: List<DeputadoDetails>)
-    suspend fun getDeputado(deputadoId: String, legislaturaId: String): Flow<DeputadoDetails?>
+    suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<DeputadoDetails?>
 }

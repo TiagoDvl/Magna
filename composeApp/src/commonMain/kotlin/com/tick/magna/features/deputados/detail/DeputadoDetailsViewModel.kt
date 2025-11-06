@@ -20,12 +20,7 @@ class DeputadoDetailsViewModel(
     init {
         viewModelScope.launch(dispatcherInterface.io) {
             deputadoDetails("220645").collect { deputado ->
-                _state.update {
-                    it.copy(
-                        isLoading = deputado == null,
-                        deputado = deputado
-                    )
-                }
+                _state.update { deputado }
             }
         }
     }
