@@ -3,10 +3,8 @@ package com.tick.magna.ui.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,11 +27,12 @@ fun SomethingWentWrongComponent(
     ) {
         Icon(
             painter = painterResource(Res.drawable.ic_light_users),
+            tint = MaterialTheme.colorScheme.error,
             contentDescription = null
         )
         BaseText(
             text = stringResource(Res.string.something_went_wrong),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.error),
         )
     }
 }

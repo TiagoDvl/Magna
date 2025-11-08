@@ -1,11 +1,13 @@
 package com.tick.magna.features.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -76,7 +78,8 @@ private fun MagnaHomeContent(
 
     BottomSheetScaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { MagnaTopBar(titleText = "Magna Home") },
+        sheetContainerColor = MaterialTheme.colorScheme.background,
+        topBar = { MagnaTopBar(titleText = "Magna") },
         scaffoldState = bottomSheetScaffoldState,
         sheetContent = {
             when (localSheetState) {
@@ -88,8 +91,11 @@ private fun MagnaHomeContent(
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
-            verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
+            modifier = Modifier.fillMaxSize()
+                .padding(paddingValues)
+                .padding(LocalDimensions.current.grid8)
+                .background(MaterialTheme.colorScheme.background),
+            verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4),
         ) {
             when (homeState.userConfigurationState) {
                 UserConfigurationState.GenericError -> SomethingWentWrongComponent()
