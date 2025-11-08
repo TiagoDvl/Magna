@@ -36,6 +36,7 @@ import com.tick.magna.data.source.remote.api.PartidoApiInterface
 import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
 import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
+import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
 import com.tick.magna.data.usecases.GetPartidosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
@@ -89,6 +90,7 @@ val useCaseModule = module {
     single { CheckUserConfigurationUseCase(get(), get()) }
     single { ConfigureLegislaturaUseCase(get(), get(), get()) }
     single { GetDeputadoDetailsUseCase(get(), get(), get()) }
+    single { GetDeputadoUseCase(get(), get(), get()) }
 }
 
 val loggingModule = module {
@@ -100,7 +102,7 @@ val viewModelModule = module {
     viewModel { OnboardingViewModel(get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
-    viewModel { DeputadoDetailsViewModel(get(), get()) }
+    viewModel { DeputadoDetailsViewModel(get(), get(), get()) }
 }
 
 val appModules = listOf(

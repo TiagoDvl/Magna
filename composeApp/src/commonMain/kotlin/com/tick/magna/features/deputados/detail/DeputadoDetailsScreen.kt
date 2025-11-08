@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
@@ -58,13 +59,21 @@ private fun DeputadoDetails(
                 }
             )
 
-            Column {
-                BaseText(text = "Building: " + state.deputadoDetails?.gabineteBuilding)
-
-                state.deputadoDetails?.socials?.forEach {
-                    BaseText(text = "Social: $it")
-                }
+            when (state.deputadoDetails) {
+                is DetailsState.Content -> DetailContent(state.deputadoDetails.deputadoDetails)
+                DetailsState.Loading -> LoadingComponent()
             }
+        }
+    }
+}
+
+@Composable
+private fun DetailContent(deputadoDetails: DeputadoDetails) {
+    Column {
+        BaseText(text = "Building: " + deputadoDetails.gabineteBuilding)
+
+        deputadoDetails.socials?.forEach {
+            BaseText(text = "Social: $it")
         }
     }
 }
