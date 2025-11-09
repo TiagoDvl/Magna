@@ -1,8 +1,8 @@
 package com.tick.magna.data.source.remote.dto
 
 import com.tick.magna.data.domain.Legislatura
-import com.tick.magna.Legislatura as LegislaturaEntity
 import kotlinx.serialization.Serializable
+import com.tick.magna.Legislatura as LegislaturaEntity
 
 @Serializable
 data class LegislaturaDto(
