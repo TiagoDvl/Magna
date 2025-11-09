@@ -6,7 +6,7 @@ import com.tick.magna.data.domain.DeputadoDetails
 data class DeputadoDetailsState(
     val isLoading: Boolean = true,
     val deputado: Deputado? = null,
-    val deputadoDetails: DetailsState = DetailsState.Loading
+    val detailsState: DetailsState = DetailsState.Loading
 )
 
 sealed interface DetailsState {

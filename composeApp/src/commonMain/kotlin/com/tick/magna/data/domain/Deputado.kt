@@ -131,5 +131,3 @@ val deputadosMock = listOf(
         email = "dep.marcelvanhattem@camara.leg.br"
     )
 )
-
-fun randomDeputado() = deputadosMock.random()

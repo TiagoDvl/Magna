@@ -40,7 +40,7 @@ class DeputadoDetailsViewModel(
                         is DeputadoDetailsResult.Success -> DetailsState.Content(deputadoDetails.details)
                     }
                     _state.update {
-                        it.copy(deputadoDetails = detailState)
+                        it.copy(detailsState = detailState)
                     }
                 }
             }

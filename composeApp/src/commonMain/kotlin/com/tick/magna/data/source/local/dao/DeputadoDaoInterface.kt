@@ -12,4 +12,6 @@ interface DeputadoDaoInterface {
     suspend fun getRecentDeputados(): Flow<List<Deputado>>
 
     suspend fun insertDeputados(deputados: List<Deputado>)
+
+    suspend fun updateLastSeen(deputadoId: String)
 }

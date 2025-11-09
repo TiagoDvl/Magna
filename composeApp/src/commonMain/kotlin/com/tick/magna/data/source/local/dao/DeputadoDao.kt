@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.tick.magna.data.source.local.dao
 
 import app.cash.sqldelight.coroutines.asFlow
@@ -7,6 +9,8 @@ import com.tick.magna.Deputado
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.MagnaDatabase
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.flow.Flow
 
 class DeputadoDao(
@@ -38,5 +42,12 @@ class DeputadoDao(
                 deputadoQueries.insertDeputado(it)
             }
         }
+    }
+
+    override suspend fun updateLastSeen(deputadoId: String) {
+        deputadoQueries.updateLastSeen(
+            id = deputadoId,
+            last_seen = Clock.System.now().toEpochMilliseconds()
+        )
     }
 }

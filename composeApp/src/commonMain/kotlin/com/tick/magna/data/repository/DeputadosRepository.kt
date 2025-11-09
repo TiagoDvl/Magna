@@ -56,6 +56,7 @@ internal class DeputadosRepository(
                 deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
                 DeputadoDetailsResult.Fetching
             } else {
+                deputadoDao.updateLastSeen(deputadoId)
                 DeputadoDetailsResult.Success(deputadoDetailsEntity.toDomain())
             }
         }

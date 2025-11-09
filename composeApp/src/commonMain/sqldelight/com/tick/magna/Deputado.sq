@@ -31,3 +31,6 @@ SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId;
 
 getDeputado:
 SELECT * FROM Deputado WHERE id = :deputadoId AND legislaturaId = :legislaturaId;
+
+updateLastSeen:
+UPDATE Deputado SET last_seen = ? WHERE id = ?;

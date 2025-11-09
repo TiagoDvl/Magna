@@ -11,14 +11,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DeputadosSearchViewModel(
-    dispatcher: DispatcherInterface,
+    private val dispatcher: DispatcherInterface,
     getDeputadosList: GetDeputadosListUseCase
 ): ViewModel() {
-
 
     private val _state = MutableStateFlow(DeputadosSearchState())
     val state = _state.asStateFlow()
 
+    fun processAction(action: DeputadosSearchAction) {
+        when (action) {
+            is DeputadosSearchAction.Search -> search(action.query)
+            DeputadosSearchAction.CancelSearchMode -> cancelSearch()
+        }
+    }
 
     init {
         viewModelScope.launch(dispatcher.io) {
@@ -31,4 +36,26 @@ class DeputadosSearchViewModel(
             }
         }
     }
+
+    private fun search(query: String) {
+        viewModelScope.launch(dispatcher.default) {
+            val currentDeputados = _state.value.deputados
+            val filteredDeputados = currentDeputados.filter { deputado ->
+                deputado.name.contains(other = query, ignoreCase = true)
+            }
+            _state.update { it.copy(deputadosSearch = filteredDeputados) }
+        }
+    }
+
+    private fun cancelSearch() {
+        viewModelScope.launch(dispatcher.default) {
+            _state.update { it.copy(deputadosSearch = null) }
+        }
+    }
+}
+
+sealed interface DeputadosSearchAction {
+
+    data class Search(val query: String): DeputadosSearchAction
+    data object CancelSearchMode: DeputadosSearchAction
 }
