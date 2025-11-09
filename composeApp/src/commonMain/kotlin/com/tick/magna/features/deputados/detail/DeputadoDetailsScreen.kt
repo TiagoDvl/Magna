@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -89,10 +91,17 @@ private fun DetailHeader(
             shape = ShapeDefaults.Medium,
             placeholder = painterResource(Res.drawable.ic_light_users),
             badge = {
-                BaseText(
-                    text = deputado?.uf.orEmpty(),
-                    style = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.secondary)
-                )
+                Card(
+                    colors = CardDefaults.cardColors().copy(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    shape = ShapeDefaults.Medium,
+                ) {
+                    BaseText(
+                        text = deputado?.uf.orEmpty(),
+                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                    )
+                }
             }
         )
 

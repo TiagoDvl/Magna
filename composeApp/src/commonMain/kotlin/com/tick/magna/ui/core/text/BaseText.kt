@@ -15,6 +15,6 @@ fun BaseText(
     Text(
         modifier = modifier,
         text = text,
-        style = style
+        style = style,
     )
 }

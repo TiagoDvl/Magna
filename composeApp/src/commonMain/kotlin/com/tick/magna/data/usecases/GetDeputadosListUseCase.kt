@@ -5,7 +5,7 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 
 class GetDeputadosListUseCase(
@@ -18,9 +18,13 @@ class GetDeputadosListUseCase(
     }
 
     operator fun invoke(): Flow<DeputadosListState> {
+        return combine(userDao.getUser(), deputadosRepository.getDeputados()) { user, legislaturas ->
+
+        }
+        val user = .firstOrNull()
+
         return flow {
             emit(DeputadosListState.Loading)
-            val user = userDao.getUser().firstOrNull()
             if (user != null && user.legislaturaId != null) {
                 val deputados = deputadosRepository.getDeputados(user.legislaturaId)
                 val state = if (deputados.isSuccess) {

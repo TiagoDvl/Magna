@@ -23,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.usecases.UserConfigurationState
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
-import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.onboarding.OnboardingSheet
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
@@ -102,9 +101,7 @@ private fun MagnaHomeContent(
                 UserConfigurationState.Loading -> LoadingComponent()
                 UserConfigurationState.Onboarding -> showSheet(HomeSheetState.ONBOARDING)
                 UserConfigurationState.Configured -> {
-                    RecentDeputadosComponent(
-                        onNavigate = { navigateTo(DeputadosSearchArgs) }
-                    )
+                    RecentDeputadosComponent(onNavigate = { navigateTo(it) })
                 }
             }
         }

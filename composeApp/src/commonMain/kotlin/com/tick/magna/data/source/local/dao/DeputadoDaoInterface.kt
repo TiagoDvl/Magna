@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface DeputadoDaoInterface {
 
-    suspend fun getDeputados(legislaturaId: String): List<Deputado>
+    suspend fun getDeputados(legislaturaId: String): Flow<List<Deputado>>
 
     suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado?>
 

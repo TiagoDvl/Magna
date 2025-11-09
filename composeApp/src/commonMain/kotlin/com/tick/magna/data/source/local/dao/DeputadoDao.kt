@@ -19,8 +19,11 @@ class DeputadoDao(
     private val dispatcherInterface: DispatcherInterface
 ): DeputadoDaoInterface {
 
-    override suspend fun getDeputados(legislaturaId: String): List<Deputado> {
-        return deputadoQueries.getDeputados(legislaturaId).executeAsList()
+    override suspend fun getDeputados(legislaturaId: String): Flow<List<Deputado>> {
+        return deputadoQueries
+            .getDeputados(legislaturaId)
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
     }
 
     override suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado?> {

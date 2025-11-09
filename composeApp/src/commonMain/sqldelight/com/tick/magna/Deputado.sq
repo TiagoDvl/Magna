@@ -11,7 +11,7 @@ CREATE TABLE Deputado (
 );
 
 insertDeputado:
-INSERT OR REPLACE INTO Deputado(
+INSERT INTO Deputado(
     id,
     legislaturaId,
     partidoId,
@@ -21,7 +21,15 @@ INSERT OR REPLACE INTO Deputado(
     profile_picture,
     email
 )
-VALUES ?;
+VALUES ?
+ON CONFLICT(id) DO UPDATE SET
+    legislaturaId = COALESCE(excluded.legislaturaId, legislaturaId),
+    partidoId = COALESCE(excluded.partidoId, partidoId),
+    name = COALESCE(excluded.name, name),
+    uf = COALESCE(excluded.uf, uf),
+    profile_picture = COALESCE(excluded.profile_picture, profile_picture),
+    email = COALESCE(excluded.email, email);
+
 
 getDeputadosOrderedByLastSeen:
 SELECT * FROM Deputado WHERE last_seen IS NOT 0;

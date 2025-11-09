@@ -1,5 +1,6 @@
 package com.tick.magna.di
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
 import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
@@ -102,7 +103,9 @@ val viewModelModule = module {
     viewModel { OnboardingViewModel(get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
-    viewModel { DeputadoDetailsViewModel(get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) ->
+        DeputadoDetailsViewModel(handle, get(), get(), get())
+    }
 }
 
 val appModules = listOf(

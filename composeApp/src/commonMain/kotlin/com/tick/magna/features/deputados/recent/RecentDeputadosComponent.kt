@@ -21,6 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.data.usecases.RecentDeputadosState
+import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
+import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
@@ -36,7 +38,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun RecentDeputadosComponent(
     modifier: Modifier = Modifier,
     viewModel: RecentDeputadosViewModel = koinViewModel(),
-    onNavigate: () -> Unit
+    onNavigate: (Any) -> Unit
 ) {
     val state = viewModel.recentDeputadosState.collectAsStateWithLifecycle()
 
@@ -51,7 +53,7 @@ fun RecentDeputadosComponent(
 private fun RecentDeputadosComponentContent(
     modifier: Modifier = Modifier,
     state: RecentDeputadosState,
-    onNavigate: () -> Unit = {}
+    onNavigate: (Any) -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -61,16 +63,14 @@ private fun RecentDeputadosComponentContent(
     ) {
         when (state) {
             RecentDeputadosState.ConfigurationError -> SomethingWentWrongComponent()
-            RecentDeputadosState.Empty -> FeatureDiscovery(
-                onNavigate = onNavigate
-            )
-            is RecentDeputadosState.Peak -> RecentDeputados(state.deputados, {})
+            RecentDeputadosState.Empty -> FeatureDiscovery(onNavigate)
+            is RecentDeputadosState.Peak -> RecentDeputados(state.deputados, onNavigate)
         }
     }
 }
 
 @Composable
-private fun FeatureDiscovery(onNavigate: () -> Unit) {
+private fun FeatureDiscovery(onNavigate: (Any) -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -87,7 +87,7 @@ private fun FeatureDiscovery(onNavigate: () -> Unit) {
         CtaButton(
             icon = painterResource(Res.drawable.ic_chevron_right),
             tint = MaterialTheme.colorScheme.tertiary,
-            onClick = onNavigate
+            onClick = { onNavigate(DeputadosSearchArgs) }
         )
     }
 }
@@ -95,7 +95,7 @@ private fun FeatureDiscovery(onNavigate: () -> Unit) {
 @Composable
 private fun RecentDeputados(
     deputados: List<Deputado>,
-    onNavigate: () -> Unit
+    onNavigate: (Any) -> Unit
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -103,25 +103,28 @@ private fun RecentDeputados(
     ) {
         items(deputados) { deputado ->
             Card(
-                modifier = Modifier.height(120.dp).width(80.dp),
+                modifier = Modifier.height(140.dp).width(80.dp),
                 colors = CardDefaults.cardColors().copy(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                ),
+                onClick = {
+                    onNavigate(DeputadoDetailsArgs(deputado.id))
+                }
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
                 ) {
                     Avatar(
                         modifier = Modifier.weight(1f),
                         photoUrl = deputado.profilePicture
                     )
                     BaseText(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier,
                         text = deputado.name,
-                        style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center)
+                        style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center)
                     )
                 }
             }
@@ -129,7 +132,7 @@ private fun RecentDeputados(
 
         item {
             Card(
-                modifier = Modifier.height(120.dp).width(80.dp)
+                modifier = Modifier.height(140.dp).width(80.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
@@ -142,7 +145,8 @@ private fun RecentDeputados(
                     )
                     CtaButton(
                         modifier = Modifier.padding(top = 8.dp),
-                        icon = painterResource(Res.drawable.ic_chevron_right), onClick = onNavigate
+                        icon = painterResource(Res.drawable.ic_chevron_right),
+                        onClick = { onNavigate(DeputadosSearchArgs) }
                     )
                 }
             }

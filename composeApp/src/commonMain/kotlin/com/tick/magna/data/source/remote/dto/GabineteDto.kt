@@ -6,20 +6,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GabineteDto(
     @SerialName("nome")
-    val nome: String,
+    val nome: String?,
 
     @SerialName("predio")
-    val predio: String,
+    val predio: String?,
 
     @SerialName("sala")
-    val sala: String,
+    val sala: String?,
 
     @SerialName("andar")
-    val andar: String,
+    val andar: String?,
 
     @SerialName("telefone")
-    val telefone: String,
+    val telefone: String?,
 
     @SerialName("email")
-    val email: String
+    val email: String?
 )
