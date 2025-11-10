@@ -1,7 +1,6 @@
 package com.tick.magna.data.source.local.dao
 
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.tick.magna.User
 import com.tick.magna.UserQueries
@@ -13,25 +12,8 @@ internal class UserDao(
     private val dispatcherInterface: DispatcherInterface
 ): UserDaoInterface {
 
-    override fun getUserById(id: String): User? {
-        return userQueries
-            .selectUserById(id.toLong())
-            .executeAsOneOrNull()
-    }
-
-    override fun getAllUsers(): Flow<List<User>> {
-        return userQueries
-            .selectAllUsers()
-            .asFlow()
-            .mapToList(dispatcherInterface.io)
-    }
-
-    override fun insertUser(user: User) {
-        userQueries.insertUser(user)
-    }
-
-    override fun deleteUserById(id: String) {
-        userQueries.deleteUserById(id.toLong())
+    override fun setupInitialUser() {
+        userQueries.insertUser(User(0, null))
     }
 
     override fun getUser(): Flow<User?> {

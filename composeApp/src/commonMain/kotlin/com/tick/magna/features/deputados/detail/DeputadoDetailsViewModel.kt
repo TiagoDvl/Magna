@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.tick.magna.data.dispatcher.DispatcherInterface
-import com.tick.magna.data.repository.result.DeputadoDetailsResult
+import com.tick.magna.data.usecases.DeputadoDetailsResult
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
 import kotlinx.coroutines.flow.MutableStateFlow

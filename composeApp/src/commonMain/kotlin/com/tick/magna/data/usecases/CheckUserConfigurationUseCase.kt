@@ -1,6 +1,5 @@
 package com.tick.magna.data.usecases
 
-import com.tick.magna.User
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +17,7 @@ class CheckUserConfigurationUseCase(
         return userDao.getUser().map { user ->
             if (user == null) {
                 logger.d("No user found - Creating", TAG)
-                userDao.insertUser(User(0, null))
+                userDao.setupInitialUser()
                 UserConfigurationState.Loading
             } else {
                 logger.d("User: $user", TAG)

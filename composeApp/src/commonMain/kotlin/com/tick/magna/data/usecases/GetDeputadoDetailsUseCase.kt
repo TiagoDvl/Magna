@@ -1,8 +1,8 @@
 package com.tick.magna.data.usecases
 
+import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
-import com.tick.magna.data.repository.result.DeputadoDetailsResult
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -25,3 +25,11 @@ class GetDeputadoDetailsUseCase(
         }
     }
 }
+
+sealed interface DeputadoDetailsResult {
+
+    data object Fetching: DeputadoDetailsResult
+
+    data class Success(val details: DeputadoDetails): DeputadoDetailsResult
+}
+
