@@ -26,7 +26,7 @@ class CheckUserConfigurationUseCase(
                     UserConfigurationState.Onboarding
                 } else {
                     logger.d("Configured", TAG)
-                    UserConfigurationState.Configured
+                    UserConfigurationState.AllSet
                 }
             }
         }
@@ -36,6 +36,6 @@ class CheckUserConfigurationUseCase(
 sealed interface UserConfigurationState {
     data object Loading: UserConfigurationState
     data object Onboarding: UserConfigurationState
-    data object Configured: UserConfigurationState
+    data object AllSet: UserConfigurationState
     data object GenericError: UserConfigurationState
 }

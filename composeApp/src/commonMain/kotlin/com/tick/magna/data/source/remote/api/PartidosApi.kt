@@ -7,7 +7,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
-internal class PartidoApi(private val httpClient: HttpClient): PartidoApiInterface {
+internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInterface {
     private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
 
     override suspend fun getPartidos(idLegislatura: String): PartidosResponse {

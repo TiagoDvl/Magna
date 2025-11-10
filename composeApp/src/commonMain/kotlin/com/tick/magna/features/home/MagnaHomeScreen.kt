@@ -100,7 +100,7 @@ private fun MagnaHomeContent(
                 UserConfigurationState.GenericError -> SomethingWentWrongComponent()
                 UserConfigurationState.Loading -> LoadingComponent()
                 UserConfigurationState.Onboarding -> showSheet(HomeSheetState.ONBOARDING)
-                UserConfigurationState.Configured -> {
+                UserConfigurationState.AllSet -> {
                     RecentDeputadosComponent(onNavigate = { navigateTo(it) })
                 }
             }
@@ -131,7 +131,7 @@ fun OnboardingMagnaHomePreview() {
 fun SuccessMagnaHomePreview() {
     MagnaHomeContent(
         homeState = HomeState(
-            userConfigurationState = UserConfigurationState.Configured
+            userConfigurationState = UserConfigurationState.AllSet
         ),
     )
 }

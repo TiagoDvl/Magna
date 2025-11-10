@@ -24,6 +24,8 @@ import com.tick.magna.data.source.local.dao.DeputadoDetailsDao
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDao
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
+import com.tick.magna.data.source.local.dao.PartidoDao
+import com.tick.magna.data.source.local.dao.PartidoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDao
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.platformModule
@@ -32,8 +34,8 @@ import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.LegislaturaApi
 import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
-import com.tick.magna.data.source.remote.api.PartidoApi
-import com.tick.magna.data.source.remote.api.PartidoApiInterface
+import com.tick.magna.data.source.remote.api.PartidosApi
+import com.tick.magna.data.source.remote.api.PartidosApiInterface
 import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
 import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
@@ -68,6 +70,7 @@ val databaseModule = module {
     single<LegislaturaDaoInterface> { LegislaturaDao(get(), get(), get()) }
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
+    single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
 }
 
 val dataModule = module {
@@ -82,12 +85,12 @@ val dataModule = module {
 
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
-    single<PartidoApiInterface> { PartidoApi(get()) }
+    single<PartidosApiInterface> { PartidosApi(get()) }
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
     single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get()) }
-    single<PartidosRepositoryInterface> { PartidosRepository(get(), get()) }
+    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }
 

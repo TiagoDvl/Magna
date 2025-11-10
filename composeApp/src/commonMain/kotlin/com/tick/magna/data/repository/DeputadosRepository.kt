@@ -2,12 +2,12 @@ package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.result.DeputadoDetailsResult
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
+import com.tick.magna.data.usecases.DeputadoDetailsResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

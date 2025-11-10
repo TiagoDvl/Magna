@@ -1,7 +1,7 @@
 package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.repository.result.DeputadoDetailsResult
+import com.tick.magna.data.usecases.DeputadoDetailsResult
 import kotlinx.coroutines.flow.Flow
 
 interface DeputadosRepositoryInterface {

@@ -8,21 +8,9 @@ CREATE TABLE User (
 insertUser:
 INSERT OR REPLACE INTO User VALUES ?;
 
--- Read all
-selectAllUsers:
-SELECT * FROM User;
-
 getLastUser:
 SELECT * FROM User ORDER BY id DESC LIMIT 1;
-
--- Read by ID
-selectUserById:
-SELECT * FROM User WHERE id = ?;
 
 -- Update
 updateUserLegislatura:
 UPDATE User SET legislaturaId = ? WHERE id = 0;
-
--- Delete
-deleteUserById:
-DELETE FROM User WHERE id = ?;

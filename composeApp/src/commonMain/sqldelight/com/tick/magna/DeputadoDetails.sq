@@ -12,17 +12,7 @@ CREATE TABLE DeputadoDetails(
 );
 
 insertDeputadoDetails:
-INSERT OR REPLACE INTO DeputadoDetails(
-    deputadoId,
-    legislaturaId,
-    gabineteBuilding,
-    gabineteRoom,
-    gabineteTelephone,
-    gabineteEmail,
-    urlWebsite,
-    socials
-)
-VALUES ?;
+INSERT OR REPLACE INTO DeputadoDetails VALUES ?;
 
 getDeputadoDetails:
 SELECT * FROM DeputadoDetails WHERE deputadoId = :deputadoId AND legislaturaId = :legislaturaId;

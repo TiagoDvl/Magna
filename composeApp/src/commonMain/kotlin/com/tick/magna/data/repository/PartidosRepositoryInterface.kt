@@ -1,10 +1,11 @@
 package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Partido
+import kotlinx.coroutines.flow.Flow
 
 interface PartidosRepositoryInterface {
 
-    suspend fun getPartidos(legislaturaId: String): Result<List<Partido>>
+    suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>>
 
-    suspend fun getPartidoById(id: Int): Result<Partido>
+    suspend fun getPartidoById(id: Int): Flow<Partido>
 }
