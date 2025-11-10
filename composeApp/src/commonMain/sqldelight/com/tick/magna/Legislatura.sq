@@ -4,25 +4,8 @@ CREATE TABLE Legislatura (
     endDate TEXT NOT NULL
 );
 
--- Create
 insertLegislatura:
-INSERT OR REPLACE INTO Legislatura(id, startDate, endDate)
-VALUES (?, ?, ?);
+INSERT OR REPLACE INTO Legislatura VALUES ?;
 
--- Read all
 selectAllLegislaturas:
 SELECT * FROM Legislatura;
-
--- Read by ID
-selectLegislaturaById:
-SELECT * FROM Legislatura WHERE id = ?;
-
--- Update
-updateLegislatura:
-UPDATE Legislatura
-SET startDate = ?, endDate = ?
-WHERE id = ?;
-
--- Delete
-deleteLegislaturaById:
-DELETE FROM Legislatura WHERE id = ?;

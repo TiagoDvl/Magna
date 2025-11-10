@@ -3,9 +3,7 @@ package com.tick.magna.features.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
-import com.tick.magna.data.domain.Legislatura
 import com.tick.magna.data.repository.LegislaturaRepositoryInterface
-import com.tick.magna.data.repository.result.AsyncResult
 import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,12 +23,7 @@ class OnboardingViewModel(
     init {
         viewModelScope.launch(dispatcherInterface.io) {
             legislaturaRepository.getAllLegislaturas().collect { result ->
-                when (result) {
-                    is AsyncResult.Success<*> -> _state.update {
-                        it.copy(legislaturas = result.data as List<Legislatura>)
-                    }
-                    else -> Unit
-                }
+                _state.update { it.copy(legislaturas = result) }
             }
         }
     }

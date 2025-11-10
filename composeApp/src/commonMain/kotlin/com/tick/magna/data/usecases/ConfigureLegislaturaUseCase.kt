@@ -14,12 +14,9 @@ class ConfigureLegislaturaUseCase(
     }
 
     suspend operator fun invoke(legislaturaStartDate: String) {
-        logger.d("ConfigureLegislaturaUseCase -> $legislaturaStartDate", TAG)
+        logger.d("Configure Legislatura for date -> $legislaturaStartDate", TAG)
         val legislatura = legislaturaRepository.getLegislatura(legislaturaStartDate)
-        if (legislatura != null) {
-            userDao.setUserLegislatura(legislatura.id)
-        } else {
-            logger.d("ConfigureLegislaturaUseCase -> Couldn't fetch legislatura", TAG)
-        }
+        logger.d("Set user legislatura as -> ${legislatura.id}", TAG)
+        userDao.setUserLegislatura(legislatura.id)
     }
 }

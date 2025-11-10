@@ -49,6 +49,7 @@ android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = 
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqlDelight" }
+sqldelight-dialect = { module = "app.cash.sqldelight:sqlite-3-38-dialect", version.ref = "sqlDelight" }
 
 [plugins]
 androidLint = { id = "com.android.lint", version.ref = "agp" }

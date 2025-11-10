@@ -118,6 +118,7 @@ sqldelight {
         create("MagnaDatabase") {
             packageName.set("com.tick.magna")
             srcDirs.setFrom("src/commonMain/sqldelight")
+            dialect(libs.sqldelight.dialect)
         }
     }
 }

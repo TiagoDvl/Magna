@@ -8,22 +8,25 @@ import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 internal class DeputadosRepository(
     private val deputadosApi: DeputadosApiInterface,
     private val deputadoDao: DeputadoDaoInterface,
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
-    private val loggerInterface: AppLoggerInterface
+    private val loggerInterface: AppLoggerInterface,
+    private val coroutineScope: CoroutineScope
 ): DeputadosRepositoryInterface {
 
     companion object Companion {
         private const val TAG = "DeputadosRepository"
     }
 
-    override suspend fun getRecentDeputados(): Flow<List<Deputado>> { VAI TER QUE TIRAR TODOS OS SUSPEND FUNCITON DOS DAOS PORQUE SIMPLESMENTE NÃO PRECISA VAMO VER SE EU CONSIGO FAZER O VIEWMODEL NÃO PRECISAR DO INIT PELA BILHONÉSIMA VEZ
+    override suspend fun getRecentDeputados(): Flow<List<Deputado>> {
         loggerInterface.d("Fetching recent deputados", TAG)
         return deputadoDao.getRecentDeputados().map { recentDeputados ->
             recentDeputados.map { it.toDomain() }
@@ -35,13 +38,15 @@ internal class DeputadosRepository(
         return deputadoDao.getDeputados(legislaturaId).map { deputados ->
             deputados.map { it.toDomain() }
         }.also {
-            try {
-                loggerInterface.d("Fetching deputado for legislatura ID: $legislaturaId", TAG)
-                val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+            coroutineScope.launch {
+                try {
+                    loggerInterface.d("Fetching deputado for legislatura ID: $legislaturaId", TAG)
+                    val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
 
-                deputadoDao.insertDeputados(deputadosResponse.dados.map { it.toLocal(legislaturaId) })
-            } catch (e: Exception) {
-                loggerInterface.d("Failed to fetch deputados: ${e.message}", TAG)
+                    deputadoDao.insertDeputados(deputadosResponse.dados.map { it.toLocal(legislaturaId) })
+                } catch (e: Exception) {
+                    loggerInterface.d("Failed to fetch deputados: ${e.message}", TAG)
+                }
             }
         }
     }

@@ -14,7 +14,7 @@ class CheckUserConfigurationUseCase(
         private const val TAG = "CheckUserConfigurationUseCase"
     }
 
-    suspend operator fun invoke(): Flow<UserConfigurationState> {
+    operator fun invoke(): Flow<UserConfigurationState> {
         return userDao.getUser().map { user ->
             if (user == null) {
                 logger.d("No user found - Creating", TAG)

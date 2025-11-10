@@ -32,7 +32,7 @@ ON CONFLICT(id) DO UPDATE SET
 
 
 getDeputadosOrderedByLastSeen:
-SELECT * FROM Deputado WHERE last_seen IS NOT 0;
+SELECT * FROM Deputado WHERE last_seen > 0;
 
 getDeputados:
 SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId;

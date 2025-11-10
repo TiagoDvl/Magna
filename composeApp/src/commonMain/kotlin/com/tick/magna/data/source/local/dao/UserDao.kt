@@ -27,10 +27,7 @@ internal class UserDao(
     }
 
     override fun insertUser(user: User) {
-        userQueries.insertUser(
-            id = user.id,
-            legislaturaId = user.legislaturaId
-        )
+        userQueries.insertUser(user)
     }
 
     override fun deleteUserById(id: String) {

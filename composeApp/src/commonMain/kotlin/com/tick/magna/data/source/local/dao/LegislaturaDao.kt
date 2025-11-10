@@ -1,46 +1,31 @@
 package com.tick.magna.data.source.local.dao
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import com.tick.magna.Legislatura
 import com.tick.magna.LegislaturaQueries
+import com.tick.magna.MagnaDatabase
 import com.tick.magna.data.dispatcher.DispatcherInterface
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
 
 internal class LegislaturaDao(
+    private val database: MagnaDatabase,
     private val legislaturaQueries: LegislaturaQueries,
     private val dispatcherInterface: DispatcherInterface,
-) : LegislaturaDaoInterface {
+): LegislaturaDaoInterface {
 
-    override suspend fun getLegislaturaById(id: String): Legislatura? {
-        return withContext(dispatcherInterface.default) {
-            legislaturaQueries.selectLegislaturaById(id).executeAsOneOrNull()
-        }
+    override fun getAllLegislaturas(): Flow<List<Legislatura>> {
+        return legislaturaQueries
+            .selectAllLegislaturas()
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
     }
 
-    override suspend fun getAllLegislaturas(): List<Legislatura> {
-        return withContext(dispatcherInterface.default) {
-            legislaturaQueries.selectAllLegislaturas().executeAsList()
-        }
-    }
-
-    override suspend fun insertLegislatura(legislatura: Legislatura) {
-        withContext(dispatcherInterface.default) {
-            legislaturaQueries.insertLegislatura(
-                id = legislatura.id,
-                startDate = legislatura.startDate,
-                endDate = legislatura.endDate
-            )
-        }
-    }
-
-    override suspend fun deleteLegislaturaById(id: String) {
-        withContext(dispatcherInterface.default) {
-            legislaturaQueries.deleteLegislaturaById(id)
-        }
-    }
-
-    override suspend fun getFirstLegislatura(): Legislatura? {
-        return withContext(dispatcherInterface.default) {
-            legislaturaQueries.selectAllLegislaturas().executeAsOneOrNull()
+    override fun insertLegislaturas(legislaturas: List<Legislatura>) {
+        database.transaction {
+            legislaturas.forEach {
+                legislaturaQueries.insertLegislatura(it)
+            }
         }
     }
 }

@@ -47,6 +47,10 @@ import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.onboarding.OnboardingViewModel
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -61,7 +65,7 @@ val databaseModule = module {
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
-    single<LegislaturaDaoInterface> { LegislaturaDao(get(), get()) }
+    single<LegislaturaDaoInterface> { LegislaturaDao(get(), get(), get()) }
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
 }
@@ -73,13 +77,16 @@ val dataModule = module {
     // Http
     single<HttpClient> { HttpClientFactory.create() }
 
+    // Coroutine Scope
+    single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
+
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
     single<PartidoApiInterface> { PartidoApi(get()) }
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
-    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get()) }
+    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get()) }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }

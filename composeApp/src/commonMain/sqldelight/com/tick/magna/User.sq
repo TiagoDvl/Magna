@@ -6,8 +6,7 @@ CREATE TABLE User (
 
 -- Create
 insertUser:
-INSERT OR REPLACE INTO User(id, legislaturaId)
-VALUES (?, ?);
+INSERT OR REPLACE INTO User VALUES ?;
 
 -- Read all
 selectAllUsers:
@@ -22,9 +21,7 @@ SELECT * FROM User WHERE id = ?;
 
 -- Update
 updateUserLegislatura:
-UPDATE User
-SET legislaturaId = ?
-WHERE id = 0;
+UPDATE User SET legislaturaId = ? WHERE id = 0;
 
 -- Delete
 deleteUserById:

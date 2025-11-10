@@ -5,8 +5,9 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 class GetDeputadosListUseCase(
     private val deputadosRepository: DeputadosRepositoryInterface,
@@ -17,27 +18,12 @@ class GetDeputadosListUseCase(
         private const val TAG = "GetDeputadosListUseCase"
     }
 
-    operator fun invoke(): Flow<DeputadosListState> {
-        return combine(userDao.getUser(), deputadosRepository.getDeputados()) { user, legislaturas ->
+    suspend operator fun invoke(): Flow<DeputadosListState> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(DeputadosListState.Error)
 
-        }
-        val user = .firstOrNull()
-
-        return flow {
-            emit(DeputadosListState.Loading)
-            if (user != null && user.legislaturaId != null) {
-                val deputados = deputadosRepository.getDeputados(user.legislaturaId)
-                val state = if (deputados.isSuccess) {
-                    logger.d("Deputados response: ${deputados.getOrNull()?.size} ", TAG)
-                    DeputadosListState.Success(deputados.getOrDefault(emptyList()))
-                } else {
-                    logger.d("Deputados error: ${deputados.exceptionOrNull()} ", TAG)
-                    DeputadosListState.Error
-                }
-                emit(state)
-            } else {
-                emit(DeputadosListState.Error)
-            }
+        return deputadosRepository.getDeputados(legislaturaId).map { deputados ->
+            logger.d("Number of deputados fetched: ${deputados.size} ", TAG)
+            DeputadosListState.Success(deputados)
         }
     }
 }
