@@ -7,5 +7,5 @@ interface PartidosRepositoryInterface {
 
     suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>>
 
-    suspend fun getPartidoById(id: Int): Flow<Partido>
+    suspend fun getPartidoById(legislaturaId: String, partidoId: String): Flow<Partido>
 }

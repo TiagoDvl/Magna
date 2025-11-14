@@ -1,12 +1,12 @@
 CREATE TABLE Partido (
     id TEXT NOT NULL PRIMARY KEY,
     legislaturaId TEXT NOT NULL,
+    liderDeputadoId TEXT NOT NULL,
     sigla TEXT NOT NULL,
     nome TEXT NOT NULL,
     situacao TEXT NOT NULL,
     totalPosse TEXT NOT NULL,
     totalMembros TEXT NOT NULL,
-    liderDeputadoId TEXT NOT NULL,
     logo TEXT,
     website TEXT,
     FOREIGN KEY(liderDeputadoId) REFERENCES Deputado(id),
@@ -19,3 +19,6 @@ INSERT OR REPLACE INTO Partido VALUES ?;
 
 getPartido:
 SELECT * FROM Partido WHERE legislaturaId = :legislaturaId AND id = :partidoId;
+
+getPartidos:
+SELECT * FROM Partido WHERE legislaturaId = :legislaturaId;

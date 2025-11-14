@@ -6,6 +6,7 @@ import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
+import com.tick.magna.PartidoQueries
 import com.tick.magna.UserQueries
 import com.tick.magna.data.dispatcher.AppDispatcher
 import com.tick.magna.data.dispatcher.DispatcherInterface
@@ -65,6 +66,7 @@ val databaseModule = module {
     single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
     single<DeputadoQueries> { get<MagnaDatabase>().deputadoQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
+    single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
     single<LegislaturaDaoInterface> { LegislaturaDao(get(), get(), get()) }
@@ -81,7 +83,7 @@ val dataModule = module {
     single<HttpClient> { HttpClientFactory.create() }
 
     // Coroutine Scope
-    single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
+    factory<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
 
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
@@ -89,15 +91,15 @@ val dataModule = module {
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
-    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get()) }
-    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get()) }
+    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get(), get()) }
+    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }
 
 val useCaseModule = module {
     single { GetRecentDeputadosUseCase(get(), get(), get()) }
     single { GetDeputadosListUseCase(get(), get(), get()) }
-    single { GetPartidosListUseCase(get(), get()) }
+    single { GetPartidosListUseCase(get(), get(), get()) }
     single { CheckUserConfigurationUseCase(get(), get()) }
     single { ConfigureLegislaturaUseCase(get(), get(), get()) }
     single { GetDeputadoDetailsUseCase(get(), get(), get()) }

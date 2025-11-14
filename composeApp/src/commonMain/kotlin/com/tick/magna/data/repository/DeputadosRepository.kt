@@ -4,12 +4,14 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
+import com.tick.magna.data.source.local.dao.PartidoDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.usecases.DeputadoDetailsResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -17,6 +19,7 @@ internal class DeputadosRepository(
     private val deputadosApi: DeputadosApiInterface,
     private val deputadoDao: DeputadoDaoInterface,
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
+    private val partidoDaoInterface: PartidoDaoInterface,
     private val loggerInterface: AppLoggerInterface,
     private val coroutineScope: CoroutineScope
 ): DeputadosRepositoryInterface {
@@ -27,6 +30,7 @@ internal class DeputadosRepository(
 
     override suspend fun getRecentDeputados(): Flow<List<Deputado>> {
         loggerInterface.d("Fetching recent deputados", TAG)
+
         return deputadoDao.getRecentDeputados().map { recentDeputados ->
             recentDeputados.map { it.toDomain() }
         }
@@ -34,15 +38,29 @@ internal class DeputadosRepository(
 
     override suspend fun getDeputados(legislaturaId: String): Flow<List<Deputado>> {
         loggerInterface.d("getDeputados for legislatura ID: $legislaturaId", TAG)
+        val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull()
+
         return deputadoDao.getDeputados(legislaturaId).map { deputados ->
-            deputados.map { it.toDomain() }
+            deputados.map {
+                val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
+                if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
+
+                it.toDomain(deputadoPartido)
+            }
         }.also {
             coroutineScope.launch {
                 try {
                     loggerInterface.d("Fetching deputado for legislatura ID: $legislaturaId", TAG)
                     val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
 
-                    deputadoDao.insertDeputados(deputadosResponse.dados.map { it.toLocal(legislaturaId) })
+                    deputadoDao.insertDeputados(
+                        deputadosResponse.dados.map {
+                            val deputadoPartido = localPartidos?.find { partido -> partido.sigla == it.siglaPartido }
+                            if (deputadoPartido == null) throw Exception("Remote Partido not found for this deputado")
+
+                            it.toLocal(legislaturaId, deputadoPartido)
+                        }
+                    )
                 } catch (e: Exception) {
                     loggerInterface.d("Failed to fetch deputados: ${e.message}", TAG)
                 }
@@ -51,7 +69,14 @@ internal class DeputadosRepository(
     }
 
     override suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado> {
-        return deputadoDao.getDeputado(legislaturaId, deputadoId).map { it.toDomain() }
+        val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull()
+
+        return deputadoDao.getDeputado(legislaturaId, deputadoId).map {
+            val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
+            if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
+
+            it.toDomain(deputadoPartido)
+        }
     }
 
     override suspend fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetailsResult> {

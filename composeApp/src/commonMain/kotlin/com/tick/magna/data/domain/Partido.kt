@@ -8,10 +8,8 @@ data class Partido(
     val totalMembros: Int,
     val dataStatus: String,
     val lider: Lider?,
-    val numeroEleitoral: String?,
     val urlLogo: String?,
     val urlWebSite: String?,
-    val urlFacebook: String?
 )
 
 val partidosMock = listOf(
@@ -23,10 +21,8 @@ val partidosMock = listOf(
         totalMembros = 68,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "13",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PT.png",
         urlWebSite = "https://pt.org.br",
-        urlFacebook = "https://www.facebook.com/partidodostrabalhadores"
     ),
     Partido(
         id = 36886,
@@ -36,10 +32,8 @@ val partidosMock = listOf(
         totalMembros = 59,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "44",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/UNIAO.png",
         urlWebSite = "https://uniaobrasil.org.br",
-        urlFacebook = "https://www.facebook.com/uniaobrasil44"
     ),
     Partido(
         id = 36844,
@@ -49,10 +43,8 @@ val partidosMock = listOf(
         totalMembros = 49,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "11",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PP.png",
         urlWebSite = "https://progressistas.org.br",
-        urlFacebook = "https://www.facebook.com/progressistas11"
     ),
     Partido(
         id = 36769,
@@ -62,10 +54,8 @@ val partidosMock = listOf(
         totalMembros = 45,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "55",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PSD.png",
         urlWebSite = "https://psd.org.br",
-        urlFacebook = "https://www.facebook.com/psd55"
     ),
     Partido(
         id = 36897,
@@ -75,10 +65,8 @@ val partidosMock = listOf(
         totalMembros = 42,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "15",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/MDB.png",
         urlWebSite = "https://mdb.org.br",
-        urlFacebook = "https://www.facebook.com/mdboficial"
     ),
     Partido(
         id = 36899,
@@ -88,10 +76,8 @@ val partidosMock = listOf(
         totalMembros = 41,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "10",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/REPUBLICANOS.png",
         urlWebSite = "https://republicanos10.org.br",
-        urlFacebook = "https://www.facebook.com/republicanos10"
     ),
     Partido(
         id = 36851,
@@ -101,10 +87,8 @@ val partidosMock = listOf(
         totalMembros = 13,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "45",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PSDB.png",
         urlWebSite = "https://psdb.org.br",
-        urlFacebook = "https://www.facebook.com/psdb45"
     ),
     Partido(
         id = 36835,
@@ -114,10 +98,8 @@ val partidosMock = listOf(
         totalMembros = 17,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "12",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PDT.png",
         urlWebSite = "https://pdt.org.br",
-        urlFacebook = "https://www.facebook.com/pdt12nacional"
     ),
     Partido(
         id = 36786,
@@ -127,10 +109,8 @@ val partidosMock = listOf(
         totalMembros = 11,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "20",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PODE.png",
         urlWebSite = "https://podemos.org.br",
-        urlFacebook = "https://www.facebook.com/podemos20"
     ),
     Partido(
         id = 36840,
@@ -140,10 +120,8 @@ val partidosMock = listOf(
         totalMembros = 12,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "50",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PSOL.png",
         urlWebSite = "https://psol50.org.br",
-        urlFacebook = "https://www.facebook.com/psol50"
     ),
     Partido(
         id = 36896,
@@ -153,10 +131,8 @@ val partidosMock = listOf(
         totalMembros = 8,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "70",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/AVANTE.png",
         urlWebSite = "https://avante70.org.br",
-        urlFacebook = "https://www.facebook.com/avante70"
     ),
     Partido(
         id = 36821,
@@ -166,10 +142,8 @@ val partidosMock = listOf(
         totalMembros = 8,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "65",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PCdoB.png",
         urlWebSite = "https://pcdob.org.br",
-        urlFacebook = "https://www.facebook.com/pcdob65"
     ),
     Partido(
         id = 36887,
@@ -179,10 +153,8 @@ val partidosMock = listOf(
         totalMembros = 14,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "40",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PSB.png",
         urlWebSite = "https://psb40.org.br",
-        urlFacebook = "https://www.facebook.com/psb40"
     ),
     Partido(
         id = 36770,
@@ -192,10 +164,8 @@ val partidosMock = listOf(
         totalMembros = 13,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "77",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/SOLIDARIEDADE.png",
         urlWebSite = "https://solidariedade.org.br",
-        urlFacebook = "https://www.facebook.com/solidariedade77"
     ),
     Partido(
         id = 36885,
@@ -205,10 +175,8 @@ val partidosMock = listOf(
         totalMembros = 6,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "23",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/CIDADANIA.png",
         urlWebSite = "https://cidadania23.org.br",
-        urlFacebook = "https://www.facebook.com/cidadania23"
     ),
     Partido(
         id = 36888,
@@ -218,10 +186,8 @@ val partidosMock = listOf(
         totalMembros = 5,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "18",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/REDE.png",
         urlWebSite = "https://redesustentabilidade.org.br",
-        urlFacebook = "https://www.facebook.com/RedeRede18"
     ),
     Partido(
         id = 36895,
@@ -231,10 +197,8 @@ val partidosMock = listOf(
         totalMembros = 6,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "43",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PV.png",
         urlWebSite = "https://pv.org.br",
-        urlFacebook = "https://www.facebook.com/pv43"
     ),
     Partido(
         id = 36889,
@@ -244,10 +208,8 @@ val partidosMock = listOf(
         totalMembros = 3,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "30",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/NOVO.png",
         urlWebSite = "https://novo.org.br",
-        urlFacebook = "https://www.facebook.com/partidonovo"
     ),
     Partido(
         id = 36893,
@@ -257,9 +219,7 @@ val partidosMock = listOf(
         totalMembros = 1,
         dataStatus = "2024-10-08T00:00:00",
         lider = null,
-        numeroEleitoral = "28",
         urlLogo = "https://www.camara.leg.br/internet/Deputado/img/partidos/PRTB.png",
         urlWebSite = "https://prtb.org.br",
-        urlFacebook = "https://www.facebook.com/prtb28"
     )
 )

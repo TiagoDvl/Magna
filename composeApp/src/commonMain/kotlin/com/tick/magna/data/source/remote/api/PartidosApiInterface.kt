@@ -6,5 +6,5 @@ import com.tick.magna.data.source.remote.response.PartidosResponse
 interface PartidosApiInterface {
     suspend fun getPartidos(idLegislatura: String): PartidosResponse
 
-    suspend fun getPartidoById(id: Int): PartidoDetalheResponse
+    suspend fun getPartidoById(id: String): PartidoDetalheResponse
 }

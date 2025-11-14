@@ -16,7 +16,7 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
         }.body()
     }
 
-    override suspend fun getPartidoById(id: Int): PartidoDetalheResponse {
+    override suspend fun getPartidoById(id: String): PartidoDetalheResponse {
         return httpClient.get("$baseUrl/partidos/$id").body()
     }
 }
