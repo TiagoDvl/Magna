@@ -1,6 +1,5 @@
 package com.tick.magna.data.source.remote.dto
 
-import com.tick.magna.Partido
 import com.tick.magna.data.domain.Deputado
 import kotlinx.serialization.Serializable
 import com.tick.magna.Deputado as DeputadoEntity
@@ -29,11 +28,11 @@ fun DeputadoDto.toDomain(): Deputado {
     )
 }
 
-fun DeputadoDto.toLocal(legislaturaId: String, partido: Partido): DeputadoEntity {
+fun DeputadoDto.toLocal(legislaturaId: String): DeputadoEntity {
     return DeputadoEntity(
         id = id,
         legislaturaId = legislaturaId,
-        partidoId = partido.id,
+        partidoId = "",
         last_seen = 0,
         name = nome,
         uf = siglaUf,

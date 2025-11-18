@@ -8,6 +8,7 @@ import com.tick.magna.data.source.remote.api.PartidosApiInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import com.tick.magna.Partido as PartidoEntity
 
@@ -24,8 +25,8 @@ internal class PartidosRepository(
 
     override suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>> {
         loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
-        return partidoDao.getPartidos(legislaturaId).map { partidos ->
-            partidos.map { it.toDomain() }
+        return partidoDao.getPartidos(legislaturaId).mapNotNull { partidos ->
+            partidos?.map { it.toDomain() }
         }.also {
             coroutineScope.launch {
                 val partidosResponse = partidosApi.getPartidos(legislaturaId).dados

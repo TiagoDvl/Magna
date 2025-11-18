@@ -18,12 +18,23 @@ internal class PartidoDao(
     override suspend fun insertPartidos(deputadosDetails: List<Partido>) {
         database.transaction {
             deputadosDetails.forEach {
-                partidoQueries.insertPartido(it)
+                partidoQueries.insertPartido(
+                    id = it.id,
+                    legislaturaId = it.legislaturaId,
+                    liderDeputadoId = it.liderDeputadoId,
+                    sigla = it.sigla,
+                    nome = it.nome,
+                    situacao = it.situacao,
+                    totalPosse = it.totalPosse,
+                    totalMembros = it.totalMembros,
+                    logo = it.logo,
+                    website = it.website
+                )
             }
         }
     }
 
-    override suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>> {
+    override suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>?> {
         return partidoQueries
             .getPartidos(legislaturaId)
             .asFlow()

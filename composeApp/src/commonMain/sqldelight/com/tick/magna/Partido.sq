@@ -15,7 +15,18 @@ CREATE TABLE Partido (
 
 
 insertPartido:
-INSERT OR REPLACE INTO Partido VALUES ?;
+INSERT OR REPLACE INTO Partido (
+    id,
+    legislaturaId,
+    liderDeputadoId,
+    sigla,
+    nome,
+    situacao,
+    totalPosse,
+    totalMembros,
+    logo,
+    website
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getPartido:
 SELECT * FROM Partido WHERE legislaturaId = :legislaturaId AND id = :partidoId;

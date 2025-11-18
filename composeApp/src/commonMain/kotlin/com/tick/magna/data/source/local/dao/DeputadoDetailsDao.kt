@@ -1,7 +1,7 @@
 package com.tick.magna.data.source.local.dao
 
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOne
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.tick.magna.DeputadoDetails
 import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.MagnaDatabase
@@ -22,10 +22,10 @@ internal class DeputadoDetailsDao(
         }
     }
 
-    override suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<DeputadoDetails> {
+    override suspend fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetails?> {
         return deputadoDetailsQueries
             .getDeputadoDetails(deputadoId, legislaturaId)
             .asFlow()
-            .mapToOne(dispatcherInterface.io)
+            .mapToOneOrNull(dispatcherInterface.io)
     }
 }

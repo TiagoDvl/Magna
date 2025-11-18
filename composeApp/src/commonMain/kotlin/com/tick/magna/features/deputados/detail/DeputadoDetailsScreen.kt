@@ -2,6 +2,7 @@ package com.tick.magna.features.deputados.detail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
@@ -15,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.ui.component.LoadingComponent
@@ -68,7 +68,10 @@ private fun DeputadoDetails(
             when {
                 state.isLoading -> LoadingComponent()
                 else -> {
-                    DetailHeader(deputado = state.deputado)
+                    DetailHeader(
+                        deputado = state.deputado,
+                        detailsState = state.detailsState
+                    )
                 }
             }
         }
@@ -79,12 +82,31 @@ private fun DeputadoDetails(
 private fun DetailHeader(
     modifier: Modifier = Modifier,
     deputado: Deputado?,
+    detailsState: DetailsState,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid12),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+    }
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid12),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        DetailHeader(deputado = deputado)
+        DetailContent(detailsState = detailsState)
+    }
+}
+
+@Composable
+private fun DetailHeader(
+    modifier: Modifier = Modifier,
+    deputado: Deputado?,
+) {
+    Column(modifier = modifier) {
         Avatar(
             photoUrl = deputado?.profilePicture,
             size = AvatarSize.BIG,
@@ -113,12 +135,20 @@ private fun DetailHeader(
 }
 
 @Composable
-private fun DetailContent(deputadoDetails: DeputadoDetails) {
-    Column {
-        BaseText(text = "Building: " + deputadoDetails.gabineteBuilding)
+private fun DetailContent(
+    modifier: Modifier = Modifier,
+    detailsState: DetailsState
+) {
+    Column(modifier = modifier) {
+        when (detailsState) {
+            DetailsState.Loading -> LoadingComponent()
+            is DetailsState.Content -> {
+                BaseText(text = "Building: " + detailsState.deputadoDetails.gabineteBuilding)
 
-        deputadoDetails.socials?.forEach {
-            BaseText(text = "Social: $it")
+                detailsState.deputadoDetails.socials?.forEach {
+                    BaseText(text = "Social: $it")
+                }
+            }
         }
     }
 }

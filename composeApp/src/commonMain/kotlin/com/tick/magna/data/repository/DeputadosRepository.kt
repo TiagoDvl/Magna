@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 internal class DeputadosRepository(
@@ -42,10 +43,10 @@ internal class DeputadosRepository(
 
         return deputadoDao.getDeputados(legislaturaId).map { deputados ->
             deputados.map {
-                val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
-                if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
+                //val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
+                //if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
 
-                it.toDomain(deputadoPartido)
+                it.toDomain(null)
             }
         }.also {
             coroutineScope.launch {
@@ -55,10 +56,10 @@ internal class DeputadosRepository(
 
                     deputadoDao.insertDeputados(
                         deputadosResponse.dados.map {
-                            val deputadoPartido = localPartidos?.find { partido -> partido.sigla == it.siglaPartido }
-                            if (deputadoPartido == null) throw Exception("Remote Partido not found for this deputado")
+                            //val deputadoPartido = localPartidos?.find { partido -> partido.sigla == it.siglaPartido }
+                            //if (deputadoPartido == null) throw Exception("Remote Partido not found for this deputado")
 
-                            it.toLocal(legislaturaId, deputadoPartido)
+                            it.toLocal(legislaturaId)
                         }
                     )
                 } catch (e: Exception) {
@@ -72,18 +73,23 @@ internal class DeputadosRepository(
         val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull()
 
         return deputadoDao.getDeputado(legislaturaId, deputadoId).map {
-            val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
-            if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
+            //val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
+            //if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
 
-            it.toDomain(deputadoPartido)
+            it.toDomain(null)
         }
     }
 
     override suspend fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetailsResult> {
         loggerInterface.d("getDeputadoDetails for legislatura ID: $legislaturaId", TAG)
-        return deputadoDetailsDao.getDeputado(legislaturaId, deputadoId).map { deputadoDetailsEntity ->
-            deputadoDao.updateLastSeen(deputadoId)
-            DeputadoDetailsResult.Success(deputadoDetailsEntity.toDomain())
+        deputadoDao.updateLastSeen(deputadoId)
+
+        return deputadoDetailsDao.getDeputadoDetails(legislaturaId, deputadoId).mapNotNull { deputadoDetailsEntity ->
+            if (deputadoDetailsEntity == null) {
+                DeputadoDetailsResult.Fetching
+            } else {
+                DeputadoDetailsResult.Success(deputadoDetailsEntity.toDomain())
+            }
         }.also {
             coroutineScope.launch {
                 try {
