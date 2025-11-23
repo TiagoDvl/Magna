@@ -18,15 +18,15 @@ class CheckUserConfigurationUseCase(
             if (user == null) {
                 logger.d("No user found - Creating", TAG)
                 userDao.setupInitialUser()
-                UserConfigurationState.Loading
+                UserConfigurationState.LegislaturaNotConfigured(isFirstTime = true)
             } else {
                 logger.d("User: $user", TAG)
                 if (user.legislaturaId == null) {
-                    logger.d("Onboarding", TAG)
-                    UserConfigurationState.LegislaturaNotConfigured
+                    logger.d("LegislaturaNotConfigured", TAG)
+                    UserConfigurationState.LegislaturaNotConfigured(isFirstTime = false)
                 } else {
-                    logger.d("Configured", TAG)
-                    UserConfigurationState.AllSet(user.legislaturaId)
+                    logger.d("AllSet", TAG)
+                    UserConfigurationState.AllSet
                 }
             }
         }
@@ -34,8 +34,6 @@ class CheckUserConfigurationUseCase(
 }
 
 sealed interface UserConfigurationState {
-    data object Loading: UserConfigurationState
-    data object LegislaturaNotConfigured: UserConfigurationState
-    data class AllSet(val legislatura: String): UserConfigurationState
-    data object GenericError: UserConfigurationState
+    data class LegislaturaNotConfigured(val isFirstTime: Boolean): UserConfigurationState
+    data object AllSet: UserConfigurationState
 }

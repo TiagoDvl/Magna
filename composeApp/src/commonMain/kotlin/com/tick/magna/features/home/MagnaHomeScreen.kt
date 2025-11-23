@@ -24,8 +24,6 @@ import androidx.navigation.NavController
 import com.tick.magna.data.usecases.UserConfigurationState
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.onboarding.OnboardingSheet
-import com.tick.magna.ui.component.LoadingComponent
-import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import kotlinx.coroutines.launch
@@ -97,10 +95,8 @@ private fun MagnaHomeContent(
             verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4),
         ) {
             when (homeState.userConfigurationState) {
-                UserConfigurationState.GenericError -> SomethingWentWrongComponent()
-                UserConfigurationState.Loading -> LoadingComponent()
-                UserConfigurationState.LegislaturaNotConfigured -> showSheet(HomeSheetState.ONBOARDING)
-                is UserConfigurationState.AllSet -> {
+                is UserConfigurationState.LegislaturaNotConfigured -> showSheet(HomeSheetState.ONBOARDING)
+                UserConfigurationState.AllSet -> {
                     RecentDeputadosComponent(onNavigate = { navigateTo(it) })
                 }
             }
@@ -110,18 +106,10 @@ private fun MagnaHomeContent(
 
 @Preview
 @Composable
-fun LoadingMagnaHomePreview() {
-    MagnaHomeContent(
-        homeState = HomeState(userConfigurationState = UserConfigurationState.Loading),
-    )
-}
-
-@Preview
-@Composable
 fun OnboardingMagnaHomePreview() {
     MagnaHomeContent(
         homeState = HomeState(
-            userConfigurationState = UserConfigurationState.LegislaturaNotConfigured
+            userConfigurationState = UserConfigurationState.LegislaturaNotConfigured(false)
         ),
     )
 }
@@ -131,15 +119,7 @@ fun OnboardingMagnaHomePreview() {
 fun SuccessMagnaHomePreview() {
     MagnaHomeContent(
         homeState = HomeState(
-            userConfigurationState = UserConfigurationState.AllSet("")
+            userConfigurationState = UserConfigurationState.AllSet
         ),
-    )
-}
-
-@Preview
-@Composable
-fun ErrorMagnaHomePreview() {
-    MagnaHomeContent(
-        homeState = HomeState(userConfigurationState = UserConfigurationState.GenericError),
     )
 }

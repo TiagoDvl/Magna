@@ -113,7 +113,7 @@ val loggingModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { AppViewModel(get()) }
+    viewModel { AppViewModel(get(), get()) }
     viewModel { WelcomeViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get()) }
     viewModel { OnboardingViewModel(get(), get(), get()) }
