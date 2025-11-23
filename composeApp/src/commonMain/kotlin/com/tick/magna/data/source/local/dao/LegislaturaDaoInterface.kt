@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface LegislaturaDaoInterface {
     fun getAllLegislaturas(): Flow<List<Legislatura>>
     fun insertLegislaturas(legislaturas: List<Legislatura>)
+
+    fun getLegislaturaById(legislaturaId: String): Legislatura
 }

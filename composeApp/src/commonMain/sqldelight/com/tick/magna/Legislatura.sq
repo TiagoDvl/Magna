@@ -9,3 +9,6 @@ INSERT OR REPLACE INTO Legislatura VALUES ?;
 
 selectAllLegislaturas:
 SELECT * FROM Legislatura;
+
+getLegislaturaById:
+SELECT * FROM Legislatura WHERE id = :legislaturaId;

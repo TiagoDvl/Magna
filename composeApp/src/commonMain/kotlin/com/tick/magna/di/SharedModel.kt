@@ -2,6 +2,7 @@ package com.tick.magna.di
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
+import com.tick.magna.AppViewModel
 import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
@@ -42,13 +43,14 @@ import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
+import com.tick.magna.data.usecases.GetPartidosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
-import com.tick.magna.data.usecases.SyncLegislaturaRelatedData
 import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.onboarding.OnboardingViewModel
+import com.tick.magna.features.welcome.WelcomeViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +101,7 @@ val dataModule = module {
 val useCaseModule = module {
     single { GetRecentDeputadosUseCase(get(), get(), get()) }
     single { GetDeputadosListUseCase(get(), get(), get()) }
-    single { SyncLegislaturaRelatedData(get(), get(), get()) }
+    single { GetPartidosListUseCase(get(), get(), get()) }
     single { CheckUserConfigurationUseCase(get(), get()) }
     single { ConfigureLegislaturaUseCase(get(), get(), get()) }
     single { GetDeputadoDetailsUseCase(get(), get(), get()) }
@@ -111,7 +113,9 @@ val loggingModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(get(), get()) }
+    viewModel { AppViewModel(get()) }
+    viewModel { WelcomeViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
     viewModel { OnboardingViewModel(get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }

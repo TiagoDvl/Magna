@@ -28,4 +28,8 @@ internal class LegislaturaDao(
             }
         }
     }
+
+    override fun getLegislaturaById(legislaturaId: String): Legislatura {
+        return legislaturaQueries.getLegislaturaById(legislaturaId).executeAsOne()
+    }
 }

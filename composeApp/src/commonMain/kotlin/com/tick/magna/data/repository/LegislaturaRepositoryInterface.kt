@@ -7,5 +7,5 @@ interface LegislaturaRepositoryInterface {
 
     suspend fun getAllLegislaturas(): Flow<List<Legislatura>>
 
-    suspend fun getLegislatura(startDate: String): Legislatura
+    suspend fun getLegislatura(legislaturaId: String): Legislatura
 }

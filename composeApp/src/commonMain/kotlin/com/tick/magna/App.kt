@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -18,12 +19,18 @@ import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
+import com.tick.magna.features.welcome.WelcomeArgs
+import com.tick.magna.features.welcome.WelcomeScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    viewModel: AppViewModel = koinViewModel()
+) {
+    val state = viewModel.appState.collectAsStateWithLifecycle()
     val navController = rememberNavController()
 
     setSingletonImageLoaderFactory { context ->
@@ -38,10 +45,19 @@ fun App() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
+            val startDestination = when (state.value) {
+                AppState.Welcome -> WelcomeArgs
+                AppState.Home -> HomeArgs
+            }
+
             NavHost(
                 navController = navController,
-                startDestination = HomeArgs
+                startDestination = startDestination
             ) {
+                composable<WelcomeArgs> {
+                    WelcomeScreen(navController = navController)
+                }
+
                 composable<HomeArgs> {
                     MagnaHomeScreen(navController = navController)
                 }

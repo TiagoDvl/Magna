@@ -13,9 +13,9 @@ class ConfigureLegislaturaUseCase(
         private const val TAG = "ConfigureLegislaturaUseCase"
     }
 
-    suspend operator fun invoke(legislaturaStartDate: String) {
-        logger.d("Configure Legislatura for date -> $legislaturaStartDate", TAG)
-        val legislatura = legislaturaRepository.getLegislatura(legislaturaStartDate)
+    suspend operator fun invoke(legislaturaId: String) {
+        logger.d("Configure Legislatura for date -> $legislaturaId", TAG)
+        val legislatura = legislaturaRepository.getLegislatura(legislaturaId)
         logger.d("Set user legislatura as -> ${legislatura.id}", TAG)
         userDao.setUserLegislatura(legislatura.id)
     }

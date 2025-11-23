@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
-import com.tick.magna.data.usecases.SyncLegislaturaRelatedData
+import com.tick.magna.data.usecases.GetPartidosListUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     dispatcher: DispatcherInterface,
     checkUserConfiguration: CheckUserConfigurationUseCase,
-    syncLegislaturaRelatedData: SyncLegislaturaRelatedData
+    getPartidosList: GetPartidosListUseCase
 ): ViewModel() {
 
     private val _homeState = MutableStateFlow(HomeState())
@@ -29,7 +29,7 @@ class HomeViewModel(
             }
 
             launch {
-                syncLegislaturaRelatedData().collect {
+                getPartidosList().collect {
 
                 }
             }
