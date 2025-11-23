@@ -23,10 +23,10 @@ class CheckUserConfigurationUseCase(
                 logger.d("User: $user", TAG)
                 if (user.legislaturaId == null) {
                     logger.d("Onboarding", TAG)
-                    UserConfigurationState.Onboarding
+                    UserConfigurationState.LegislaturaNotConfigured
                 } else {
                     logger.d("Configured", TAG)
-                    UserConfigurationState.AllSet
+                    UserConfigurationState.AllSet(user.legislaturaId)
                 }
             }
         }
@@ -35,7 +35,7 @@ class CheckUserConfigurationUseCase(
 
 sealed interface UserConfigurationState {
     data object Loading: UserConfigurationState
-    data object Onboarding: UserConfigurationState
-    data object AllSet: UserConfigurationState
+    data object LegislaturaNotConfigured: UserConfigurationState
+    data class AllSet(val legislatura: String): UserConfigurationState
     data object GenericError: UserConfigurationState
 }

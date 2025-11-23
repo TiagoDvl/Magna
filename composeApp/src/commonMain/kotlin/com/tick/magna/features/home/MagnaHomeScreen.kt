@@ -99,8 +99,8 @@ private fun MagnaHomeContent(
             when (homeState.userConfigurationState) {
                 UserConfigurationState.GenericError -> SomethingWentWrongComponent()
                 UserConfigurationState.Loading -> LoadingComponent()
-                UserConfigurationState.Onboarding -> showSheet(HomeSheetState.ONBOARDING)
-                UserConfigurationState.AllSet -> {
+                UserConfigurationState.LegislaturaNotConfigured -> showSheet(HomeSheetState.ONBOARDING)
+                is UserConfigurationState.AllSet -> {
                     RecentDeputadosComponent(onNavigate = { navigateTo(it) })
                 }
             }
@@ -121,7 +121,7 @@ fun LoadingMagnaHomePreview() {
 fun OnboardingMagnaHomePreview() {
     MagnaHomeContent(
         homeState = HomeState(
-            userConfigurationState = UserConfigurationState.Onboarding
+            userConfigurationState = UserConfigurationState.LegislaturaNotConfigured
         ),
     )
 }
@@ -131,7 +131,7 @@ fun OnboardingMagnaHomePreview() {
 fun SuccessMagnaHomePreview() {
     MagnaHomeContent(
         homeState = HomeState(
-            userConfigurationState = UserConfigurationState.AllSet
+            userConfigurationState = UserConfigurationState.AllSet("")
         ),
     )
 }

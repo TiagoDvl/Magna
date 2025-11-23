@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 
-class GetPartidosListUseCase(
+class SyncLegislaturaRelatedData(
     private val partidoRepository: PartidosRepositoryInterface,
     private val userDao: UserDaoInterface,
     private val logger: AppLoggerInterface,

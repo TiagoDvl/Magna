@@ -42,8 +42,8 @@ import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
-import com.tick.magna.data.usecases.GetPartidosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
+import com.tick.magna.data.usecases.SyncLegislaturaRelatedData
 import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
@@ -99,7 +99,7 @@ val dataModule = module {
 val useCaseModule = module {
     single { GetRecentDeputadosUseCase(get(), get(), get()) }
     single { GetDeputadosListUseCase(get(), get(), get()) }
-    single { GetPartidosListUseCase(get(), get(), get()) }
+    single { SyncLegislaturaRelatedData(get(), get(), get()) }
     single { CheckUserConfigurationUseCase(get(), get()) }
     single { ConfigureLegislaturaUseCase(get(), get(), get()) }
     single { GetDeputadoDetailsUseCase(get(), get(), get()) }
