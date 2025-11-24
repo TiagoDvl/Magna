@@ -1,6 +1,6 @@
-package com.tick.magna.features.intro
+package com.tick.magna.features.splash
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-object IntroArgs
+object SplashArgs

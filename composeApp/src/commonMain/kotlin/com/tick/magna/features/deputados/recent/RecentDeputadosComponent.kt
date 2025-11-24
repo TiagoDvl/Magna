@@ -23,7 +23,6 @@ import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.data.usecases.RecentDeputadosState
 import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
-import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
 import com.tick.magna.ui.core.text.BaseText
@@ -62,7 +61,6 @@ private fun RecentDeputadosComponentContent(
             .height(160.dp)
     ) {
         when (state) {
-            RecentDeputadosState.ConfigurationError -> SomethingWentWrongComponent()
             RecentDeputadosState.Empty -> FeatureDiscovery(onNavigate)
             is RecentDeputadosState.Peak -> RecentDeputados(state.deputados, onNavigate)
         }
@@ -152,12 +150,6 @@ private fun RecentDeputados(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewRecentDeputadosComponentConfigurationError() {
-    RecentDeputadosComponentContent(state = RecentDeputadosState.ConfigurationError)
 }
 
 @Preview

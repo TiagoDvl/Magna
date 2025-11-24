@@ -21,7 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.tick.magna.data.usecases.UserConfigurationState
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.onboarding.OnboardingSheet
 import com.tick.magna.ui.core.theme.LocalDimensions
@@ -94,32 +93,15 @@ private fun MagnaHomeContent(
                 .background(MaterialTheme.colorScheme.background),
             verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4),
         ) {
-            when (homeState.userConfigurationState) {
-                is UserConfigurationState.LegislaturaNotConfigured -> showSheet(HomeSheetState.ONBOARDING)
-                UserConfigurationState.AllSet -> {
-                    RecentDeputadosComponent(onNavigate = { navigateTo(it) })
-                }
-            }
+            RecentDeputadosComponent(onNavigate = { navigateTo(it) })
         }
     }
 }
 
 @Preview
 @Composable
-fun OnboardingMagnaHomePreview() {
+fun HomePreview() {
     MagnaHomeContent(
-        homeState = HomeState(
-            userConfigurationState = UserConfigurationState.LegislaturaNotConfigured(false)
-        ),
-    )
-}
-
-@Preview
-@Composable
-fun SuccessMagnaHomePreview() {
-    MagnaHomeContent(
-        homeState = HomeState(
-            userConfigurationState = UserConfigurationState.AllSet
-        ),
+        homeState = HomeState,
     )
 }

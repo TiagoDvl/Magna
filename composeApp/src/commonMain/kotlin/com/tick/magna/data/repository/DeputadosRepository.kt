@@ -5,18 +5,22 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDaoInterface
+import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.usecases.DeputadoDetailsResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 internal class DeputadosRepository(
+    private val userDao: UserDaoInterface,
     private val deputadosApi: DeputadosApiInterface,
     private val deputadoDao: DeputadoDaoInterface,
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
@@ -37,13 +41,14 @@ internal class DeputadosRepository(
         }
     }
 
-    override suspend fun getDeputados(legislaturaId: String): Flow<List<Deputado>> {
+    override suspend fun getDeputados(): Flow<List<Deputado>> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
         loggerInterface.d("getDeputados for legislatura ID: $legislaturaId", TAG)
         val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull()
 
         return deputadoDao.getDeputados(legislaturaId).map { deputados ->
             deputados.map {
-                //val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
+                val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
                 //if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
 
                 it.toDomain(null)

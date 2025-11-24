@@ -5,7 +5,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface PartidosRepositoryInterface {
 
-    suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>>
+    suspend fun syncPartidos(): Boolean
 
-    suspend fun getPartidoById(legislaturaId: String, partidoId: String): Flow<Partido>
+    suspend fun getPartidos(): Flow<List<Partido>>
+
+    suspend fun getPartidoById(partidoId: String): Flow<Partido>
 }

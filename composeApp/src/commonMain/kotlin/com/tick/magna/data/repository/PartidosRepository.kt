@@ -3,16 +3,19 @@ package com.tick.magna.data.repository
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.PartidoDaoInterface
+import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.PartidosApiInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.launch
 import com.tick.magna.Partido as PartidoEntity
 
 internal class PartidosRepository(
+    private val userDao: UserDaoInterface,
     private val partidosApi: PartidosApiInterface,
     private val partidoDao: PartidoDaoInterface,
     private val loggerInterface: AppLoggerInterface,
@@ -23,40 +26,54 @@ internal class PartidosRepository(
         private const val TAG = "PartidosRepository"
     }
 
-    override suspend fun getPartidos(legislaturaId: String): Flow<List<Partido>> {
-        loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
-        return partidoDao.getPartidos(legislaturaId).mapNotNull { partidos ->
-            partidos?.map { it.toDomain() }
-        }.also {
-            coroutineScope.launch {
-                val partidosResponse = partidosApi.getPartidos(legislaturaId).dados
-                val partidos = partidosResponse.map { partido ->
-                    val partidoDetailResponse = partidosApi.getPartidoById(partido.id.toString()).dados
-                    val hackyLiderDeputadoId = partidoDetailResponse.status?.lider?.uri?.split("/")?.last() ?: ""
-                    val partidoSituacao = partidoDetailResponse.status?.situacao ?: ""
-                    val partidoTotalPosse = if (partidoDetailResponse.status != null) partidoDetailResponse.status.totalPosse.toString() else ""
-                    val partidoTotalMembros = if (partidoDetailResponse.status != null) partidoDetailResponse.status.totalMembros.toString() else ""
+    override suspend fun syncPartidos(): Boolean {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
+        loggerInterface.d("Syncing partidos for legislatura: $legislaturaId", TAG)
 
-                    PartidoEntity(
-                        id = partido.id.toString(),
-                        legislaturaId = legislaturaId,
-                        liderDeputadoId = hackyLiderDeputadoId,
-                        sigla = partido.sigla,
-                        nome = partido.nome,
-                        situacao = partidoSituacao,
-                        totalPosse = partidoTotalPosse,
-                        totalMembros = partidoTotalMembros,
-                        logo = partidoDetailResponse.urlLogo,
-                        website = partidoDetailResponse.urlWebSite
-                    )
-                }
-                loggerInterface.d("Saving partidos of size: ${partidos.size}", TAG)
-                partidoDao.insertPartidos(partidos)
+        return try {
+            val partidosResponse = partidosApi.getPartidos(legislaturaId).dados
+
+            val partidos = partidosResponse.map { partido ->
+                val partidoDetailResponse = partidosApi.getPartidoById(partido.id.toString()).dados
+
+                val hackyLiderDeputadoId = partidoDetailResponse.status?.lider?.uri?.split("/")?.last() ?: ""
+                val partidoSituacao = partidoDetailResponse.status?.situacao ?: ""
+                val partidoTotalPosse = if (partidoDetailResponse.status != null) partidoDetailResponse.status.totalPosse.toString() else ""
+                val partidoTotalMembros = if (partidoDetailResponse.status != null) partidoDetailResponse.status.totalMembros.toString() else ""
+
+                PartidoEntity(
+                    id = partido.id.toString(),
+                    legislaturaId = legislaturaId,
+                    liderDeputadoId = hackyLiderDeputadoId,
+                    sigla = partido.sigla,
+                    nome = partido.nome,
+                    situacao = partidoSituacao,
+                    totalPosse = partidoTotalPosse,
+                    totalMembros = partidoTotalMembros,
+                    logo = partidoDetailResponse.urlLogo,
+                    website = partidoDetailResponse.urlWebSite
+                )
             }
+            loggerInterface.d("Saving partidos of size: ${partidos.size}", TAG)
+            partidoDao.insertPartidos(partidos)
+            true
+        } catch (exception: Exception) {
+            loggerInterface.d("SyncPartidos - Something went wrong: ${exception.message}", TAG)
+            false
         }
     }
 
-    override suspend fun getPartidoById(legislaturaId: String, partidoId: String): Flow<Partido> {
+    override suspend fun getPartidos(): Flow<List<Partido>> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
+        loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
+
+        return partidoDao.getPartidos(legislaturaId).mapNotNull { partidos ->
+            partidos?.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getPartidoById(partidoId: String): Flow<Partido> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
         loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
         return partidoDao.getPartido(legislaturaId, partidoId).map { partido ->
             partido.toDomain()

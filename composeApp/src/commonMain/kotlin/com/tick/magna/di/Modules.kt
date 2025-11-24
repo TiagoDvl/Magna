@@ -43,7 +43,6 @@ import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
-import com.tick.magna.data.usecases.GetPartidosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
 import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
@@ -56,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -93,19 +93,18 @@ val dataModule = module {
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
-    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get(), get()) }
-    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get()) }
+    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get(), get(), get()) }
+    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }
 
 val useCaseModule = module {
-    single { GetRecentDeputadosUseCase(get(), get(), get()) }
-    single { GetDeputadosListUseCase(get(), get(), get()) }
-    single { GetPartidosListUseCase(get(), get(), get()) }
-    single { CheckUserConfigurationUseCase(get(), get()) }
-    single { ConfigureLegislaturaUseCase(get(), get(), get()) }
-    single { GetDeputadoDetailsUseCase(get(), get(), get()) }
-    single { GetDeputadoUseCase(get(), get(), get()) }
+    factoryOf(::GetDeputadosListUseCase)
+    factoryOf(::GetRecentDeputadosUseCase)
+    factoryOf(::CheckUserConfigurationUseCase)
+    factoryOf(::ConfigureLegislaturaUseCase)
+    factoryOf(::GetDeputadoDetailsUseCase)
+    factoryOf(::GetDeputadoUseCase)
 }
 
 val loggingModule = module {
@@ -115,7 +114,7 @@ val loggingModule = module {
 val viewModelModule = module {
     viewModel { AppViewModel(get(), get()) }
     viewModel { WelcomeViewModel(get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }

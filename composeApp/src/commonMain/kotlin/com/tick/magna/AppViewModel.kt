@@ -16,7 +16,7 @@ class AppViewModel(
     checkUserConfiguration: CheckUserConfigurationUseCase
 ): ViewModel() {
 
-    private val _appState = MutableStateFlow<AppState>(AppState.Intro)
+    private val _appState = MutableStateFlow<AppState>(AppState.Splash)
     val appState = _appState.asStateFlow()
 
     companion object {
@@ -26,7 +26,7 @@ class AppViewModel(
         viewModelScope.launch(dispatcherInterface.io) {
             checkUserConfiguration().collect { userConfigurationState ->
                 val updatedState = when (userConfigurationState) {
-                    is UserConfigurationState.LegislaturaNotConfigured -> AppState.Welcome
+                    UserConfigurationState.LegislaturaNotConfigured -> AppState.Welcome
                     UserConfigurationState.AllSet -> AppState.Home
                 }
 
@@ -38,7 +38,7 @@ class AppViewModel(
 }
 
 sealed interface AppState {
-    data object Intro: AppState
+    data object Splash: AppState
     data object Welcome: AppState
     data object Home: AppState
 }

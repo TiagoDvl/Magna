@@ -19,8 +19,8 @@ import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
-import com.tick.magna.features.intro.IntroArgs
-import com.tick.magna.features.intro.IntroScreen
+import com.tick.magna.features.splash.SplashArgs
+import com.tick.magna.features.splash.SplashScreen
 import com.tick.magna.features.welcome.WelcomeArgs
 import com.tick.magna.features.welcome.WelcomeScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -50,15 +50,15 @@ fun App(
             val startDestination = when (state.value) {
                 AppState.Welcome -> WelcomeArgs
                 AppState.Home -> HomeArgs
-                AppState.Intro -> IntroArgs
+                AppState.Splash -> SplashArgs
             }
 
             NavHost(
                 navController = navController,
                 startDestination = startDestination
             ) {
-                composable<IntroArgs> {
-                    IntroScreen()
+                composable<SplashArgs> {
+                    SplashScreen()
                 }
 
                 composable<WelcomeArgs> {

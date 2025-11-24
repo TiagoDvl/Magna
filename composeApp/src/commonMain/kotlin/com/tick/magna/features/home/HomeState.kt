@@ -1,10 +1,6 @@
 package com.tick.magna.features.home
 
-import com.tick.magna.data.usecases.UserConfigurationState
-
-data class HomeState(
-    val userConfigurationState: UserConfigurationState = UserConfigurationState.AllSet,
-)
+data object HomeState
 
 sealed interface HomeAction {
 

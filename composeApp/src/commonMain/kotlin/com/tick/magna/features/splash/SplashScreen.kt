@@ -1,4 +1,4 @@
-package com.tick.magna.features.intro
+package com.tick.magna.features.splash
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun IntroScreen() {
+fun SplashScreen() {
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
@@ -31,6 +31,6 @@ fun IntroScreen() {
 
 @Preview
 @Composable
-fun IntroScreenPreview() {
-    IntroScreen()
+fun SplashScreenPreview() {
+    SplashScreen()
 }
