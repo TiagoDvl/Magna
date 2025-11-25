@@ -4,7 +4,6 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class CheckUserConfigurationUseCase(
@@ -28,12 +27,6 @@ class CheckUserConfigurationUseCase(
                     logger.d("LegislaturaNotConfigured", TAG)
                     UserConfigurationState.LegislaturaNotConfigured
                 } else {
-                    val partidos = partidosRepository.getPartidos().first()
-
-                    if (partidos.isEmpty()) {
-                        partidosRepository.syncPartidos()
-                    }
-
                     logger.d("AllSet", TAG)
                     UserConfigurationState.AllSet
                 }

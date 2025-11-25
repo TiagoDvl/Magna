@@ -44,11 +44,11 @@ import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
+import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel
-import com.tick.magna.features.onboarding.OnboardingViewModel
 import com.tick.magna.features.welcome.WelcomeViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
@@ -105,6 +105,7 @@ val useCaseModule = module {
     factoryOf(::ConfigureLegislaturaUseCase)
     factoryOf(::GetDeputadoDetailsUseCase)
     factoryOf(::GetDeputadoUseCase)
+    factoryOf(::SyncUserInformationUseCase)
 }
 
 val loggingModule = module {
@@ -114,8 +115,7 @@ val loggingModule = module {
 val viewModelModule = module {
     viewModel { AppViewModel(get(), get()) }
     viewModel { WelcomeViewModel(get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get()) }
-    viewModel { OnboardingViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
     viewModel { (handle: SavedStateHandle) ->
