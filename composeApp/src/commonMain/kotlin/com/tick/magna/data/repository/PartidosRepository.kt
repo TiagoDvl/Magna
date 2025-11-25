@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
 import com.tick.magna.Partido as PartidoEntity
 
 internal class PartidosRepository(
@@ -34,24 +35,17 @@ internal class PartidosRepository(
             val partidosResponse = partidosApi.getPartidos(legislaturaId).dados
 
             val partidos = partidosResponse.map { partido ->
-                val partidoDetailResponse = partidosApi.getPartidoById(partido.id.toString()).dados
-
-                val hackyLiderDeputadoId = partidoDetailResponse.status?.lider?.uri?.split("/")?.last() ?: ""
-                val partidoSituacao = partidoDetailResponse.status?.situacao ?: ""
-                val partidoTotalPosse = if (partidoDetailResponse.status != null) partidoDetailResponse.status.totalPosse.toString() else ""
-                val partidoTotalMembros = if (partidoDetailResponse.status != null) partidoDetailResponse.status.totalMembros.toString() else ""
-
                 PartidoEntity(
                     id = partido.id.toString(),
                     legislaturaId = legislaturaId,
-                    liderDeputadoId = hackyLiderDeputadoId,
+                    liderDeputadoId = null,
                     sigla = partido.sigla,
                     nome = partido.nome,
-                    situacao = partidoSituacao,
-                    totalPosse = partidoTotalPosse,
-                    totalMembros = partidoTotalMembros,
-                    logo = partidoDetailResponse.urlLogo,
-                    website = partidoDetailResponse.urlWebSite
+                    situacao = null,
+                    totalPosse = null,
+                    totalMembros = null,
+                    logo = null,
+                    website = null
                 )
             }
             loggerInterface.d("Saving partidos of size: ${partidos.size}", TAG)
@@ -77,6 +71,25 @@ internal class PartidosRepository(
         loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
         return partidoDao.getPartido(legislaturaId, partidoId).map { partido ->
             partido.toDomain()
+        }.also {
+            coroutineScope.launch {
+                val partidoDetail = partidosApi.getPartidoById(partidoId).dados
+
+                val partidoEntity = PartidoEntity(
+                    id = partidoId,
+                    legislaturaId = legislaturaId,
+                    liderDeputadoId = null,
+                    sigla = partidoDetail.sigla,
+                    nome = partidoDetail.nome,
+                    situacao = partidoDetail.status?.situacao,
+                    totalPosse = partidoDetail.status?.totalPosse.toString(),
+                    totalMembros = partidoDetail.status?.totalMembros.toString(),
+                    logo = partidoDetail.urlLogo,
+                    website = partidoDetail.urlWebSite
+                )
+
+                partidoDao.insertPartidos(listOf(partidoEntity))
+            }
         }
     }
 }

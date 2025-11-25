@@ -10,7 +10,7 @@ import com.tick.magna.MagnaDatabase
 actual class DatabaseDriverFactory(private val context: Context) {
 
     actual fun createDriver(): SqlDriver {
-        context.deleteDatabase("magna.db")
+        //context.deleteDatabase("magna.db")
         return AndroidSqliteDriver(
             MagnaDatabase.Schema,
             context,

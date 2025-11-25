@@ -5,7 +5,6 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 
 class GetDeputadoDetailsUseCase(
     private val userDao: UserDaoInterface,
@@ -17,10 +16,7 @@ class GetDeputadoDetailsUseCase(
     }
 
     suspend operator fun invoke(deputadoId: String): Flow<DeputadoDetailsResult> {
-        val user = userDao.getUser().firstOrNull()
-
-        logger.d("Fetching Deputado Detail[$deputadoId] for: $user", TAG)
-        return deputadosRepository.getDeputadoDetails(user?.legislaturaId!!, deputadoId).also {
+        return deputadosRepository.getDeputadoDetails(deputadoId).also {
             logger.d("Deputado Detail Result -> $it", TAG)
         }
     }

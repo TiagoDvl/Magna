@@ -85,7 +85,9 @@ internal class DeputadosRepository(
         }
     }
 
-    override suspend fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetailsResult> {
+    override suspend fun getDeputadoDetails(deputadoId: String): Flow<DeputadoDetailsResult> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
+
         loggerInterface.d("getDeputadoDetails for legislatura ID: $legislaturaId", TAG)
         deputadoDao.updateLastSeen(deputadoId)
 

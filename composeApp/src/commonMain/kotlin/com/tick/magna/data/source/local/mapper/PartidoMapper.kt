@@ -10,9 +10,9 @@ fun PartidoEntity.toDomain(): Partido {
         sigla = this.sigla,
         nome = this.nome,
         situacao = situacao,
-        totalMembros = totalMembros.toInt(),
+        totalMembros = totalMembros?.toInt(),
         dataStatus = situacao,
-        lider = Lider(nome = liderDeputadoId, "", ""),
+        lider = liderDeputadoId?.let { Lider(nome = it, "", "") },
         urlLogo = this.logo,
         urlWebSite = website
     )
