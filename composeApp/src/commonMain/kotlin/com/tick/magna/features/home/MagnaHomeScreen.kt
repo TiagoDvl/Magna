@@ -4,12 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
@@ -24,15 +25,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
+import com.tick.magna.ui.core.button.MagnaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import kotlinx.coroutines.launch
+import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.baseline_refresh
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -59,6 +66,8 @@ private fun MagnaHomeContent(
     sendAction: (HomeAction) -> Unit = {},
     navigateTo: (Any) -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     val bottomSheetState: SheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
         skipHiddenState = false
@@ -94,6 +103,9 @@ private fun MagnaHomeContent(
         sheetContainerColor = MaterialTheme.colorScheme.background,
         topBar = { MagnaTopBar(titleText = "Magna") },
         scaffoldState = bottomSheetScaffoldState,
+        sheetTonalElevation = LocalDimensions.current.grid4,
+        sheetShadowElevation = LocalDimensions.current.grid12,
+        sheetSwipeEnabled = false,
         sheetContent = {
             when (localSheetState) {
                 HomeSheetState.RUNNING_SYNC -> RunningSyncSheet()
@@ -107,11 +119,16 @@ private fun MagnaHomeContent(
         Column(
             modifier = Modifier.fillMaxSize()
                 .padding(paddingValues)
-                .padding(LocalDimensions.current.grid8)
-                .background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4),
+                .background(MaterialTheme.colorScheme.surface),
         ) {
-            RecentDeputadosComponent(onNavigate = { navigateTo(it) })
+            val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)
+
+            RecentDeputadosComponent(
+                modifier = sectionsBaseModifier,
+                onNavigate = { navigateTo(it) }
+            )
+
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
         }
     }
 }
@@ -121,13 +138,19 @@ private fun RunningSyncSheet(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.height(300.dp),
+        modifier = modifier.height(300.dp).fillMaxSize().padding(LocalDimensions.current.grid16),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid20)
     ) {
-        BaseText(text = "Fetching Legislatura Information", style = MaterialTheme.typography.bodyLarge)
+        BaseText(
+            text = "Fetching Legislatura Information",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold
+            )
+        )
         CircularWavyProgressIndicator(
-            color = MaterialTheme.colorScheme.tertiary
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -138,14 +161,27 @@ private fun RetrySyncSheet(
     retryAction: () -> Unit
 ) {
     Column(
-        modifier = modifier.height(300.dp),
+        modifier = modifier.height(300.dp).fillMaxSize().padding(LocalDimensions.current.grid16),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid20)
     ) {
-        BaseText(text = "Something went wrong with your setup. How about trying again?", style = MaterialTheme.typography.bodyLarge)
-        IconButton(onClick = retryAction) {
-            BaseText(text = "Retry", style = MaterialTheme.typography.bodyLarge)
-        }
+        BaseText(
+            text = "Something went wrong with your setup. How about trying again?",
+            maxLines = 2,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        MagnaButton(
+            icon = painterResource(Res.drawable.baseline_refresh),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            text = "Retry",
+            onClick = retryAction
+        )
     }
 }
 

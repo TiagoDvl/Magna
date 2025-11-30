@@ -33,6 +33,7 @@ import com.tick.magna.ui.core.button.CtaButton
 import com.tick.magna.ui.core.list.ListItem
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_left
@@ -134,6 +135,7 @@ private fun DeputadosSearchContent(
                                 rightIcon = {
                                     CtaButton(
                                         icon = painterResource(Res.drawable.ic_chevron_right),
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
                                         onClick = { onDeputadoClick(deputado.id) }
                                     )
                                 },
@@ -141,11 +143,15 @@ private fun DeputadosSearchContent(
                                     Column {
                                         BaseText(
                                             text = deputado.name,
-                                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                         )
                                         BaseText(
                                             text = deputado.uf,
-                                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface)
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                         )
                                     }
                                 }
@@ -179,16 +185,18 @@ private fun PreviewDeputadosSearchContentIdle() {
 @Preview
 @Composable
 private fun PreviewDeputadosSearchContentSearchMode() {
-    DeputadosSearchContent(
-        state = DeputadosSearchState(
-            isLoading = false,
-            isError = false,
-            deputados = deputadosMock,
-            deputadosSearch = deputadosMock.subList(0, 4)
-        ),
-        onDeputadoClick = {},
-        navigateBack = {},
-        onSearch = {},
-        onCancelSearch = {}
-    )
+    MagnaTheme {
+        DeputadosSearchContent(
+            state = DeputadosSearchState(
+                isLoading = false,
+                isError = false,
+                deputados = deputadosMock,
+                deputadosSearch = deputadosMock.subList(0, 4)
+            ),
+            onDeputadoClick = {},
+            navigateBack = {},
+            onSearch = {},
+            onCancelSearch = {}
+        )
+    }
 }

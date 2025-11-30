@@ -25,10 +25,12 @@ import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
+import com.tick.magna.ui.core.button.MagnaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
+import magna.composeapp.generated.resources.person_search
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -55,10 +57,7 @@ private fun RecentDeputadosComponentContent(
     onNavigate: (Any) -> Unit = {},
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .height(160.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         when (state) {
             RecentDeputadosState.Empty -> FeatureDiscovery(onNavigate)
@@ -69,23 +68,31 @@ private fun RecentDeputadosComponentContent(
 
 @Composable
 private fun FeatureDiscovery(onNavigate: (Any) -> Unit) {
+    val colorScheme = MaterialTheme.colorScheme
+    val dimensions = LocalDimensions.current
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         BaseText(
-            text = "Find out more about this legislation deputados",
+            text = "Take a look on our deputados \uD83D\uDC40",
             style = MaterialTheme.typography.bodyLarge.copy(
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.tertiary
+                color = MaterialTheme.colorScheme.onSurface
             )
         )
 
-        CtaButton(
-            icon = painterResource(Res.drawable.ic_chevron_right),
-            tint = MaterialTheme.colorScheme.tertiary,
-            onClick = { onNavigate(DeputadosSearchArgs) }
+        MagnaButton(
+            modifier = Modifier.padding(top = dimensions.grid16),
+            icon = painterResource(Res.drawable.person_search),
+            text = "Search",
+            containerColor = colorScheme.secondary,
+            contentColor = colorScheme.onSecondary,
+            onClick = {
+                onNavigate(DeputadosSearchArgs)
+            }
         )
     }
 }
@@ -101,7 +108,7 @@ private fun RecentDeputados(
     ) {
         items(deputados) { deputado ->
             Card(
-                modifier = Modifier.height(140.dp).width(80.dp),
+                modifier = Modifier.height(160.dp).width(80.dp),
                 colors = CardDefaults.cardColors().copy(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -111,18 +118,19 @@ private fun RecentDeputados(
                 }
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
+                    modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid4),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
                 ) {
                     Avatar(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         photoUrl = deputado.profilePicture
                     )
                     BaseText(
-                        modifier = Modifier,
+                        modifier = Modifier.padding(LocalDimensions.current.grid8),
                         text = deputado.name,
-                        style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center)
+                        style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+                        maxLines = 2
                     )
                 }
             }
@@ -130,7 +138,7 @@ private fun RecentDeputados(
 
         item {
             Card(
-                modifier = Modifier.height(140.dp).width(80.dp)
+                modifier = Modifier.height(160.dp).width(80.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
@@ -155,11 +163,15 @@ private fun RecentDeputados(
 @Preview
 @Composable
 fun PreviewRecentDeputadosComponentConfigurationEmpty() {
-    RecentDeputadosComponentContent(state = RecentDeputadosState.Empty)
+    MaterialTheme {
+        RecentDeputadosComponentContent(state = RecentDeputadosState.Empty)
+    }
 }
 
 @Preview
 @Composable
 fun PreviewRecentDeputadosComponentConfigurationPeak() {
-    RecentDeputadosComponentContent(state = RecentDeputadosState.Peak(deputadosMock.subList(0, 4)))
+    MaterialTheme {
+        RecentDeputadosComponentContent(state = RecentDeputadosState.Peak(deputadosMock.subList(0, 4)))
+    }
 }

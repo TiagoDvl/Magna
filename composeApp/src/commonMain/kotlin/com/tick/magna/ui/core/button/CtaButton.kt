@@ -2,6 +2,8 @@ package com.tick.magna.ui.core.button
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,16 +17,20 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun CtaButton(
     modifier: Modifier = Modifier,
     icon: Painter,
-    tint: Color = Color.Black,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    tint: Color = Color.White,
     onClick: () -> Unit
 ) {
     IconButton(
         modifier = modifier,
+        colors = IconButtonDefaults.iconButtonColors().copy(
+            containerColor = containerColor,
+            contentColor = tint
+        ),
         onClick = onClick,
     ) {
         Icon(
             painter = icon,
-            tint = tint,
             contentDescription = null
         )
     }
@@ -35,7 +41,6 @@ fun CtaButton(
 fun CtaButtonPreview() {
     CtaButton(
         icon = painterResource(Res.drawable.ic_chevron_right),
-        tint = Color.Black,
         onClick = {}
     )
 }

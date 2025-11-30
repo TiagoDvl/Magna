@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,7 +60,14 @@ private fun WelcomeContent(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { BaseText(text = "Choose an Option") },
+            title = {
+                BaseText(
+                    text = "Choose an Option",
+                    style = typography.titleLarge.copy(
+                        color = colorScheme.secondary
+                    )
+                )
+            },
             text = {
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 400.dp)
@@ -74,6 +83,9 @@ private fun WelcomeContent(
                             BaseText(
                                 modifier = Modifier.fillMaxWidth(),
                                 text = item.startDate,
+                                style = typography.labelMedium.copy(
+                                    color = colorScheme.onSurface
+                                )
                             )
                         }
                     }
@@ -81,7 +93,13 @@ private fun WelcomeContent(
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    BaseText(text = "Cancel")
+                    BaseText(
+                        text = "Cancel",
+                        style = typography.bodyLarge.copy(
+                            color = colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
                 }
             }
         )
@@ -95,7 +113,12 @@ private fun WelcomeContent(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(dimensions.grid16),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            BaseText(text = "Welcome,", style = typography.headlineLarge.copy(color = colorScheme.primary))
+            BaseText(
+                text = "Welcome,", style = typography.headlineLarge.copy(
+                    color = colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            )
 
             Column(
                 modifier = Modifier.fillMaxWidth().padding(dimensions.grid8),
@@ -103,8 +126,12 @@ private fun WelcomeContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 BaseText(
-                    text = "Magna works based of of a legislatura",
-                    style = typography.bodyLarge.copy(color = colorScheme.secondary, textAlign = TextAlign.Center)
+                    text = "Magna works based of of a legislatura.",
+                    style = typography.bodyLarge.copy(
+                        color = colorScheme.secondary,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
 
                 BaseText(
@@ -114,8 +141,8 @@ private fun WelcomeContent(
 
                 if (state.isLoading) {
                     BaseText(
-                        modifier = Modifier.padding(top = dimensions.grid8),
-                        text = "Loading legistrations",
+                        modifier = Modifier.padding(top = dimensions.grid40),
+                        text = "Loading legislations",
                         style = typography.bodyLarge.copy(color = colorScheme.tertiary)
                     )
                     CircularWavyProgressIndicator(
@@ -126,10 +153,17 @@ private fun WelcomeContent(
 
             Button(
                 modifier = Modifier.fillMaxWidth().padding(dimensions.grid16),
+                colors = ButtonDefaults.buttonColors().copy(
+                    containerColor = colorScheme.secondary,
+                    contentColor = colorScheme.onSecondary
+                ),
                 enabled = !state.isLoading,
                 onClick = { showDialog = true },
                 content = {
-                    BaseText(text = "Legislaturas")
+                    BaseText(
+                        text = "Legislaturas",
+                        style = typography.bodyLarge
+                    )
                 }
             )
         }

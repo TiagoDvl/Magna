@@ -2,7 +2,6 @@ package com.tick.magna.data.usecases
 
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -22,7 +21,6 @@ class SyncUserInformationUseCase(
             val partidos = partidosRepository.getPartidos().first()
 
             if (partidos.isEmpty()) {
-                delay(5_000)
                 if (partidosRepository.syncPartidos()) {
                     logger.d("Sync Success", TAG)
                     emit(SyncUserInformationState.Done)
