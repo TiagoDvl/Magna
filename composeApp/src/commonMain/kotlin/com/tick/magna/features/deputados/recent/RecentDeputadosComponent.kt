@@ -2,6 +2,7 @@ package com.tick.magna.features.deputados.recent
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,7 +58,7 @@ private fun RecentDeputadosComponentContent(
     onNavigate: (Any) -> Unit = {},
 ) {
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().height(160.dp)
     ) {
         when (state) {
             RecentDeputadosState.Empty -> FeatureDiscovery(onNavigate)
@@ -103,12 +104,12 @@ private fun RecentDeputados(
     onNavigate: (Any) -> Unit
 ) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
     ) {
         items(deputados) { deputado ->
             Card(
-                modifier = Modifier.height(160.dp).width(80.dp),
+                modifier = Modifier.fillMaxSize().width(80.dp),
                 colors = CardDefaults.cardColors().copy(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -138,7 +139,7 @@ private fun RecentDeputados(
 
         item {
             Card(
-                modifier = Modifier.height(160.dp).width(80.dp)
+                modifier = Modifier.fillMaxHeight().width(80.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),

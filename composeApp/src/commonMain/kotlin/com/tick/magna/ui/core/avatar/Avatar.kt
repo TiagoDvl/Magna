@@ -2,7 +2,6 @@ package com.tick.magna.ui.core.avatar
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -48,9 +47,7 @@ fun Avatar(
             )
 
             Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(LocalDimensions.current.grid8)
+                modifier = Modifier.align(Alignment.BottomEnd)
             ) {
                 badge()
             }

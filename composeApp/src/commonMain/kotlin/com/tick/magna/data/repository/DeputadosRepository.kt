@@ -44,27 +44,28 @@ internal class DeputadosRepository(
     override suspend fun getDeputados(): Flow<List<Deputado>> {
         val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
         loggerInterface.d("getDeputados for legislatura ID: $legislaturaId", TAG)
-        val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull()
 
         return deputadoDao.getDeputados(legislaturaId).map { deputados ->
-            deputados.map {
-                val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
-                //if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
-
-                it.toDomain(null)
-            }
+            deputados.map { it.toDomain() }
         }.also {
             coroutineScope.launch {
                 try {
-                    loggerInterface.d("Fetching deputado for legislatura ID: $legislaturaId", TAG)
+                    loggerInterface.d("Fetching deputados for legislatura ID: $legislaturaId", TAG)
                     val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+                    val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull().also {
+                        it?.forEach { each ->
+                            loggerInterface.d("Local Partido: $each", TAG)
+                        }
+                    }
 
                     deputadoDao.insertDeputados(
-                        deputadosResponse.dados.map {
-                            //val deputadoPartido = localPartidos?.find { partido -> partido.sigla == it.siglaPartido }
-                            //if (deputadoPartido == null) throw Exception("Remote Partido not found for this deputado")
-
-                            it.toLocal(legislaturaId)
+                        deputadosResponse.dados.map { response ->
+                            val partidoId = response.siglaPartido?.let { sigla ->
+                                loggerInterface.d("Trying to bind siglaPartido to deputado: $sigla", TAG)
+                                localPartidos?.firstOrNull { it.sigla == sigla }?.id
+                            }
+                            loggerInterface.d("Do we have it in DB?: $partidoId", TAG)
+                            response.toLocal(legislaturaId, partidoId)
                         }
                     )
                 } catch (e: Exception) {
@@ -74,14 +75,11 @@ internal class DeputadosRepository(
         }
     }
 
-    override suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado> {
-        val localPartidos = partidoDaoInterface.getPartidos(legislaturaId).firstOrNull()
+    override suspend fun getDeputado(deputadoId: String): Flow<Deputado> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
 
         return deputadoDao.getDeputado(legislaturaId, deputadoId).map {
-            //val deputadoPartido = localPartidos?.find { partido -> partido.id == it.partidoId }
-            //if (deputadoPartido == null) throw Exception("Local Partido not found for this deputado")
-
-            it.toDomain(null)
+            it.toDomain()
         }
     }
 

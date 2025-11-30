@@ -10,7 +10,7 @@ import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class DeputadoDetailsViewModel(
@@ -27,27 +27,20 @@ class DeputadoDetailsViewModel(
 
     init {
         viewModelScope.launch(dispatcherInterface.io) {
-            launch {
-                deputado(deputadoIdArgs).collect { deputado ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            deputado = deputado,
-                        )
-                    }
-                }
-            }
-
-            launch {
-                deputadoDetails(deputadoIdArgs).collect { deputadoDetails ->
-                    val detailState = when (deputadoDetails) {
+            combine(
+                deputado(deputadoIdArgs),
+                deputadoDetails(deputadoIdArgs)
+            ) { deputadoData, detailsResult ->
+                DeputadoDetailsState(
+                    isLoading = false,
+                    deputado = deputadoData,
+                    detailsState = when (detailsResult) {
                         DeputadoDetailsResult.Fetching -> DetailsState.Loading
-                        is DeputadoDetailsResult.Success -> DetailsState.Content(deputadoDetails.details)
+                        is DeputadoDetailsResult.Success -> DetailsState.Content(detailsResult.details)
                     }
-                    _state.update {
-                        it.copy(detailsState = detailState)
-                    }
-                }
+                )
+            }.collect {
+                _state.value = it
             }
         }
     }

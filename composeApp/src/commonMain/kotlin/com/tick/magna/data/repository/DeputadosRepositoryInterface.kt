@@ -10,7 +10,7 @@ interface DeputadosRepositoryInterface {
 
     suspend fun getDeputados(): Flow<List<Deputado>>
 
-    suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado>
+    suspend fun getDeputado(deputadoId: String): Flow<Deputado>
 
     suspend fun getDeputadoDetails(deputadoId: String): Flow<DeputadoDetailsResult>
 }

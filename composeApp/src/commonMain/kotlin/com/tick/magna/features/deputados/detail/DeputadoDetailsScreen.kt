@@ -2,20 +2,24 @@ package com.tick.magna.features.deputados.detail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
+import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.ui.component.LoadingComponent
@@ -23,6 +27,7 @@ import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_left
@@ -49,6 +54,8 @@ private fun DeputadoDetails(
     state: DeputadoDetailsState,
     navigateBack: () -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -63,15 +70,17 @@ private fun DeputadoDetails(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(LocalDimensions.current.grid16)
         ) {
             when {
                 state.isLoading -> LoadingComponent()
                 else -> {
                     DetailHeader(
+                        modifier = Modifier.padding(LocalDimensions.current.grid8),
                         deputado = state.deputado,
                         detailsState = state.detailsState
                     )
+
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
                 }
             }
         }
@@ -84,53 +93,51 @@ private fun DetailHeader(
     deputado: Deputado?,
     detailsState: DetailsState,
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid12),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-    }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid12),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
-        DetailHeader(deputado = deputado)
+        DetailAvatar(deputado = deputado)
         DetailContent(detailsState = detailsState)
     }
 }
 
 @Composable
-private fun DetailHeader(
+private fun DetailAvatar(
     modifier: Modifier = Modifier,
     deputado: Deputado?,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8),
+    ) {
         Avatar(
             photoUrl = deputado?.profilePicture,
             size = AvatarSize.BIG,
             shape = ShapeDefaults.Medium,
             placeholder = painterResource(Res.drawable.ic_light_users),
-            badge = {
-                Card(
-                    colors = CardDefaults.cardColors().copy(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    shape = ShapeDefaults.Medium,
-                ) {
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val chipsStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+            deputado?.let {
+                BaseText(
+                    text = "\uD83D\uDCCD ${deputado.uf}",
+                    style = chipsStyle.copy(fontWeight = FontWeight.Bold)
+                )
+
+                deputado.partido?.let { partido ->
                     BaseText(
-                        text = deputado?.uf.orEmpty(),
-                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                        text = partido,
+                        style = chipsStyle
                     )
                 }
             }
-        )
-
-        BaseText(
-            text = deputado?.partido.orEmpty(),
-            style = MaterialTheme.typography.bodyLargeEmphasized.copy(color = MaterialTheme.colorScheme.secondary)
-        )
+        }
     }
 }
 
@@ -143,25 +150,105 @@ private fun DetailContent(
         when (detailsState) {
             DetailsState.Loading -> LoadingComponent()
             is DetailsState.Content -> {
-                BaseText(text = "Building: " + detailsState.deputadoDetails.gabineteBuilding)
-
-                detailsState.deputadoDetails.socials?.forEach {
-                    BaseText(text = "Social: $it")
-                }
+                GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
+                SocialsDetails(socials = detailsState.deputadoDetails.socials.orEmpty())
             }
         }
+    }
+}
+
+@Composable
+private fun GabineteDetails(
+    modifier: Modifier = Modifier,
+    deputadoDetails: DeputadoDetails
+) {
+    val gabineteDetailsStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
+    ) {
+        deputadoDetails.gabineteBuilding?.let {
+            BaseText(
+                text = "\uD83C\uDFE2 $it",
+                style = gabineteDetailsStyle
+            )
+        }
+
+        deputadoDetails.gabineteRoom?.let {
+            BaseText(
+                text = "\uD83D\uDEAA $it",
+                style = gabineteDetailsStyle
+            )
+        }
+
+        deputadoDetails.gabineteTelephone?.let {
+            BaseText(
+                text = "\uD83D\uDCDE $it",
+                style = gabineteDetailsStyle
+            )
+        }
+
+        deputadoDetails.gabineteEmail?.let {
+            BaseText(
+                text = "✉\uFE0F $it",
+                style = gabineteDetailsStyle,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun SocialsDetails(
+    modifier: Modifier = Modifier,
+    socials: List<String>
+) {
+    val dimensions = LocalDimensions.current
+    val chipsStyle = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+    val mappedSocials = socials.mapNotNull { social ->
+        when {
+            social.contains("facebook", ignoreCase = true) -> "Facebook"
+            social.contains("twitter", ignoreCase = true) -> "Twitter"
+            social.contains("instagram", ignoreCase = true) -> "Instagram"
+            social.contains("youtube", ignoreCase = true) -> "Youtube"
+            else -> null
+        }
+    }.take(4)
+
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+        content = {
+            mappedSocials.forEach { text ->
+                AssistChip(
+                    label = {
+                        BaseText(
+                            text = text,
+                            style = chipsStyle
+                        )
+                    },
+                    onClick = {}
+                )
+            }
+        }
+    )
+    Row {
+
     }
 }
 
 @Preview
 @Composable
 fun PreviewDeputadoDetails() {
-    DeputadoDetails(
-        state = DeputadoDetailsState(
-            isLoading = false,
-            deputado = deputadosMock.random(),
-            detailsState = DetailsState.Content(deputadoDetailMock)
-        ),
-        navigateBack = {}
-    )
+    MagnaTheme {
+        DeputadoDetails(
+            state = DeputadoDetailsState(
+                isLoading = false,
+                deputado = deputadosMock.random(),
+                detailsState = DetailsState.Content(deputadoDetailMock)
+            ),
+            navigateBack = {}
+        )
+    }
 }
