@@ -1,10 +1,10 @@
 CREATE TABLE Deputado (
     id TEXT NOT NULL PRIMARY KEY,
     legislaturaId TEXT NOT NULL,
-    partidoId TEXT,
+    partido TEXT,
     last_seen INTEGER NOT NULL DEFAULT 0,
-    name TEXT NOT NULL,
-    uf TEXT NOT NULL,
+    name TEXT,
+    uf TEXT,
     profile_picture TEXT,
     email TEXT,
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
@@ -14,7 +14,7 @@ insertDeputado:
 INSERT INTO Deputado(
     id,
     legislaturaId,
-    partidoId,
+    partido,
     last_seen,
     name,
     uf,
@@ -24,7 +24,7 @@ INSERT INTO Deputado(
 VALUES ?
 ON CONFLICT(id) DO UPDATE SET
     legislaturaId = COALESCE(excluded.legislaturaId, legislaturaId),
-    partidoId = COALESCE(excluded.partidoId, partidoId),
+    partido = COALESCE(excluded.partido, partido),
     name = COALESCE(excluded.name, name),
     uf = COALESCE(excluded.uf, uf),
     profile_picture = COALESCE(excluded.profile_picture, profile_picture),

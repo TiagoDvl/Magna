@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
@@ -16,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
@@ -130,6 +132,11 @@ private fun DetailAvatar(
                     style = chipsStyle.copy(fontWeight = FontWeight.Bold)
                 )
 
+                BaseText(
+                    text = "-",
+                    style = chipsStyle
+                )
+
                 deputado.partido?.let { partido ->
                     BaseText(
                         text = partido,
@@ -148,7 +155,17 @@ private fun DetailContent(
 ) {
     Column(modifier = modifier) {
         when (detailsState) {
-            DetailsState.Loading -> LoadingComponent()
+            DetailsState.Loading -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    LoadingComponent(modifier = Modifier.fillMaxWidth().height(160.dp))
+                    BaseText(
+                        text = "Loading Details",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    )
+                }
+            }
             is DetailsState.Content -> {
                 GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
                 SocialsDetails(socials = detailsState.deputadoDetails.socials.orEmpty())
@@ -247,6 +264,21 @@ fun PreviewDeputadoDetails() {
                 isLoading = false,
                 deputado = deputadosMock.random(),
                 detailsState = DetailsState.Content(deputadoDetailMock)
+            ),
+            navigateBack = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDeputadoDetailsLoading() {
+    MagnaTheme {
+        DeputadoDetails(
+            state = DeputadoDetailsState(
+                isLoading = false,
+                deputado = deputadosMock.random(),
+                detailsState = DetailsState.Loading
             ),
             navigateBack = {}
         )

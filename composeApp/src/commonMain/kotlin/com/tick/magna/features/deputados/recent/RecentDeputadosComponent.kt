@@ -1,7 +1,9 @@
 package com.tick.magna.features.deputados.recent
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +31,7 @@ import com.tick.magna.ui.core.button.CtaButton
 import com.tick.magna.ui.core.button.MagnaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.person_search
@@ -58,7 +61,7 @@ private fun RecentDeputadosComponentContent(
     onNavigate: (Any) -> Unit = {},
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().height(160.dp)
+        modifier = modifier.fillMaxWidth().height(180.dp)
     ) {
         when (state) {
             RecentDeputadosState.Empty -> FeatureDiscovery(onNavigate)
@@ -103,58 +106,78 @@ private fun RecentDeputados(
     deputados: List<Deputado>,
     onNavigate: (Any) -> Unit
 ) {
-    LazyRow(
+    Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
     ) {
-        items(deputados) { deputado ->
-            Card(
-                modifier = Modifier.fillMaxSize().width(80.dp),
-                colors = CardDefaults.cardColors().copy(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                onClick = {
-                    onNavigate(DeputadoDetailsArgs(deputado.id))
-                }
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid4),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
-                ) {
-                    Avatar(
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
-                        photoUrl = deputado.profilePicture
-                    )
-                    BaseText(
-                        modifier = Modifier.padding(LocalDimensions.current.grid8),
-                        text = deputado.name,
-                        style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
-                        maxLines = 2
-                    )
-                }
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            BaseText(
+                text = "Recently searched deputados",
+                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary)
+            )
+            BaseText(
+                modifier = Modifier.clickable(null, null, onClick = { onNavigate(DeputadosSearchArgs) }),
+                text = "more \uD83D\uDC40",
+                style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.tertiary)
+            )
         }
 
-        item {
-            Card(
-                modifier = Modifier.fillMaxHeight().width(80.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+        LazyRow(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
+        ) {
+            items(deputados) { deputado ->
+                Card(
+                    modifier = Modifier.fillMaxSize().width(80.dp),
+                    colors = CardDefaults.cardColors().copy(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    onClick = {
+                        onNavigate(DeputadoDetailsArgs(deputado.id))
+                    }
                 ) {
-                    BaseText(
-                        text = "Find out more",
-                        style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center)
-                    )
-                    CtaButton(
-                        modifier = Modifier.padding(top = 8.dp),
-                        icon = painterResource(Res.drawable.ic_chevron_right),
-                        onClick = { onNavigate(DeputadosSearchArgs) }
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid4),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
+                    ) {
+                        Avatar(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            photoUrl = deputado.profilePicture
+                        )
+                        BaseText(
+                            modifier = Modifier.padding(LocalDimensions.current.grid8),
+                            text = deputado.name,
+                            style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+                            maxLines = 2
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxHeight().width(80.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        BaseText(
+                            text = "Find out more",
+                            style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center)
+                        )
+                        CtaButton(
+                            modifier = Modifier.padding(top = 8.dp),
+                            icon = painterResource(Res.drawable.ic_chevron_right),
+                            onClick = { onNavigate(DeputadosSearchArgs) }
+                        )
+                    }
                 }
             }
         }
@@ -164,7 +187,7 @@ private fun RecentDeputados(
 @Preview
 @Composable
 fun PreviewRecentDeputadosComponentConfigurationEmpty() {
-    MaterialTheme {
+    MagnaTheme {
         RecentDeputadosComponentContent(state = RecentDeputadosState.Empty)
     }
 }
@@ -172,7 +195,7 @@ fun PreviewRecentDeputadosComponentConfigurationEmpty() {
 @Preview
 @Composable
 fun PreviewRecentDeputadosComponentConfigurationPeak() {
-    MaterialTheme {
+    MagnaTheme {
         RecentDeputadosComponentContent(state = RecentDeputadosState.Peak(deputadosMock.subList(0, 4)))
     }
 }

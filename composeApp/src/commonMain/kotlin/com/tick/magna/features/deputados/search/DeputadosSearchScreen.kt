@@ -1,27 +1,40 @@
 package com.tick.magna.features.deputados.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.deputadosMock
@@ -53,24 +66,95 @@ fun DeputadosSearchScreen(
         state = state.value,
         onDeputadoClick = { navController.navigate(DeputadoDetailsArgs(it)) },
         navigateBack = { navController.popBackStack() },
-        onSearch = { viewModel.processAction(DeputadosSearchAction.Search(it)) },
-        onCancelSearch = { viewModel.processAction(DeputadosSearchAction.CancelSearchMode) }
+        onFilter = { viewModel.processAction(DeputadosSearchAction.SetFilter(it)) }
     )
 }
 
 @Composable
 private fun DeputadosSearchContent(
     state: DeputadosSearchState,
-    onDeputadoClick: (deputadoId: String) -> Unit,
-    navigateBack: () -> Unit,
-    onSearch: (query: String) -> Unit,
-    onCancelSearch: () -> Unit,
+    onDeputadoClick: (deputadoId: String) -> Unit = {},
+    navigateBack: () -> Unit = {},
+    onFilter: (filter: Filter) -> Unit = {},
 ) {
-    val containerColor = if (state.deputadosSearch != null) MaterialTheme.colorScheme.surfaceDim else MaterialTheme.colorScheme.background
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    var dialogType by remember { mutableStateOf<DeputadosSearchDialogType?>(null) }
+    var selectedUf by remember { mutableStateOf("") }
+    var selectedPartido by remember { mutableStateOf("") }
+
+    val containerColor = if (state.deputadosSearch != null) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.background
+
+    if (dialogType != null) {
+        val options = when (dialogType) {
+            DeputadosSearchDialogType.UF -> state.deputadosUfs
+            DeputadosSearchDialogType.PARTIDO -> state.deputadoPartidos
+            else -> emptySet()
+        }
+
+        AlertDialog(
+            onDismissRequest = { dialogType = null },
+            title = {
+                BaseText(
+                    text = "Choose an Option",
+                    style = typography.titleLarge.copy(
+                        color = colorScheme.secondary
+                    )
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 400.dp)
+                ) {
+                    items(items = options.toList()) {
+                        TextButton(
+                            onClick = {
+                                when (dialogType) {
+                                    DeputadosSearchDialogType.UF -> {
+                                        selectedUf = it
+                                        Filter.UF(it)
+                                    }
+                                    DeputadosSearchDialogType.PARTIDO -> {
+                                        selectedPartido = it
+                                        Filter.Partido(it)
+                                    }
+                                    else -> null
+                                }?.let { filter ->
+                                    onFilter(filter)
+                                }
+                                dialogType = null
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            BaseText(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = it,
+                                style = typography.labelMedium.copy(
+                                    color = colorScheme.onSurface
+                                )
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { dialogType = null }) {
+                    BaseText(
+                        text = "Cancel",
+                        style = typography.bodyLarge.copy(
+                            color = colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = containerColor,
         topBar = {
             MagnaTopBar(
                 titleText = "Deputados",
@@ -89,11 +173,12 @@ private fun DeputadosSearchContent(
                     modifier = Modifier.fillMaxSize().padding(paddingValues)
                 ) {
                     OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid4),
+                        modifier = Modifier.fillMaxWidth().padding(dimensions.grid4),
+                        shape = RoundedCornerShape(dimensions.grid16),
                         value = searchQuery,
                         onValueChange = {
                             searchQuery = it
-                            onSearch(searchQuery)
+                            onFilter(Filter.Text(it))
                         },
                         placeholder = { Text("Buscar...") },
                         leadingIcon = {
@@ -104,7 +189,7 @@ private fun DeputadosSearchContent(
                                 IconButton(
                                     onClick = {
                                         searchQuery = ""
-                                        onCancelSearch()
+                                        onFilter(Filter.Text(""))
                                     }
                                 ) {
                                     Icon(Icons.Default.Close, contentDescription = "Limpar")
@@ -114,10 +199,48 @@ private fun DeputadosSearchContent(
                         singleLine = true,
                     )
 
+                    Box(modifier = Modifier.fillMaxWidth().padding(dimensions.grid4)) {
+
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+                        ) {
+
+                            AssistChip(
+                                label = {
+                                    val text = if (selectedUf.isNotEmpty()) {
+                                        "\uD83D\uDCCD $selectedUf"
+                                    } else {
+                                        "\uD83D\uDCCD UF"
+                                    }
+
+                                    BaseText(text = text)
+                                },
+                                onClick = { dialogType = DeputadosSearchDialogType.UF }
+                            )
+
+                            AssistChip(
+                                label = {
+                                    val text = if (selectedPartido.isNotEmpty()) {
+                                        "\uD83D\uDCBC $selectedPartido"
+                                    } else {
+                                        "\uD83D\uDCBC Partido"
+                                    }
+                                    BaseText(text = text)
+                                },
+                                onClick = { dialogType = DeputadosSearchDialogType.PARTIDO }
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(LocalDimensions.current.grid8)
+                            .background(containerColor)
+                            .padding(LocalDimensions.current.grid8),
+                        verticalArrangement = Arrangement.spacedBy(dimensions.grid12)
                     ) {
                         val items = state.deputadosSearch ?: state.deputados
 
@@ -143,16 +266,37 @@ private fun DeputadosSearchContent(
                                     Column {
                                         BaseText(
                                             text = deputado.name,
-                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                            style = MaterialTheme.typography.bodyLarge.copy(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                         )
-                                        BaseText(
-                                            text = deputado.uf,
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = MaterialTheme.colorScheme.onSurface
+
+                                        Row(horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)) {
+                                            deputado.uf?.let {
+                                                BaseText(
+                                                    text = deputado.uf,
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
+                                            }
+                                            BaseText(
+                                                text = "-",
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
                                             )
-                                        )
+
+                                            deputado.partido?.let {
+                                                BaseText(
+                                                    text = deputado.partido,
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             )
@@ -168,18 +312,20 @@ private fun DeputadosSearchContent(
 @Preview
 @Composable
 private fun PreviewDeputadosSearchContentIdle() {
-    DeputadosSearchContent(
-        state = DeputadosSearchState(
-            isLoading = false,
-            isError = false,
-            deputados = deputadosMock,
-            deputadosSearch = null
-        ),
-        onDeputadoClick = {},
-        navigateBack = {},
-        onSearch = {},
-        onCancelSearch = {}
-    )
+    MagnaTheme {
+        DeputadosSearchContent(
+            state = DeputadosSearchState(
+                isLoading = false,
+                isError = false,
+                deputados = deputadosMock,
+                deputadosSearch = null,
+                filters = setOf(
+                    Filter.UF("AM"),
+                    Filter.Partido("PSOL")
+                )
+            ),
+        )
+    }
 }
 
 @Preview
@@ -191,12 +337,12 @@ private fun PreviewDeputadosSearchContentSearchMode() {
                 isLoading = false,
                 isError = false,
                 deputados = deputadosMock,
-                deputadosSearch = deputadosMock.subList(0, 4)
+                deputadosSearch = deputadosMock.subList(0, 4),
+                filters = setOf(
+                    Filter.UF("AM"),
+                    Filter.Partido("PSOL")
+                )
             ),
-            onDeputadoClick = {},
-            navigateBack = {},
-            onSearch = {},
-            onCancelSearch = {}
         )
     }
 }

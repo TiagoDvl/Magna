@@ -20,8 +20,7 @@ class DeputadosSearchViewModel(
 
     fun processAction(action: DeputadosSearchAction) {
         when (action) {
-            is DeputadosSearchAction.Search -> search(action.query)
-            DeputadosSearchAction.CancelSearchMode -> cancelSearch()
+            is DeputadosSearchAction.SetFilter -> handleFilter(action.filter)
         }
     }
 
@@ -30,32 +29,35 @@ class DeputadosSearchViewModel(
             getDeputadosList().collect {
                 when (it) {
                     DeputadosListState.Loading -> _state.update { state -> state.copy(isLoading = true) }
-                    is DeputadosListState.Success -> _state.update { state -> state.copy(isLoading = false, deputados = it.deputados) }
+                    is DeputadosListState.Success -> {
+                        val deputadosUfs = it.deputados.mapNotNull { deputado -> deputado.uf }.sorted().toSet()
+                        val deputadosPartidos = it.deputados.mapNotNull { deputado -> deputado.partido }.sorted().toSet()
+
+                        _state.update { state ->
+                            state.copy(
+                                isLoading = false,
+                                deputados = it.deputados,
+                                deputadosUfs = deputadosUfs,
+                                deputadoPartidos = deputadosPartidos
+                            )
+                        }
+                    }
                     DeputadosListState.Error -> _state.update { state -> state.copy(isError = true) }
                 }
             }
         }
     }
 
-    private fun search(query: String) {
+    private fun handleFilter(filter: Filter) {
         viewModelScope.launch(dispatcher.default) {
+            val updatedFilter = _state.value.filters + filter
             val currentDeputados = _state.value.deputados
+
             val filteredDeputados = currentDeputados.filter { deputado ->
-                deputado.name.contains(other = query, ignoreCase = true)
+                updatedFilter.forEach { it.filter(deputado) }
             }
+
             _state.update { it.copy(deputadosSearch = filteredDeputados) }
         }
     }
-
-    private fun cancelSearch() {
-        viewModelScope.launch(dispatcher.default) {
-            _state.update { it.copy(deputadosSearch = null) }
-        }
-    }
-}
-
-sealed interface DeputadosSearchAction {
-
-    data class Search(val query: String): DeputadosSearchAction
-    data object CancelSearchMode: DeputadosSearchAction
 }

@@ -4,7 +4,7 @@ data class Deputado(
     val id: String,
     val name: String,
     val partido: String?,
-    val uf: String,
+    val uf: String?,
     val profilePicture: String?,
     val email: String?
 )
