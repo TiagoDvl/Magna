@@ -20,7 +20,7 @@ class DeputadosSearchViewModel(
 
     fun processAction(action: DeputadosSearchAction) {
         when (action) {
-            is DeputadosSearchAction.SetFilter -> handleFilter(action.filter)
+            is DeputadosSearchAction.OnFilter -> handleFilter(action.filter)
         }
     }
 
@@ -50,14 +50,19 @@ class DeputadosSearchViewModel(
 
     private fun handleFilter(filter: Filter) {
         viewModelScope.launch(dispatcher.default) {
-            val updatedFilter = _state.value.filters + filter
-            val currentDeputados = _state.value.deputados
+            val filters = state.value.filters
 
-            val filteredDeputados = currentDeputados.filter { deputado ->
-                updatedFilter.forEach { it.filter(deputado) }
+            if (filter.isRemoved) {
+                filters.remove(filter.filterKey)
+            } else {
+                filters[filter.filterKey] = filter
             }
 
-            _state.update { it.copy(deputadosSearch = filteredDeputados) }
+            val filteredDeputados = _state.value.deputados.filter { deputado ->
+                filters.all { filter -> filter.value.filter(deputado) }
+            }
+
+            _state.update { it.copy(deputadosSearch = if (filters.isEmpty()) null else filteredDeputados) }
         }
     }
 }

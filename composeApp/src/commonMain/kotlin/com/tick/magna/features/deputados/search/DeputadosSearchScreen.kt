@@ -66,7 +66,7 @@ fun DeputadosSearchScreen(
         state = state.value,
         onDeputadoClick = { navController.navigate(DeputadoDetailsArgs(it)) },
         navigateBack = { navController.popBackStack() },
-        onFilter = { viewModel.processAction(DeputadosSearchAction.SetFilter(it)) }
+        onFilter = { viewModel.processAction(DeputadosSearchAction.OnFilter(it)) }
     )
 }
 
@@ -180,7 +180,7 @@ private fun DeputadosSearchContent(
                             searchQuery = it
                             onFilter(Filter.Text(it))
                         },
-                        placeholder = { Text("Buscar...") },
+                        placeholder = { Text("Search...") },
                         leadingIcon = {
                             Icon(Icons.Default.Search, contentDescription = null)
                         },
@@ -192,7 +192,7 @@ private fun DeputadosSearchContent(
                                         onFilter(Filter.Text(""))
                                     }
                                 ) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpar")
+                                    Icon(Icons.Default.Close, contentDescription = "Clear")
                                 }
                             }
                         },
@@ -216,7 +216,14 @@ private fun DeputadosSearchContent(
 
                                     BaseText(text = text)
                                 },
-                                onClick = { dialogType = DeputadosSearchDialogType.UF }
+                                onClick = {
+                                    if (selectedUf.isNotEmpty()) {
+                                        selectedUf = ""
+                                        onFilter(Filter.UF(""))
+                                    } else {
+                                        dialogType = DeputadosSearchDialogType.UF
+                                    }
+                                }
                             )
 
                             AssistChip(
@@ -228,7 +235,14 @@ private fun DeputadosSearchContent(
                                     }
                                     BaseText(text = text)
                                 },
-                                onClick = { dialogType = DeputadosSearchDialogType.PARTIDO }
+                                onClick = {
+                                    if (selectedPartido.isNotEmpty()) {
+                                        selectedPartido = ""
+                                        onFilter(Filter.Partido(""))
+                                    } else {
+                                        dialogType = DeputadosSearchDialogType.PARTIDO
+                                    }
+                                }
                             )
                         }
                     }
@@ -319,9 +333,9 @@ private fun PreviewDeputadosSearchContentIdle() {
                 isError = false,
                 deputados = deputadosMock,
                 deputadosSearch = null,
-                filters = setOf(
-                    Filter.UF("AM"),
-                    Filter.Partido("PSOL")
+                filters = mutableMapOf(
+                    FilterKey.UF to Filter.UF("AM"),
+                    FilterKey.PARTIDO to Filter.Partido("PSOL")
                 )
             ),
         )
@@ -338,9 +352,9 @@ private fun PreviewDeputadosSearchContentSearchMode() {
                 isError = false,
                 deputados = deputadosMock,
                 deputadosSearch = deputadosMock.subList(0, 4),
-                filters = setOf(
-                    Filter.UF("AM"),
-                    Filter.Partido("PSOL")
+                filters = mutableMapOf(
+                    FilterKey.UF to Filter.UF("AM"),
+                    FilterKey.PARTIDO to Filter.Partido("PSOL")
                 )
             ),
         )
