@@ -1,5 +1,6 @@
 package com.tick.magna.features.deputados.detail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -9,16 +10,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
+import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
@@ -37,6 +53,7 @@ import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaTopBar
+import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_chevron_left
@@ -65,15 +82,53 @@ private fun DeputadoDetails(
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
-    Scaffold(
+    val bottomSheetState: SheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        skipHiddenState = false,
+    )
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(bottomSheetState)
+    val scope = rememberCoroutineScope()
+
+    var localSheetState by remember { mutableStateOf<DeputadoDetailsSheetState?>(null) }
+
+    fun showSheet(homeSheetState: DeputadoDetailsSheetState) {
+        scope.launch {
+            localSheetState = homeSheetState
+            bottomSheetState.expand()
+        }
+    }
+
+    fun hideSheet() {
+        scope.launch {
+            bottomSheetState.hide()
+        }
+    }
+
+    BottomSheetScaffold(
         modifier = Modifier.fillMaxSize(),
+        sheetContainerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MagnaTopBar(
                 titleText = state.deputado?.name.orEmpty(),
                 leftIcon = painterResource(Res.drawable.ic_chevron_left),
                 leftIconClick = navigateBack
             )
-        }
+        },
+        scaffoldState = bottomSheetScaffoldState,
+        sheetTonalElevation = LocalDimensions.current.grid4,
+        sheetShadowElevation = LocalDimensions.current.grid12,
+        sheetSwipeEnabled = true,
+        sheetContent = {
+            when (val state = localSheetState) {
+                is DeputadoDetailsSheetState.Expense -> {
+                    DeputadoExpenseDetails(
+                        deputadoExpense = state.deputadoExpense,
+                        onCloseSheet = { hideSheet() }
+                    )
+                }
+                null -> Unit
+            }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -90,7 +145,10 @@ private fun DeputadoDetails(
 
             DeputadoExpenses(
                 modifier = Modifier.padding(LocalDimensions.current.grid8),
-                state = state.expensesState
+                state = state.expensesState,
+                onExpenseClick = {
+                    showSheet(DeputadoDetailsSheetState.Expense(it))
+                },
             )
         }
     }
@@ -262,7 +320,8 @@ private fun SocialsDetails(
 @Composable
 fun DeputadoExpenses(
     modifier: Modifier = Modifier,
-    state: ExpensesState
+    state: ExpensesState,
+    onExpenseClick: (DeputadoExpense) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val style = MaterialTheme.typography
@@ -308,7 +367,13 @@ fun DeputadoExpenses(
                 is ExpensesState.Content -> {
                     items(state.expenses) { expense ->
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    onClick = {
+                                        onExpenseClick(expense)
+                                    }
+                                ),
                             verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
                         ) {
                             BaseText(text = expense.tipoDespesa, style = style.bodyLarge.copy(color = colors.onSurface))
@@ -346,6 +411,95 @@ fun DeputadoExpenses(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun DeputadoExpenseDetails(
+    deputadoExpense: DeputadoExpense,
+    onCloseSheet: () -> Unit = {}
+) {
+    val dimensions = LocalDimensions.current
+    val style = MaterialTheme.typography
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        modifier = Modifier.sizeIn(minHeight = 300.dp).fillMaxWidth().padding(dimensions.grid8),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BaseText(
+                modifier = Modifier.weight(0.80f),
+                text = deputadoExpense.tipoDespesa,
+                style = style.titleSmall.copy(
+                    color = colors.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            IconButton(onClick = onCloseSheet) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = null)
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+        ) {
+            ExpenseRow("Ano", deputadoExpense.ano.toString())
+            ExpenseRow("Mes", deputadoExpense.mes.toString())
+            ExpenseRow("Tipo de despesa", deputadoExpense.tipoDespesa)
+            ExpenseRow("Código do Documento", deputadoExpense.codDocumento.toString())
+            ExpenseRow("Data do Documento", deputadoExpense.dataDocumento)
+            ExpenseRow("Número do Documento", deputadoExpense.numDocumento)
+            ExpenseRow("Valor do Documento", deputadoExpense.valorDocumento)
+            ExpenseRow("Nome do Fornecedor", deputadoExpense.nomeFornecedor)
+            ExpenseRow("CNPJ/CPF do Fornecedor", deputadoExpense.cnpjCpfFornecedor)
+            ExpenseRow("Valor Liquido", deputadoExpense.valorLiquido)
+            ExpenseRow("Código Lote", deputadoExpense.codLote.toString())
+            ExpenseRow("Parcela", deputadoExpense.parcela.toString())
+        }
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            enabled = deputadoExpense.urlDocumento != null,
+            onClick = {},
+            content = {
+                BaseText(
+                    text = "Consultar documento"
+                )
+            }
+        )
+
+    }
+}
+
+@Composable
+fun ExpenseRow(
+    title: String,
+    value: String
+) {
+    val dimensions = LocalDimensions.current
+    val style = MaterialTheme.typography
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
+    ) {
+        BaseText(
+            text = "$title:",
+            style = style.bodyMedium.copy(
+                color = colors.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        BaseText(
+            text = value,
+            style = style.bodyMedium.copy(color = colors.onSurface)
+        )
     }
 }
 

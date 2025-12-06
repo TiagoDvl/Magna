@@ -23,3 +23,7 @@ sealed interface ExpensesState {
 
     data class Content(val expenses: List<DeputadoExpense>): ExpensesState
 }
+
+sealed interface DeputadoDetailsSheetState {
+    data class Expense(val deputadoExpense: DeputadoExpense): DeputadoDetailsSheetState
+}

@@ -21,6 +21,7 @@ kotlinx-coroutines = "1.10.2"
 kotlinStdlib = "2.2.20"
 kotlinxSerializationJson = "1.9.0"
 kotlinxDateTime = "0.6.0"
+materialIconsCore = "1.7.1"
 ktorVersion = "3.3.0"
 napier = "2.7.1"
 runner = "1.7.0"
@@ -53,6 +54,8 @@ sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sq
 sqldelight-dialect = { module = "app.cash.sqldelight:sqlite-3-38-dialect", version.ref = "sqlDelight" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDateTime" }
+material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
+
 
 [plugins]
 androidLint = { id = "com.android.lint", version.ref = "agp" }

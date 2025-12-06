@@ -60,6 +60,7 @@ kotlin {
             implementation(libs.navigation.compose)
 
             implementation(libs.kotlinx.datetime)
+            implementation(libs.material.icons.core)
         }
         androidMain.dependencies {
             implementation(compose.preview)
