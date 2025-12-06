@@ -58,6 +58,8 @@ kotlin {
             implementation(libs.sqldelight.runtime)
             implementation(libs.coroutines.extensions)
             implementation(libs.navigation.compose)
+
+            implementation(libs.kotlinx.datetime)
         }
         androidMain.dependencies {
             implementation(compose.preview)

@@ -1,17 +1,20 @@
 package com.tick.magna.data.repository
 
 import com.tick.magna.data.domain.Deputado
+import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
+import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.usecases.DeputadoDetailsResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -88,6 +91,19 @@ internal class DeputadosRepository(
                 } catch (e: Exception) {
                     loggerInterface.d("Failed to fetch deputado details: ${e.message}", TAG)
                 }
+            }
+        }
+    }
+
+    override fun getDeputadoExpenses(deputadoId: String): Flow<List<DeputadoExpense>> {
+        return flow {
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+
+            if (legislaturaId != null) {
+                val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId)
+                emit(response.dados.map { it.toDomain() })
+            } else {
+                emit(emptyList())
             }
         }
     }

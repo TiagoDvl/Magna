@@ -119,7 +119,7 @@ val viewModelModule = module {
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
     viewModel { (handle: SavedStateHandle) ->
-        DeputadoDetailsViewModel(handle, get(), get(), get())
+        DeputadoDetailsViewModel(handle, get(), get(), get(), get())
     }
 }
 

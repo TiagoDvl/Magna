@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.usecases.DeputadoDetailsResult
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
 import com.tick.magna.data.usecases.GetDeputadoUseCase
@@ -17,7 +18,8 @@ class DeputadoDetailsViewModel(
     savedStateHandle: SavedStateHandle,
     dispatcherInterface: DispatcherInterface,
     deputado: GetDeputadoUseCase,
-    deputadoDetails: GetDeputadoDetailsUseCase
+    deputadoDetails: GetDeputadoDetailsUseCase,
+    deputadosRepository: DeputadosRepositoryInterface,
 ): ViewModel() {
 
     private val deputadoIdArgs: String = savedStateHandle.toRoute<DeputadoDetailsArgs>().deputadoId
@@ -29,14 +31,18 @@ class DeputadoDetailsViewModel(
         viewModelScope.launch(dispatcherInterface.io) {
             combine(
                 deputado(deputadoIdArgs),
-                deputadoDetails(deputadoIdArgs)
-            ) { deputadoData, detailsResult ->
+                deputadoDetails(deputadoIdArgs),
+                deputadosRepository.getDeputadoExpenses(deputadoIdArgs)
+            ) { deputadoData, detailsResult, expensesResult ->
                 DeputadoDetailsState(
-                    isLoading = false,
                     deputado = deputadoData,
                     detailsState = when (detailsResult) {
                         DeputadoDetailsResult.Fetching -> DetailsState.Loading
                         is DeputadoDetailsResult.Success -> DetailsState.Content(detailsResult.details)
+                    },
+                    expensesState = when {
+                        expensesResult.isEmpty() -> ExpensesState.Loading
+                        else -> ExpensesState.Content(expensesResult)
                     }
                 )
             }.collect {

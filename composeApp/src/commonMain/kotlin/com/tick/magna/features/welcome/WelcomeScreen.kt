@@ -126,7 +126,7 @@ private fun WelcomeContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 BaseText(
-                    text = "Magna works based of of a legislatura.",
+                    text = "Magna is based on a legislatura." ,
                     style = typography.bodyLarge.copy(
                         color = colorScheme.secondary,
                         textAlign = TextAlign.Center,

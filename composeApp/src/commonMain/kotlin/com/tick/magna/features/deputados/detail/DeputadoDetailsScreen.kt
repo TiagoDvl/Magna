@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -23,6 +28,7 @@ import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.deputadoDetailMock
+import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
@@ -32,6 +38,7 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.painterResource
@@ -73,18 +80,18 @@ private fun DeputadoDetails(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when {
-                state.isLoading -> LoadingComponent()
-                else -> {
-                    DetailHeader(
-                        modifier = Modifier.padding(LocalDimensions.current.grid8),
-                        deputado = state.deputado,
-                        detailsState = state.detailsState
-                    )
+            DetailHeader(
+                modifier = Modifier.padding(LocalDimensions.current.grid8),
+                deputado = state.deputado,
+                detailsState = state.detailsState
+            )
 
-                    HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
-                }
-            }
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+
+            DeputadoExpenses(
+                modifier = Modifier.padding(LocalDimensions.current.grid8),
+                state = state.expensesState
+            )
         }
     }
 }
@@ -250,8 +257,95 @@ private fun SocialsDetails(
             }
         }
     )
-    Row {
+}
 
+@Composable
+fun DeputadoExpenses(
+    modifier: Modifier = Modifier,
+    state: ExpensesState
+) {
+    val dimensions = LocalDimensions.current
+    val style = MaterialTheme.typography
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
+    ) {
+        BaseText(
+            text = "Expenses",
+            style = style.titleLarge.copy(
+                color = colors.secondary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
+        ) {
+            when (state) {
+                ExpensesState.Loading -> {
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
+                        ) {
+                            CircularWavyProgressIndicator(
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+
+                            BaseText(
+                                text = "Loading Expenses",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            )
+                        }
+                    }
+                }
+                is ExpensesState.Content -> {
+                    items(state.expenses) { expense ->
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                        ) {
+                            BaseText(text = expense.tipoDespesa, style = style.bodyLarge.copy(color = colors.onSurface))
+                            BaseText(
+                                text = expense.nomeFornecedor,
+                                style = style.bodyMedium.copy(
+                                    color = colors.onSurface,
+                                    fontWeight = FontWeight.ExtraLight
+                                )
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(dimensions.grid2),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                BaseText(
+                                    text = expense.valorDocumento,
+                                    style = style.bodySmall.copy(
+                                        color = colors.secondary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                BaseText(text = "-", style = style.bodySmall.copy(color = colors.onSurface))
+                                BaseText(text = expense.dataDocumento, style = style.bodySmall.copy(color = colors.onSurface))
+
+                                if (expense.urlDocumento != null) {
+                                    Icon(
+                                        modifier = Modifier.size(dimensions.grid16),
+                                        painter = painterResource(Res.drawable.folder_eye),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -261,9 +355,9 @@ fun PreviewDeputadoDetails() {
     MagnaTheme {
         DeputadoDetails(
             state = DeputadoDetailsState(
-                isLoading = false,
                 deputado = deputadosMock.random(),
-                detailsState = DetailsState.Content(deputadoDetailMock)
+                detailsState = DetailsState.Content(deputadoDetailMock),
+                expensesState = ExpensesState.Content(deputadoExpensesMock)
             ),
             navigateBack = {}
         )
@@ -276,9 +370,9 @@ fun PreviewDeputadoDetailsLoading() {
     MagnaTheme {
         DeputadoDetails(
             state = DeputadoDetailsState(
-                isLoading = false,
                 deputado = deputadosMock.random(),
-                detailsState = DetailsState.Loading
+                detailsState = DetailsState.Loading,
+                expensesState = ExpensesState.Loading
             ),
             navigateBack = {}
         )
