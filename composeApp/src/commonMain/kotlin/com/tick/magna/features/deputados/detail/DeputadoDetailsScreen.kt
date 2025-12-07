@@ -328,11 +328,11 @@ fun DeputadoExpenses(
     val colors = MaterialTheme.colorScheme
 
     Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
+        modifier = modifier.fillMaxSize().padding(top = dimensions.grid8),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid20)
     ) {
         BaseText(
-            text = "Expenses",
+            text = "Gastos da Cota Parlamentar",
             style = style.titleLarge.copy(
                 color = colors.secondary,
                 fontWeight = FontWeight.Bold
@@ -452,15 +452,11 @@ fun DeputadoExpenseDetails(
             ExpenseRow("Ano", deputadoExpense.ano.toString())
             ExpenseRow("Mes", deputadoExpense.mes.toString())
             ExpenseRow("Tipo de despesa", deputadoExpense.tipoDespesa)
-            ExpenseRow("Código do Documento", deputadoExpense.codDocumento.toString())
             ExpenseRow("Data do Documento", deputadoExpense.dataDocumento)
             ExpenseRow("Número do Documento", deputadoExpense.numDocumento)
             ExpenseRow("Valor do Documento", deputadoExpense.valorDocumento)
             ExpenseRow("Nome do Fornecedor", deputadoExpense.nomeFornecedor)
             ExpenseRow("CNPJ/CPF do Fornecedor", deputadoExpense.cnpjCpfFornecedor)
-            ExpenseRow("Valor Liquido", deputadoExpense.valorLiquido)
-            ExpenseRow("Código Lote", deputadoExpense.codLote.toString())
-            ExpenseRow("Parcela", deputadoExpense.parcela.toString())
         }
 
         Button(

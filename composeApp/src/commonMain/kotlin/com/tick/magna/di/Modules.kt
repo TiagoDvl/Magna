@@ -24,6 +24,8 @@ import com.tick.magna.data.source.local.dao.DeputadoDao
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDao
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
+import com.tick.magna.data.source.local.dao.DeputadoExpenseDao
+import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDao
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDao
@@ -75,6 +77,7 @@ val databaseModule = module {
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
+    single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
 }
 
 val dataModule = module {
@@ -93,7 +96,7 @@ val dataModule = module {
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
 
     // Repositories
-    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get(), get()) }
+    single<DeputadosRepositoryInterface> { DeputadosRepository(get(), get(), get(), get(), get(), get(), get()) }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
 }

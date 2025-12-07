@@ -1,0 +1,56 @@
+CREATE TABLE DeputadoExpense (
+    expenseId INTEGER PRIMARY KEY AUTOINCREMENT,
+    deputadoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    year TEXT,
+    month TEXT,
+    despesaType TEXT,
+    documentData TEXT,
+    documentNumber TEXT,
+    documentValue TEXT,
+    documentUrl TEXT,
+    fileUri TEXT,
+    fornecedorName TEXT,
+    cnpjCpf TEXT,
+    FOREIGN KEY(deputadoId) REFERENCES Deputado(id),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);
+
+insertExpense:
+INSERT INTO DeputadoExpense(
+    deputadoId,
+    legislaturaId,
+    year,
+    month,
+    despesaType,
+    documentData,
+    documentNumber,
+    documentValue,
+    documentUrl,
+    fileUri,
+    fornecedorName,
+    cnpjCpf
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getExpenseById:
+SELECT *
+FROM DeputadoExpense
+WHERE expenseId = ?;
+
+getExpensesByDeputado:
+SELECT *
+FROM DeputadoExpense
+WHERE deputadoId = ? AND legislaturaId = ?
+ORDER BY year DESC, month DESC;
+
+getExpensesByLegislatura:
+SELECT *
+FROM DeputadoExpense
+WHERE legislaturaId = ?
+ORDER BY year DESC, month DESC;
+
+-- Get all expenses
+getAllExpenses:
+SELECT *
+FROM DeputadoExpense
+ORDER BY expenseId DESC;

@@ -60,13 +60,13 @@ kotlin {
             implementation(libs.navigation.compose)
 
             implementation(libs.kotlinx.datetime)
-            implementation(libs.material.icons.core)
         }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.android)
             implementation(libs.android.driver)
+            implementation(libs.material.icons.core)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

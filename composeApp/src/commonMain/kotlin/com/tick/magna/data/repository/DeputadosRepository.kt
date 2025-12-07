@@ -5,26 +5,30 @@ import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
+import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
+import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
-import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.usecases.DeputadoDetailsResult
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
+@ExperimentalCoroutinesApi
 internal class DeputadosRepository(
     private val userDao: UserDaoInterface,
     private val deputadosApi: DeputadosApiInterface,
     private val deputadoDao: DeputadoDaoInterface,
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
+    private val deputadoExpenseDao: DeputadoExpenseDaoInterface,
     private val loggerInterface: AppLoggerInterface,
     private val coroutineScope: CoroutineScope
 ): DeputadosRepositoryInterface {
@@ -96,14 +100,27 @@ internal class DeputadosRepository(
     }
 
     override fun getDeputadoExpenses(deputadoId: String): Flow<List<DeputadoExpense>> {
-        return flow {
-            val legislaturaId = userDao.getUser().first()?.legislaturaId
-
-            if (legislaturaId != null) {
-                val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId)
-                emit(response.dados.map { it.toDomain() })
+        return userDao.getUser().flatMapLatest { user ->
+            if (user != null && user.legislaturaId != null) {
+                deputadoExpenseDao.getDeputadoExpense(deputadoId, user.legislaturaId)
             } else {
-                emit(emptyList())
+                flowOf(emptyList())
+            }
+        }.map { expenses ->
+            expenses.map { it.toDomain() }
+        }.also {
+            coroutineScope.launch {
+                val legislaturaId = userDao.getUser().first()?.legislaturaId
+
+                if (legislaturaId != null) {
+                    try {
+                        val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId)
+                        val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
+                        deputadoExpenseDao.insertDeputadoExpenses(expenses)
+                    } catch (exception: Exception) {
+                        loggerInterface.d("Failed to fetch deputado expense: ${exception.message}", TAG)
+                    }
+                }
             }
         }
     }
