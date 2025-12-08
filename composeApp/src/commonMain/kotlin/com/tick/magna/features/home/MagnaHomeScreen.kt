@@ -38,8 +38,13 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.app_name
 import magna.composeapp.generated.resources.baseline_refresh
+import magna.composeapp.generated.resources.home_retry_sync_title
+import magna.composeapp.generated.resources.home_sync_title
+import magna.composeapp.generated.resources.retry
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -100,7 +105,7 @@ private fun MagnaHomeContent(
     BottomSheetScaffold(
         modifier = modifier.fillMaxSize(),
         sheetContainerColor = MaterialTheme.colorScheme.background,
-        topBar = { MagnaTopBar(titleText = "Magna") },
+        topBar = { MagnaTopBar(titleText = stringResource(Res.string.app_name)) },
         scaffoldState = bottomSheetScaffoldState,
         sheetTonalElevation = LocalDimensions.current.grid4,
         sheetShadowElevation = LocalDimensions.current.grid12,
@@ -142,7 +147,7 @@ private fun RunningSyncSheet(
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid20)
     ) {
         BaseText(
-            text = "Fetching Legislatura Information",
+            text = stringResource(Res.string.home_sync_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold
@@ -165,7 +170,7 @@ private fun RetrySyncSheet(
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid20)
     ) {
         BaseText(
-            text = "Something went wrong with your setup. How about trying again?",
+            text = stringResource(Res.string.home_retry_sync_title),
             maxLines = 2,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -178,7 +183,7 @@ private fun RetrySyncSheet(
             icon = painterResource(Res.drawable.baseline_refresh),
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            text = "Retry",
+            text = stringResource(Res.string.retry),
             onClick = retryAction
         )
     }

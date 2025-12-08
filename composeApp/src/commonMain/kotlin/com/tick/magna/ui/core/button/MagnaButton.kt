@@ -23,8 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.app_name
 import magna.composeapp.generated.resources.ic_chevron_right
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 enum class MagnaButtonSize {
@@ -109,7 +111,7 @@ fun MagnaButtonPreview() {
             MagnaButton(
                 icon = painterResource(Res.drawable.ic_chevron_right),
                 size = size,
-                text = "Magna",
+                text = stringResource(Res.string.app_name),
                 onClick = {}
             )
         }

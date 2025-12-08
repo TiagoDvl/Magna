@@ -55,10 +55,23 @@ import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.deputado_details_check_document
+import magna.composeapp.generated.resources.deputado_details_expense_despesa_type
+import magna.composeapp.generated.resources.deputado_details_expense_document_date
+import magna.composeapp.generated.resources.deputado_details_expense_document_number
+import magna.composeapp.generated.resources.deputado_details_expense_document_value
+import magna.composeapp.generated.resources.deputado_details_expense_month
+import magna.composeapp.generated.resources.deputado_details_expense_supplier_cnpjcpf
+import magna.composeapp.generated.resources.deputado_details_expense_supplier_name
+import magna.composeapp.generated.resources.deputado_details_expense_title
+import magna.composeapp.generated.resources.deputado_details_expense_year
+import magna.composeapp.generated.resources.deputado_details_loading_details
+import magna.composeapp.generated.resources.deputado_details_loading_expenses
 import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -224,7 +237,7 @@ private fun DetailContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     LoadingComponent(modifier = Modifier.fillMaxWidth().height(160.dp))
                     BaseText(
-                        text = "Loading Details",
+                        text = stringResource(Res.string.deputado_details_loading_details),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.tertiary
                         )
@@ -332,7 +345,7 @@ fun DeputadoExpenses(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid20)
     ) {
         BaseText(
-            text = "Gastos da Cota Parlamentar",
+            text = stringResource(Res.string.deputado_details_expense_title),
             style = style.titleLarge.copy(
                 color = colors.secondary,
                 fontWeight = FontWeight.Bold
@@ -356,7 +369,7 @@ fun DeputadoExpenses(
                             )
 
                             BaseText(
-                                text = "Loading Expenses",
+                                text = stringResource(Res.string.deputado_details_loading_expenses),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.tertiary
                                 )
@@ -449,14 +462,14 @@ fun DeputadoExpenseDetails(
         Column(
             verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
         ) {
-            ExpenseRow("Ano", deputadoExpense.ano.toString())
-            ExpenseRow("Mes", deputadoExpense.mes.toString())
-            ExpenseRow("Tipo de despesa", deputadoExpense.tipoDespesa)
-            ExpenseRow("Data do Documento", deputadoExpense.dataDocumento)
-            ExpenseRow("Número do Documento", deputadoExpense.numDocumento)
-            ExpenseRow("Valor do Documento", deputadoExpense.valorDocumento)
-            ExpenseRow("Nome do Fornecedor", deputadoExpense.nomeFornecedor)
-            ExpenseRow("CNPJ/CPF do Fornecedor", deputadoExpense.cnpjCpfFornecedor)
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_year), deputadoExpense.ano.toString())
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_month), deputadoExpense.mes.toString())
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_despesa_type), deputadoExpense.tipoDespesa)
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_document_date), deputadoExpense.dataDocumento)
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_document_number), deputadoExpense.numDocumento)
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_document_value), deputadoExpense.valorDocumento)
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_supplier_name), deputadoExpense.nomeFornecedor)
+            ExpenseRow(stringResource(Res.string.deputado_details_expense_supplier_cnpjcpf), deputadoExpense.cnpjCpfFornecedor)
         }
 
         Button(
@@ -465,7 +478,7 @@ fun DeputadoExpenseDetails(
             onClick = {},
             content = {
                 BaseText(
-                    text = "Consultar documento"
+                    text = stringResource(Res.string.deputado_details_check_document)
                 )
             }
         )

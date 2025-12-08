@@ -35,7 +35,13 @@ import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.person_search
+import magna.composeapp.generated.resources.recent_deputados_feature_discovery_action
+import magna.composeapp.generated.resources.recent_deputados_feature_discovery_title
+import magna.composeapp.generated.resources.recent_deputados_find_more
+import magna.composeapp.generated.resources.recent_deputados_more
+import magna.composeapp.generated.resources.recent_deputados_title
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -81,7 +87,7 @@ private fun FeatureDiscovery(onNavigate: (Any) -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         BaseText(
-            text = "Take a look on our deputados \uD83D\uDC40",
+            text = stringResource(Res.string.recent_deputados_feature_discovery_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
@@ -91,7 +97,7 @@ private fun FeatureDiscovery(onNavigate: (Any) -> Unit) {
         MagnaButton(
             modifier = Modifier.padding(top = dimensions.grid16),
             icon = painterResource(Res.drawable.person_search),
-            text = "Search",
+            text = stringResource(Res.string.recent_deputados_feature_discovery_action),
             containerColor = colorScheme.secondary,
             contentColor = colorScheme.onSecondary,
             onClick = {
@@ -115,12 +121,12 @@ private fun RecentDeputados(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             BaseText(
-                text = "Recently searched deputados",
+                text = stringResource(Res.string.recent_deputados_title),
                 style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary)
             )
             BaseText(
                 modifier = Modifier.clickable(null, null, onClick = { onNavigate(DeputadosSearchArgs) }),
-                text = "more \uD83D\uDC40",
+                text = stringResource(Res.string.recent_deputados_more),
                 style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.tertiary)
             )
         }
@@ -169,7 +175,7 @@ private fun RecentDeputados(
                         verticalArrangement = Arrangement.Center
                     ) {
                         BaseText(
-                            text = "Find out more",
+                            text = stringResource(Res.string.recent_deputados_find_more),
                             style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center)
                         )
                         CtaButton(

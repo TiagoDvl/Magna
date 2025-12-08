@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="something_went_wrong">Something went wrong</string>
+    <string name="app_name">Magna</string>
+    <string name="something_went_wrong">Algo deu errado 😢</string>
     <string name="loading">Loading</string>
+    <string name="cancel">Cancel</string>
+    <string name="retry">Retry</string>
+
+    <string name="splash_description">A casa do povo!</string>
+
+    <string name="welcome_dialog_title">Selecione uma Legislatura</string>
+    <string name="welcome_title">Olá!</string>
+    <string name="welcome_explanation_title">Magna funciona baseada em uma legislatura.</string>
+    <string name="welcome_explanation_description">Escolha uma da sua preferência e vamos começar! 🏃</string>
+    <string name="welcome_loading_legislations_indicator">Buscando legislaturas</string>
+    <string name="welcome_loading_legislations">Legislaturas</string>
+
+    <string name="home_sync_title">Buscando dados sobre a legislatura</string>
+    <string name="home_retry_sync_title">Algo deu errado durante sua configuração. Quer tentar novamente?</string>
+
+    <string name="recent_deputados_feature_discovery_title">Pode pesquisar detalhes dos deputados 👀</string>
+    <string name="recent_deputados_feature_discovery_action">Verificar</string>
+    <string name="recent_deputados_title">Deputados recentes</string>
+    <string name="recent_deputados_more">Ver todos 👀</string>
+    <string name="recent_deputados_find_more">Ver todos</string>
+
+    <string name="deputados_search_dialog_title">Escolha uma opção</string>
+    <string name="deputados_search_title">Pesquisar deputados</string>
+    <string name="deputados_search_search_placeholder">Pesquisa por nome</string>
+    <string name="deputados_search_uf_label">📍 UF</string>
+    <string name="deputados_search_partido_label">💼 Partido</string>
+
+    <string name="deputado_details_loading_details">Buscando detalhes do deputado</string>
+    <string name="deputado_details_loading_expenses">Buscando gastos do deputado</string>
+    <string name="deputado_details_expense_title">Gastos da Cota Parlamentar</string>
+    <string name="deputado_details_expense_year">Ano</string>
+    <string name="deputado_details_expense_month">Mês</string>
+    <string name="deputado_details_expense_despesa_type">Tipo de despesa</string>
+    <string name="deputado_details_expense_document_date">Data do Documento</string>
+    <string name="deputado_details_expense_document_number">Número do Documento</string>
+    <string name="deputado_details_expense_document_value">Valor do Documento</string>
+    <string name="deputado_details_expense_supplier_name">Nome do Fornecedor</string>
+    <string name="deputado_details_expense_supplier_cnpjcpf">CNPJ/CPF do Fornecedor</string>
+    <string name="deputado_details_check_document">Consultar documento</string>
 </resources>

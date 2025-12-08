@@ -30,6 +30,15 @@ import androidx.navigation.NavController
 import com.tick.magna.data.domain.mockedLegislaturas
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
+import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.cancel
+import magna.composeapp.generated.resources.welcome_dialog_title
+import magna.composeapp.generated.resources.welcome_explanation_description
+import magna.composeapp.generated.resources.welcome_explanation_title
+import magna.composeapp.generated.resources.welcome_loading_legislations
+import magna.composeapp.generated.resources.welcome_loading_legislations_indicator
+import magna.composeapp.generated.resources.welcome_title
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -62,7 +71,7 @@ private fun WelcomeContent(
             onDismissRequest = { showDialog = false },
             title = {
                 BaseText(
-                    text = "Choose an Option",
+                    text = stringResource(Res.string.welcome_dialog_title),
                     style = typography.titleLarge.copy(
                         color = colorScheme.secondary
                     )
@@ -94,7 +103,7 @@ private fun WelcomeContent(
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
                     BaseText(
-                        text = "Cancel",
+                        text = stringResource(Res.string.cancel),
                         style = typography.bodyLarge.copy(
                             color = colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -114,7 +123,8 @@ private fun WelcomeContent(
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             BaseText(
-                text = "Welcome,", style = typography.headlineLarge.copy(
+                text = stringResource(Res.string.welcome_title),
+                style = typography.headlineLarge.copy(
                     color = colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
@@ -126,7 +136,7 @@ private fun WelcomeContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 BaseText(
-                    text = "Magna is based on a legislatura." ,
+                    text = stringResource(Res.string.welcome_explanation_title),
                     style = typography.bodyLarge.copy(
                         color = colorScheme.secondary,
                         textAlign = TextAlign.Center,
@@ -135,14 +145,14 @@ private fun WelcomeContent(
                 )
 
                 BaseText(
-                    text = "Please choose one. You will be able to change this whenever you want \uD83D\uDC4D",
+                    text = stringResource(Res.string.welcome_explanation_description),
                     style = typography.bodyLarge.copy(color = colorScheme.secondary, textAlign = TextAlign.Center)
                 )
 
                 if (state.isLoading) {
                     BaseText(
                         modifier = Modifier.padding(top = dimensions.grid40),
-                        text = "Loading legislations",
+                        text = stringResource(Res.string.welcome_loading_legislations_indicator),
                         style = typography.bodyLarge.copy(color = colorScheme.tertiary)
                     )
                     CircularWavyProgressIndicator(
@@ -161,7 +171,7 @@ private fun WelcomeContent(
                 onClick = { showDialog = true },
                 content = {
                     BaseText(
-                        text = "Legislaturas",
+                        text = stringResource(Res.string.welcome_loading_legislations),
                         style = typography.bodyLarge
                     )
                 }

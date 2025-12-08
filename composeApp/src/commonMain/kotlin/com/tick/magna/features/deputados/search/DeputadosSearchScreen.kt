@@ -49,9 +49,16 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaTopBar
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.cancel
+import magna.composeapp.generated.resources.deputados_search_dialog_title
+import magna.composeapp.generated.resources.deputados_search_partido_label
+import magna.composeapp.generated.resources.deputados_search_search_placeholder
+import magna.composeapp.generated.resources.deputados_search_title
+import magna.composeapp.generated.resources.deputados_search_uf_label
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_chevron_right
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -98,7 +105,7 @@ private fun DeputadosSearchContent(
             onDismissRequest = { dialogType = null },
             title = {
                 BaseText(
-                    text = "Choose an Option",
+                    text = stringResource(Res.string.deputados_search_dialog_title),
                     style = typography.titleLarge.copy(
                         color = colorScheme.secondary
                     )
@@ -142,7 +149,7 @@ private fun DeputadosSearchContent(
             confirmButton = {
                 TextButton(onClick = { dialogType = null }) {
                     BaseText(
-                        text = "Cancel",
+                        text = stringResource(Res.string.cancel),
                         style = typography.bodyLarge.copy(
                             color = colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -157,7 +164,7 @@ private fun DeputadosSearchContent(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             MagnaTopBar(
-                titleText = "Deputados",
+                titleText = stringResource(Res.string.deputados_search_title),
                 leftIcon = painterResource(Res.drawable.ic_chevron_left),
                 leftIconClick = navigateBack
             )
@@ -180,7 +187,9 @@ private fun DeputadosSearchContent(
                             searchQuery = it
                             onFilter(Filter.Text(it))
                         },
-                        placeholder = { Text("Search...") },
+                        placeholder = {
+                            Text(stringResource(Res.string.deputados_search_search_placeholder))
+                        },
                         leadingIcon = {
                             Icon(Icons.Default.Search, contentDescription = null)
                         },
@@ -211,7 +220,7 @@ private fun DeputadosSearchContent(
                                     val text = if (selectedUf.isNotEmpty()) {
                                         "\uD83D\uDCCD $selectedUf"
                                     } else {
-                                        "\uD83D\uDCCD UF"
+                                        stringResource(Res.string.deputados_search_uf_label)
                                     }
 
                                     BaseText(text = text)
@@ -231,7 +240,7 @@ private fun DeputadosSearchContent(
                                     val text = if (selectedPartido.isNotEmpty()) {
                                         "\uD83D\uDCBC $selectedPartido"
                                     } else {
-                                        "\uD83D\uDCBC Partido"
+                                        stringResource(Res.string.deputados_search_partido_label)
                                     }
                                     BaseText(text = text)
                                 },

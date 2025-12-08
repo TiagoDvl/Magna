@@ -14,7 +14,9 @@ import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.magna_logo
+import magna.composeapp.generated.resources.splash_description
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -35,8 +37,7 @@ fun SplashScreen() {
                     painter = painterResource(Res.drawable.magna_logo),
                     contentDescription = null
                 )
-                BaseText(text = "Magna", style = MaterialTheme.typography.displayMedium.copy(color = MaterialTheme.colorScheme.primary))
-                BaseText(text = "A casa do povo", style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary))
+                BaseText(text = stringResource(Res.string.splash_description), style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary))
             }
         }
     }
