@@ -21,6 +21,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class DeputadosRepository(
@@ -111,10 +114,11 @@ internal class DeputadosRepository(
         }.also {
             coroutineScope.launch {
                 val legislaturaId = userDao.getUser().first()?.legislaturaId
+                val currentYear = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
                 if (legislaturaId != null) {
                     try {
-                        val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId)
+                        val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, currentYear.toString())
                         val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
                         deputadoExpenseDao.insertDeputadoExpenses(expenses)
                     } catch (exception: Exception) {

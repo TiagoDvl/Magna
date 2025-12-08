@@ -10,5 +10,5 @@ interface DeputadosApiInterface {
 
     suspend fun getDeputadoById(id: String): DeputadoByIdResponse
 
-    suspend fun getDeputadoExpenses(id: String, legislaturaId: String): DespesasResponse
+    suspend fun getDeputadoExpenses(id: String, legislaturaId: String, year: String): DespesasResponse
 }

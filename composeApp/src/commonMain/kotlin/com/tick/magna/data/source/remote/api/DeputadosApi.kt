@@ -23,10 +23,11 @@ internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInt
         return httpClient.get("$baseUrl/deputados/$id").body()
     }
 
-    override suspend fun getDeputadoExpenses(id: String, legislaturaId: String): DespesasResponse {
+    override suspend fun getDeputadoExpenses(id: String, legislaturaId: String, year: String): DespesasResponse {
         return httpClient.get("$baseUrl/deputados/$id/despesas") {
             parameter("idLegislatura", legislaturaId)
             parameter("ordem", "DESC")
+            parameter("ano", year)
         }.body()
     }
 }
