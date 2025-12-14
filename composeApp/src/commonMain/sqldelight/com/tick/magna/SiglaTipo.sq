@@ -1,0 +1,12 @@
+CREATE TABLE SiglaTipo (
+    id INTEGER PRIMARY KEY,
+    sigla TEXT,
+    nome TEXT,
+    descricao TEXT
+);
+
+insertSiglaTipo:
+INSERT OR REPLACE INTO SiglaTipo VALUES ?;
+
+getSiglaTipoById:
+SELECT * FROM SiglaTipo WHERE id = :id;

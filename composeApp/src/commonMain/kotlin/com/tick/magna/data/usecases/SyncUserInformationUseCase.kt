@@ -2,12 +2,14 @@ package com.tick.magna.data.usecases
 
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
+import com.tick.magna.data.repository.ProposicoesRepositoryInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 class SyncUserInformationUseCase(
     private val partidosRepository: PartidosRepositoryInterface,
+    private val proposicoesRepositoryInterface: ProposicoesRepositoryInterface,
     private val logger: AppLoggerInterface
 ) {
 
@@ -21,7 +23,9 @@ class SyncUserInformationUseCase(
             val partidos = partidosRepository.getPartidos().first()
 
             if (partidos.isEmpty()) {
-                if (partidosRepository.syncPartidos()) {
+                val syncPartidosSuccess = partidosRepository.syncPartidos()
+                val siglaTiposSuccess = proposicoesRepositoryInterface.syncSiglaTipos()
+                if (syncPartidosSuccess && siglaTiposSuccess) {
                     logger.d("Sync Success", TAG)
                     emit(SyncUserInformationState.Done)
                 } else {
