@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
+import com.tick.magna.features.proposicoes.component.RecentPECsComponent
 import com.tick.magna.ui.core.button.MagnaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
@@ -116,23 +117,30 @@ private fun MagnaHomeContent(
                 HomeSheetState.RETRY_SYNC -> RetrySyncSheet(
                     retryAction = { sendAction(HomeAction.RetrySync) }
                 )
+
                 null -> Unit
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.surface),
-        ) {
-            val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)
+        if (homeState.syncState is SyncUserInformationState.Done) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.surface),
+            ) {
+                val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)
 
-            RecentDeputadosComponent(
-                modifier = sectionsBaseModifier,
-                onNavigate = { navigateTo(it) }
-            )
+                RecentDeputadosComponent(
+                    modifier = sectionsBaseModifier,
+                    onNavigate = { navigateTo(it) }
+                )
 
-            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+
+                RecentPECsComponent(
+                    modifier = sectionsBaseModifier,
+                )
+            }
         }
     }
 }

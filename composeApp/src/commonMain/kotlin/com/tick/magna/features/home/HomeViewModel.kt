@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.ProposicoesRepositoryInterface
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val dispatcher: DispatcherInterface,
     private val syncUserInformation: SyncUserInformationUseCase,
+    private val proposicoesRepository: ProposicoesRepositoryInterface,
     private val logger: AppLoggerInterface
 ): ViewModel() {
 

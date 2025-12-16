@@ -1,0 +1,14 @@
+CREATE TABLE Proposicao (
+    id TEXT NOT NULL PRIMARY KEY,
+    codTipo TEXT,
+    ementa TEXT,
+    dataApresentacao TEXT,
+    autores TEXT,
+    url TEXT
+);
+
+insertProposicao:
+INSERT OR REPLACE INTO Proposicao VALUES ?;
+
+getProposicoes:
+SELECT * FROM Proposicao;

@@ -86,6 +86,7 @@ kotlin {
         optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-XXLanguage:+ExplicitBackingFields")
     }
 }
 
