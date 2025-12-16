@@ -1,6 +1,7 @@
 package com.tick.magna.data.source.local.mapper
 
 import com.tick.magna.data.domain.Proposicao
+import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.Proposicao as ProposicaoEntity
 
 fun ProposicaoEntity.toDomain(): Proposicao {
@@ -9,7 +10,7 @@ fun ProposicaoEntity.toDomain(): Proposicao {
         type = codTipo.orEmpty(),
         ementa = ementa.orEmpty(),
         dataApresentacao = dataApresentacao.orEmpty(),
-        autores = listOf(),
+        autores = deputadosMock.subList(0, 3),
         url = ""
     )
 }
