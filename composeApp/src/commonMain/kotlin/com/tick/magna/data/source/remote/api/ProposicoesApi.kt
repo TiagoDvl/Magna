@@ -1,5 +1,7 @@
 package com.tick.magna.data.source.remote.api
 
+import com.tick.magna.data.source.remote.response.ProposicaoAutoresResponse
+import com.tick.magna.data.source.remote.response.ProposicaoDetailResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesSiglaTipoResponse
 import io.ktor.client.HttpClient
@@ -20,5 +22,13 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
             parameter("ordem", "desc")
             parameter("siglaTipo", siglaTipo)
         }.body()
+    }
+
+    override suspend fun getProposicaoDetail(idProposicao: String): ProposicaoDetailResponse {
+        return httpClient.get("$baseUrl/proposicoes/$idProposicao").body()
+    }
+
+    override suspend fun getProposicaoAutores(idProposicao: String): ProposicaoAutoresResponse {
+        return httpClient.get("$baseUrl/proposicoes/$idProposicao/autores").body()
     }
 }

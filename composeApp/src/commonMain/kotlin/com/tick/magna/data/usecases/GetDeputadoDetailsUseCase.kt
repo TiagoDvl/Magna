@@ -17,7 +17,7 @@ class GetDeputadoDetailsUseCase(
 
     suspend operator fun invoke(deputadoId: String): Flow<DeputadoDetailsResult> {
         return deputadosRepository.getDeputadoDetails(deputadoId).also {
-            logger.d("Deputado Detail Result -> $it", TAG)
+            logger.d("Deputado Detail Result", TAG)
         }
     }
 }
