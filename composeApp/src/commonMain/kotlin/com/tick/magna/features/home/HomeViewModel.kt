@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val dispatcher: DispatcherInterface,
     private val syncUserInformation: SyncUserInformationUseCase,
-    private val proposicoesRepository: ProposicoesRepositoryInterface,
     private val logger: AppLoggerInterface
 ): ViewModel() {
 

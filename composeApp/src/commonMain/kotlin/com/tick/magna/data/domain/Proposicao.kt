@@ -48,7 +48,7 @@ val proposicoesMock = listOf(
         type = "PL",
         ementa = "Institui o Programa Nacional de Apoio à Agricultura Familiar e Sustentável, estabelecendo diretrizes para financiamento e assistência técnica.",
         dataApresentacao = "2024-12-11T09:30",
-        autores = deputadosMock.subList(3, 6),
+        autores = deputadosMock.subList(3, 9),
         url = "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=2654178"
     ),
     Proposicao(

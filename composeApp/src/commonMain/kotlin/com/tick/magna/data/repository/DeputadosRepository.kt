@@ -68,6 +68,23 @@ internal class DeputadosRepository(
         }
     }
 
+    override suspend fun syncDeputados(): Boolean {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
+        loggerInterface.d("SyncDeputados for legislatura ID: $legislaturaId", TAG)
+
+        return try {
+            loggerInterface.d("Fetching deputados for legislatura ID: $legislaturaId", TAG)
+            val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+
+            deputadoDao.insertDeputados(deputadosResponse.dados.map { response -> response.toLocal(legislaturaId) })
+
+            true
+        } catch (e: Exception) {
+            loggerInterface.d("Failed to fetch deputados: ${e.message}", TAG)
+            false
+        }
+    }
+
     override suspend fun getDeputado(deputadoId: String): Flow<Deputado> {
         val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
 

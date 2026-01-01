@@ -125,7 +125,7 @@ val dataModule = module {
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
-    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
+    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val useCaseModule = module {
@@ -145,7 +145,7 @@ val loggingModule = module {
 val viewModelModule = module {
     viewModel { AppViewModel(get(), get()) }
     viewModel { WelcomeViewModel(get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
     viewModel { (handle: SavedStateHandle) ->

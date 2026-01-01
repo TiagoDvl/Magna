@@ -7,15 +7,22 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.ProposicaoDaoInterface
 import com.tick.magna.data.source.local.dao.SiglaTipoDaoInterface
+import com.tick.magna.data.source.local.dao.UserDao
+import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.ProposicoesApiInterface
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.tick.magna.Proposicao as ProposicaoEntity
 
 class ProposicoesRepository(
+    private val userDao: UserDaoInterface,
     private val siglaTipoDao: SiglaTipoDaoInterface,
     private val proposicoesApi: ProposicoesApiInterface,
     private val proposicoesDao: ProposicaoDaoInterface,
@@ -52,11 +59,13 @@ class ProposicoesRepository(
 
     override fun observeRecentProposicoes(): Flow<List<Proposicao>> {
         loggerInterface.d("Started Observation of Proposições", TAG)
+
         return proposicoesDao.getProposicoes().map { proposicoes ->
             loggerInterface.d("Local Proposições -> ${proposicoes.size}", TAG)
-            proposicoes.map {
+            proposicoes.map { it ->
                 val deputados = if (it.autores != null) {
-                    deputadosDao.getDeputados(it.autores.split(",")).mapNotNull { it.toDomain() }
+                    loggerInterface.d("Fetching Local Autores for proposição: -> ${it.autores}", TAG)
+                    deputadosDao.getDeputados(it.autores.split(", ")).mapNotNull { it.toDomain() }
                 } else {
                     emptyList()
                 }
@@ -67,27 +76,30 @@ class ProposicoesRepository(
             coroutineScope.launch {
                 val proposicoesResponse = proposicoesApi.getProposicoes("PEC")
                 loggerInterface.d("Remote Proposições -> ${proposicoesResponse.dados.size}", TAG)
+
                 val localProposicoes = proposicoesResponse.dados.map { proposicoes ->
-                    val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
-                    loggerInterface.d("Fetching Autores for proposição: -> ${proposicoes.id}", TAG)
-                    val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
-                    val autores = proposicaoAutoresResponse.dados
-                        .sortedBy { it.ordemAssinatura }
-                        .joinToString { autor ->
-                            autor.uri.split("/").last()
-                        }
+                    async {
+                        val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
+                        loggerInterface.d("Fetching Autores for proposição: -> ${proposicoes.id}", TAG)
+                        val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
+                        val autores = proposicaoAutoresResponse.dados
+                            .sortedBy { it.ordemAssinatura }
+                            .joinToString { autor ->
+                                autor.uri.split("/").last()
+                            }
 
-                    loggerInterface.d("Autores: -> $autores", TAG)
+                        loggerInterface.d("Autores: -> $autores", TAG)
 
-                    ProposicaoEntity(
-                        id = proposicoes.id.toString(),
-                        codTipo = siglaTipo.sigla,
-                        ementa = proposicoes.ementa,
-                        dataApresentacao = proposicoes.dataApresentacao,
-                        autores = autores,
-                        url = ""
-                    )
-                }
+                        ProposicaoEntity(
+                            id = proposicoes.id.toString(),
+                            codTipo = siglaTipo.sigla,
+                            ementa = proposicoes.ementa,
+                            dataApresentacao = proposicoes.dataApresentacao,
+                            autores = autores,
+                            url = ""
+                        )
+                    }
+                }.awaitAll()
 
                 loggerInterface.d("Organized Proposições: -> ${localProposicoes.size}", TAG)
                 proposicoesDao.insertProposicoes(localProposicoes)
