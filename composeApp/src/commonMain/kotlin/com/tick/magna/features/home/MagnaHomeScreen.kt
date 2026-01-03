@@ -124,13 +124,14 @@ private fun MagnaHomeContent(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         sheetContainerColor = MaterialTheme.colorScheme.onBackground,
+        sheetPeekHeight = 0.dp,
         topBar = {
             var expanded by rememberSaveable { mutableStateOf(false) }
             val textFieldState by remember { mutableStateOf(TextFieldState()) }
             val searchResults = homeState.filteredDeputados
 
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().background(colorScheme.background)
             ) {
                 SearchBar(
                     modifier = Modifier.align(Alignment.Center),
@@ -206,6 +207,7 @@ private fun MagnaHomeContent(
         sheetTonalElevation = LocalDimensions.current.grid4,
         sheetShadowElevation = LocalDimensions.current.grid12,
         sheetSwipeEnabled = false,
+        sheetDragHandle = {},
         sheetContent = {
             when (localSheetState) {
                 HomeSheetState.RUNNING_SYNC -> RunningSyncSheet()
