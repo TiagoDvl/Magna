@@ -62,7 +62,7 @@ fun App(
                 }
 
                 composable<WelcomeArgs> {
-                    WelcomeScreen(navController = navController)
+                    WelcomeScreen()
                 }
 
                 composable<HomeArgs> {

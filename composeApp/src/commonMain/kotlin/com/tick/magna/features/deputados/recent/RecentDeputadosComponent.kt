@@ -1,7 +1,9 @@
 package com.tick.magna.features.deputados.recent
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -9,15 +11,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,14 +36,14 @@ import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
-import com.tick.magna.ui.core.button.MagnaButton
+import com.tick.magna.ui.core.shape.RoundedPentagonShape
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
-import magna.composeapp.generated.resources.person_search
-import magna.composeapp.generated.resources.recent_deputados_feature_discovery_action
+import magna.composeapp.generated.resources.ic_person_hand_raised
+import magna.composeapp.generated.resources.ic_satisfied
 import magna.composeapp.generated.resources.recent_deputados_feature_discovery_title
 import magna.composeapp.generated.resources.recent_deputados_find_more
 import magna.composeapp.generated.resources.recent_deputados_more
@@ -70,14 +78,14 @@ private fun RecentDeputadosComponentContent(
         modifier = modifier.fillMaxWidth().height(180.dp)
     ) {
         when (state) {
-            RecentDeputadosState.Empty -> FeatureDiscovery(onNavigate)
+            RecentDeputadosState.Empty -> FeatureDiscovery()
             is RecentDeputadosState.Peak -> RecentDeputados(state.deputados, onNavigate)
         }
     }
 }
 
 @Composable
-private fun FeatureDiscovery(onNavigate: (Any) -> Unit) {
+private fun FeatureDiscovery() {
     val colorScheme = MaterialTheme.colorScheme
     val dimensions = LocalDimensions.current
 
@@ -86,23 +94,31 @@ private fun FeatureDiscovery(onNavigate: (Any) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        BaseText(
+        Surface(
+            modifier = Modifier.size(100.dp).alpha(0.75f),
+            shape = RoundedPentagonShape(cornerRadius = dimensions.grid8, rotationDegrees = 30f),
+            color = colorScheme.onSurface
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(60.dp).alpha(0.75f),
+                    painter = painterResource(Res.drawable.ic_person_hand_raised),
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        }
+
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
             text = stringResource(Res.string.recent_deputados_feature_discovery_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
             )
-        )
-
-        MagnaButton(
-            modifier = Modifier.padding(top = dimensions.grid16),
-            icon = painterResource(Res.drawable.person_search),
-            text = stringResource(Res.string.recent_deputados_feature_discovery_action),
-            containerColor = colorScheme.secondary,
-            contentColor = colorScheme.onSecondary,
-            onClick = {
-                onNavigate(DeputadosSearchArgs)
-            }
         )
     }
 }

@@ -44,8 +44,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun WelcomeScreen(
-    viewModel: WelcomeViewModel = koinViewModel(),
-    navController: NavController
+    viewModel: WelcomeViewModel = koinViewModel()
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle()
 

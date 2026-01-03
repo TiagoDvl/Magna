@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
@@ -29,16 +32,13 @@ fun SplashScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.magna_logo),
-                    contentDescription = null
-                )
-                BaseText(text = stringResource(Res.string.splash_description), style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary))
-            }
+            Image(
+                modifier = Modifier.clip(MaterialTheme.shapes.small),
+                painter = painterResource(Res.drawable.magna_logo),
+                contentDescription = null
+            )
+
+            Text(text = stringResource(Res.string.splash_description))
         }
     }
 }
@@ -46,5 +46,7 @@ fun SplashScreen() {
 @Preview
 @Composable
 fun SplashScreenPreview() {
-    SplashScreen()
+    MaterialTheme {
+        SplashScreen()
+    }
 }

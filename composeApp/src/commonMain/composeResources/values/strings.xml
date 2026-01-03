@@ -6,7 +6,7 @@
     <string name="cancel">Cancel</string>
     <string name="retry">Retry</string>
 
-    <string name="splash_description">A casa do povo!</string>
+    <string name="splash_description">A casa do Povo!</string>
 
     <string name="welcome_dialog_title">Selecione uma Legislatura</string>
     <string name="welcome_title">Olá!</string>
@@ -20,8 +20,7 @@
     <string name="home_search_deputados_placeholder">Pesquisar deputados</string>
     <string name="home_search_no_deputados">Nenhum deputado encontrado</string>
 
-    <string name="recent_deputados_feature_discovery_title">Pode pesquisar detalhes dos deputados 👀</string>
-    <string name="recent_deputados_feature_discovery_action">Verificar</string>
+    <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes 👀</string>
     <string name="recent_deputados_title">Deputados recentes</string>
     <string name="recent_deputados_more">Ver todos 👀</string>
     <string name="recent_deputados_find_more">Ver todos</string>

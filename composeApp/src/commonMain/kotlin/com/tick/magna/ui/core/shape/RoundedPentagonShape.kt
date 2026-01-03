@@ -13,7 +13,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class RoundedPentagonShape(private val cornerRadius: Dp) : Shape {
+class RoundedPentagonShape(
+    private val cornerRadius: Dp,
+    private val rotationDegrees: Float = 0f
+) : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
@@ -25,9 +28,12 @@ class RoundedPentagonShape(private val cornerRadius: Dp) : Shape {
         val radius = minOf(centerX, centerY)
         val radiusPx = with(density) { cornerRadius.toPx() }
 
-        // Calculate pentagon points (rotated 180 degrees)
+        // Convert rotation from degrees to radians
+        val rotationRadians = (rotationDegrees * PI / 180).toFloat()
+
+        // Calculate pentagon points (rotated 180 degrees + custom rotation)
         val points = (0..4).map { i ->
-            val angle = (PI / 2 + PI + (2 * PI * i / 5)).toFloat()
+            val angle = (PI / 2 + PI + (2 * PI * i / 5) + rotationRadians).toFloat()
             Offset(
                 x = centerX + radius * cos(angle),
                 y = centerY + radius * sin(angle)
