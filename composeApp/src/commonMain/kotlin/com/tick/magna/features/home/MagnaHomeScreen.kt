@@ -1,19 +1,30 @@
 package com.tick.magna.features.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -22,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,18 +43,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
+import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.proposicoes.component.RecentPECsComponent
 import com.tick.magna.ui.core.button.MagnaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
-import com.tick.magna.ui.core.topbar.MagnaTopBar
+import com.tick.magna.ui.core.theme.MagnaTheme
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.app_name
 import magna.composeapp.generated.resources.baseline_refresh
 import magna.composeapp.generated.resources.home_retry_sync_title
+import magna.composeapp.generated.resources.home_search_deputados_placeholder
+import magna.composeapp.generated.resources.home_search_no_deputados
 import magna.composeapp.generated.resources.home_sync_title
+import magna.composeapp.generated.resources.ic_arrow_back
+import magna.composeapp.generated.resources.ic_close
+import magna.composeapp.generated.resources.ic_search
 import magna.composeapp.generated.resources.retry
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -105,8 +122,86 @@ private fun MagnaHomeContent(
 
     BottomSheetScaffold(
         modifier = modifier.fillMaxSize(),
-        sheetContainerColor = MaterialTheme.colorScheme.background,
-        topBar = { MagnaTopBar(titleText = stringResource(Res.string.app_name)) },
+        containerColor = MaterialTheme.colorScheme.background,
+        sheetContainerColor = MaterialTheme.colorScheme.onBackground,
+        topBar = {
+            var expanded by rememberSaveable { mutableStateOf(false) }
+            val textFieldState by remember { mutableStateOf(TextFieldState()) }
+            val searchResults = homeState.filteredDeputados
+
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SearchBar(
+                    modifier = Modifier.align(Alignment.Center),
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = textFieldState.text.toString(),
+                            onQueryChange = {
+                                textFieldState.edit { replace(0, length, it) }
+                                sendAction(HomeAction.SearchDeputado(textFieldState.text.toString()))
+                            },
+                            onSearch = {},
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+                            leadingIcon = {
+                                if (expanded) {
+                                    Icon(
+                                        modifier = Modifier.clickable { expanded = false },
+                                        painter = painterResource(Res.drawable.ic_arrow_back),
+                                        contentDescription = null
+                                    )
+                                } else {
+                                    Icon(
+                                        modifier = Modifier.clickable { textFieldState.edit { append("") } },
+                                        painter = painterResource(Res.drawable.ic_search),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            placeholder = { Text(stringResource(Res.string.home_search_deputados_placeholder)) },
+                            trailingIcon = {
+                                if (expanded) {
+                                    Icon(
+                                        modifier = Modifier.clickable { textFieldState.clearText() },
+                                        painter = painterResource(Res.drawable.ic_close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        )
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                ) {
+                    if (!searchResults.isNullOrEmpty()) {
+                        LazyColumn {
+                            items(searchResults) {
+                                ListItem(
+                                    headlineContent = { Text(text = it.name) },
+                                    modifier = Modifier
+                                        .clickable {
+                                            textFieldState.edit { replace(0, length, it.name) }
+                                            expanded = false
+                                            navigateTo(DeputadoDetailsArgs(it.id))
+                                        }
+                                        .fillMaxWidth()
+                                )
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                modifier = Modifier.align(Alignment.Center),
+                                text = stringResource(Res.string.home_search_no_deputados)
+                            )
+                        }
+                    }
+                }
+            }
+        },
         scaffoldState = bottomSheetScaffoldState,
         sheetTonalElevation = LocalDimensions.current.grid4,
         sheetShadowElevation = LocalDimensions.current.grid12,
@@ -161,8 +256,8 @@ private fun RunningSyncSheet(
                 fontWeight = FontWeight.Bold
             )
         )
-        CircularWavyProgressIndicator(
-            color = MaterialTheme.colorScheme.primary
+        CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.tertiary
         )
     }
 }
@@ -200,7 +295,9 @@ private fun RetrySyncSheet(
 @Preview
 @Composable
 fun HomePreview() {
-    MagnaHomeContent(
-        homeState = HomeState(),
-    )
+    MagnaTheme {
+        MagnaHomeContent(
+            homeState = HomeState(),
+        )
+    }
 }

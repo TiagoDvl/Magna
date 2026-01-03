@@ -68,6 +68,15 @@ internal class DeputadosRepository(
         }
     }
 
+    override suspend fun getDeputados(query: String): Flow<List<Deputado>> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
+        loggerInterface.d("getDeputados for for query: $query", TAG)
+
+        return deputadoDao.getDeputados(legislaturaId, query).map { deputados ->
+            deputados.mapNotNull { it.toDomain() }
+        }
+    }
+
     override suspend fun syncDeputados(): Boolean {
         val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
         loggerInterface.d("SyncDeputados for legislatura ID: $legislaturaId", TAG)

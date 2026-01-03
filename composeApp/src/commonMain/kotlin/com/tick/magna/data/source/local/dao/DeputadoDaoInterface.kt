@@ -7,6 +7,8 @@ interface DeputadoDaoInterface {
 
     suspend fun getDeputados(legislaturaId: String): Flow<List<Deputado>>
 
+    suspend fun getDeputados(legislaturaId: String, query:String): Flow<List<Deputado>>
+
     fun getDeputados(deputadosIds: List<String>): List<Deputado>
 
     suspend fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado>

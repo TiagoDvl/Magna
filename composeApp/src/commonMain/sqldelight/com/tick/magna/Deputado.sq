@@ -37,6 +37,9 @@ SELECT * FROM Deputado WHERE last_seen > 0 ORDER BY last_seen DESC;
 getDeputados:
 SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId;
 
+getDeputadosByQuery:
+SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId AND name LIKE :query;
+
 getDeputadosByIds:
 SELECT * FROM Deputado WHERE id IN ?;
 

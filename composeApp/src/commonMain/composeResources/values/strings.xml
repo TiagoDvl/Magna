@@ -17,6 +17,8 @@
 
     <string name="home_sync_title">Buscando dados sobre a legislatura</string>
     <string name="home_retry_sync_title">Algo deu errado durante sua configuração. Quer tentar novamente?</string>
+    <string name="home_search_deputados_placeholder">Pesquisar deputados</string>
+    <string name="home_search_no_deputados">Nenhum deputado encontrado</string>
 
     <string name="recent_deputados_feature_discovery_title">Pode pesquisar detalhes dos deputados 👀</string>
     <string name="recent_deputados_feature_discovery_action">Verificar</string>

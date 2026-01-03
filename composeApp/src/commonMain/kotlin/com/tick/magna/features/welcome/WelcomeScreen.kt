@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
@@ -155,7 +155,7 @@ private fun WelcomeContent(
                         text = stringResource(Res.string.welcome_loading_legislations_indicator),
                         style = typography.bodyLarge.copy(color = colorScheme.tertiary)
                     )
-                    CircularWavyProgressIndicator(
+                    CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.tertiary
                     )
                 }

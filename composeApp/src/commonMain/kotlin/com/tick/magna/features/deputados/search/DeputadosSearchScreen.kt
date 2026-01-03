@@ -2,6 +2,7 @@ package com.tick.magna.features.deputados.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +22,13 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +46,6 @@ import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
-import com.tick.magna.ui.core.list.ListItem
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -123,10 +125,12 @@ private fun DeputadosSearchContent(
                                         selectedUf = it
                                         Filter.UF(it)
                                     }
+
                                     DeputadosSearchDialogType.PARTIDO -> {
                                         selectedPartido = it
                                         Filter.Partido(it)
                                     }
+
                                     else -> null
                                 }?.let { filter ->
                                     onFilter(filter)
@@ -272,58 +276,52 @@ private fun DeputadosSearchContent(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable(
-                                        interactionSource = null,
-                                        onClick = { onDeputadoClick(deputado.id) }
-                                    ),
-                                leftIcon = {
-                                    Avatar(photoUrl = deputado.profilePicture)
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple()
+                                    ) {
+                                        onDeputadoClick(deputado.id)
+                                    },
+                                headlineContent = {
+                                    Text(text = deputado.name)
                                 },
-                                rightIcon = {
-                                    CtaButton(
-                                        icon = painterResource(Res.drawable.ic_chevron_right),
-                                        containerColor = MaterialTheme.colorScheme.tertiary,
-                                        onClick = { onDeputadoClick(deputado.id) }
-                                    )
-                                },
-                                content = {
-                                    Column {
+                                supportingContent = {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)) {
+                                        deputado.uf?.let {
+                                            BaseText(
+                                                text = deputado.uf,
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            )
+                                        }
                                         BaseText(
-                                            text = deputado.name,
-                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                            text = "-",
+                                            style = MaterialTheme.typography.bodySmall.copy(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                         )
 
-                                        Row(horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)) {
-                                            deputado.uf?.let {
-                                                BaseText(
-                                                    text = deputado.uf,
-                                                    style = MaterialTheme.typography.bodySmall.copy(
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                )
-                                            }
+                                        deputado.partido?.let {
                                             BaseText(
-                                                text = "-",
+                                                text = deputado.partido,
                                                 style = MaterialTheme.typography.bodySmall.copy(
                                                     color = MaterialTheme.colorScheme.onSurface
                                                 )
                                             )
-
-                                            deputado.partido?.let {
-                                                BaseText(
-                                                    text = deputado.partido,
-                                                    style = MaterialTheme.typography.bodySmall.copy(
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                )
-                                            }
                                         }
                                     }
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.ic_chevron_right),
+                                        contentDescription = null,
+                                    )
+                                },
+                                leadingContent = {
+                                    Avatar(photoUrl = deputado.profilePicture)
                                 }
                             )
-
                         }
                     }
                 }

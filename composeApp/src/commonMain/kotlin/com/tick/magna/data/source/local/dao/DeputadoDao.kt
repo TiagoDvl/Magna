@@ -26,6 +26,13 @@ class DeputadoDao(
             .mapToList(dispatcherInterface.io)
     }
 
+    override suspend fun getDeputados(legislaturaId: String, query: String): Flow<List<Deputado>> {
+        return deputadoQueries
+            .getDeputadosByQuery(legislaturaId, "%$query%")
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
+    }
+
     override fun getDeputados(deputadosIds: List<String>): List<Deputado> {
         return deputadoQueries
             .getDeputadosByIds(deputadosIds)

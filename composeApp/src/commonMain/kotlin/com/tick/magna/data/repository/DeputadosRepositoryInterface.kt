@@ -11,6 +11,8 @@ interface DeputadosRepositoryInterface {
 
     suspend fun getDeputados(): Flow<List<Deputado>>
 
+    suspend fun getDeputados(query: String): Flow<List<Deputado>>
+
     suspend fun syncDeputados(): Boolean
 
     suspend fun getDeputado(deputadoId: String): Flow<Deputado>

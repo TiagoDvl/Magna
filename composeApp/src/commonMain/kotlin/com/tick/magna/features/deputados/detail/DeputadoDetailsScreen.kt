@@ -18,7 +18,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -364,7 +364,7 @@ fun DeputadoExpenses(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
                         ) {
-                            CircularWavyProgressIndicator(
+                            CircularProgressIndicator(
                                 color = MaterialTheme.colorScheme.tertiary
                             )
 

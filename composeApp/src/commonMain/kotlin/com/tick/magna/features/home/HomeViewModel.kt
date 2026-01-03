@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.ProposicoesRepositoryInterface
+import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val dispatcher: DispatcherInterface,
     private val syncUserInformation: SyncUserInformationUseCase,
+    private val deputadosRepository: DeputadosRepositoryInterface,
     private val logger: AppLoggerInterface
 ): ViewModel() {
 
@@ -23,6 +24,7 @@ class HomeViewModel(
     val homeState: StateFlow<HomeState> = _homeState.asStateFlow()
 
     private var syncJob: Job? = null
+    private var searchJob: Job? = null
 
     init {
         trySync()
@@ -31,6 +33,18 @@ class HomeViewModel(
     fun processAction(action: HomeAction) {
         when (action) {
             HomeAction.RetrySync -> trySync()
+            is HomeAction.SearchDeputado -> handleSearchQuery(action.query)
+        }
+    }
+
+    private fun handleSearchQuery(query: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(dispatcher.io) {
+            deputadosRepository.getDeputados(query).collect { filteredDeputados ->
+                _homeState.update {
+                    it.copy(filteredDeputados = filteredDeputados)
+                }
+            }
         }
     }
 
