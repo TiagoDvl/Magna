@@ -45,7 +45,7 @@ import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
-import com.tick.magna.features.proposicoes.component.RecentPECsComponent
+import com.tick.magna.features.proposicoes.component.RecentProposicoesComponent
 import com.tick.magna.ui.core.button.MagnaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
@@ -234,9 +234,11 @@ private fun MagnaHomeContent(
 
                 HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
 
-                RecentPECsComponent(
+                RecentProposicoesComponent(
                     modifier = sectionsBaseModifier,
                 )
+
+                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
             }
         }
     }

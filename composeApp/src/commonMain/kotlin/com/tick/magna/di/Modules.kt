@@ -61,7 +61,7 @@ import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel
-import com.tick.magna.features.proposicoes.component.RecentPECsViewModel
+import com.tick.magna.features.proposicoes.component.RecentProposicoesViewModel
 import com.tick.magna.features.welcome.WelcomeViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
@@ -125,7 +125,7 @@ val dataModule = module {
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
-    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val useCaseModule = module {
@@ -151,7 +151,7 @@ val viewModelModule = module {
     viewModel { (handle: SavedStateHandle) ->
         DeputadoDetailsViewModel(handle, get(), get(), get(), get())
     }
-    viewModel { RecentPECsViewModel(get(), get()) }
+    viewModel { RecentProposicoesViewModel(get(), get(), get()) }
 }
 
 val appModules = listOf(

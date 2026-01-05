@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.tick.magna.data.domain.Proposicao
 
 @Immutable
-data class RecentPECsState(
+data class RecentProposicoesState(
+    val isLoading: Boolean = true,
     val proposicoes: List<Proposicao> = emptyList(),
 )

@@ -61,9 +61,9 @@ enum class AvatarSize {
     @Composable
     fun getSize(): Dp {
         return when (this) {
-            SMALL -> LocalDimensions.current.grid40
-            MEDIUM -> LocalDimensions.current.grid40 * 2
-            BIG -> LocalDimensions.current.grid40 * 4
+            SMALL -> LocalDimensions.current.grid32
+            MEDIUM -> LocalDimensions.current.grid32 * 2
+            BIG -> LocalDimensions.current.grid32 * 4
         }
     }
 }

@@ -7,5 +7,5 @@ interface ProposicoesRepositoryInterface {
 
     suspend fun syncSiglaTipos(): Boolean
 
-    fun observeRecentProposicoes(): Flow<List<Proposicao>>
+    fun observeRecentProposicoes(siglaTipo: String?): Flow<List<Proposicao>>
 }

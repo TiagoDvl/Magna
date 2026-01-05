@@ -20,10 +20,17 @@ class ProposicaoDao(
         }
     }
 
-    override fun getProposicoes(): Flow<List<Proposicao>> {
-        return proposicaoQueries
-            .getProposicoes()
-            .asFlow()
-            .mapToList(dispatcherInterface.io)
+    override fun getProposicoes(siglaTipo: String): Flow<List<Proposicao>> {
+        return if (siglaTipo.isNotEmpty()) {
+            proposicaoQueries
+                .getProposicoesByCodTipo(siglaTipo)
+                .asFlow()
+                .mapToList(dispatcherInterface.io)
+        } else {
+            proposicaoQueries
+                .getProposicoes()
+                .asFlow()
+                .mapToList(dispatcherInterface.io)
+        }
     }
 }

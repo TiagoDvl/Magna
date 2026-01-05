@@ -25,6 +25,11 @@
     <string name="recent_deputados_more">Ver todos 👀</string>
     <string name="recent_deputados_find_more">Ver todos</string>
 
+    <string name="recent_proposicoes_section_title">Novas proposições</string>
+    <string name="recent_proposicoes_section_filter_1">PEC</string>
+    <string name="recent_proposicoes_section_filter_2">MPV</string>
+    <string name="recent_proposicoes_section_filter_3">PLP</string>
+
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
     <string name="deputados_search_title">Pesquisar deputados</string>
     <string name="deputados_search_search_placeholder">Pesquisa por nome</string>
