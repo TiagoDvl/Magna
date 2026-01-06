@@ -17,8 +17,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +27,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -92,121 +93,135 @@ private fun RecentProposicoesComponentContent(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        BaseText(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+
+        }
+        Text(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(Res.string.recent_proposicoes_section_title),
-            style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary)
         )
+        if (state.proposicoes.isEmpty() || state.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().height(dimensions.grid2),
+            )
+        }
 
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Box(modifier = Modifier.height(240.dp)) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-                    state = listState,
-                ) {
-                    items(state.proposicoes) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 2.dp
-                            )
-                        ) {
-                            ListItem(
-                                modifier = Modifier.defaultMinSize(minHeight = 60.dp),
-                                colors = ListItemDefaults.colors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                ),
-                                headlineContent = {
-                                    Text(
-                                        text = it.ementa,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                },
-                                overlineContent = {
-                                    Text(text = it.type)
-                                },
-                                supportingContent = {
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+        LaunchedEffect(state.isLoading) {
+            if (!state.isLoading) {
+                listState.scrollToItem(0)
+            }
+        }
+
+        Box(modifier = Modifier.height(240.dp)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+                state = listState,
+            ) {
+                items(state.proposicoes) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 2.dp
+                        )
+                    ) {
+                        ListItem(
+                            modifier = Modifier.defaultMinSize(minHeight = 60.dp),
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            ),
+                            headlineContent = {
+                                Text(
+                                    text = it.ementa,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
+                            overlineContent = {
+                                Text(text = it.type)
+                            },
+                            supportingContent = {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                                ) {
+                                    Text(text = it.dataApresentacao)
+                                    Row(
+                                        modifier = Modifier.padding(top = dimensions.grid8),
+                                        verticalAlignment = Alignment.Bottom,
                                     ) {
-                                        Text(text = it.dataApresentacao)
-                                        Row(
-                                            modifier = Modifier.padding(top = dimensions.grid8),
-                                            verticalAlignment = Alignment.Bottom,
-                                        ) {
-                                            if (it.autores.isNotEmpty()) {
-                                                Icon(
-                                                    modifier = Modifier.padding(end = dimensions.grid4).alpha(0.75F),
-                                                    painter = painterResource(Res.drawable.ic_signature),
-                                                    contentDescription = null
-                                                )
-                                            }
-                                            it.autores.take(3).forEachIndexed { index, deputado ->
-                                                val padding = if (index == 0) 0.dp else dimensions.grid8
+                                        if (it.autores.isNotEmpty()) {
+                                            Icon(
+                                                modifier = Modifier.padding(end = dimensions.grid4).alpha(0.75F),
+                                                painter = painterResource(Res.drawable.ic_signature),
+                                                contentDescription = null
+                                            )
+                                        }
+                                        it.autores.take(3).forEachIndexed { index, deputado ->
+                                            val padding = if (index == 0) 0.dp else dimensions.grid8
 
-                                                Avatar(
-                                                    modifier = Modifier.offset(x = -padding * index).shadow(elevation = 2.dp, CircleShape).zIndex(3 - index.toFloat()),
-                                                    photoUrl = deputado.profilePicture
-                                                )
-                                            }
-                                            if (it.autores.size > 4) {
-                                                BaseText(text = "...")
-                                            }
+                                            Avatar(
+                                                modifier = Modifier.offset(x = -padding * index).shadow(elevation = 2.dp, CircleShape).zIndex(3 - index.toFloat()),
+                                                photoUrl = deputado.profilePicture
+                                            )
+                                        }
+                                        if (it.autores.size > 4) {
+                                            BaseText(text = "...")
                                         }
                                     }
-                                },
-                                leadingContent = {},
-                                trailingContent = {
-                                    Box(modifier = Modifier.fillMaxHeight()) {
-                                        Icon(
-                                            modifier = Modifier.align(Alignment.Center),
-                                            painter = painterResource(Res.drawable.ic_arrow_right),
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
-                            )
-                        }
+                                }
+                            },
+                            leadingContent = {},
+                            trailingContent = {
+                                Box(modifier = Modifier.fillMaxHeight()) {
+                                    Icon(
+                                        modifier = Modifier.align(Alignment.Center),
+                                        painter = painterResource(Res.drawable.ic_arrow_right),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                        )
                     }
                 }
             }
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                SingleChoiceSegmentedButtonRow {
-                    ProposicaoType.entries.forEachIndexed { index, entry ->
-                        SegmentedButton(
-                            selected = proposicaoTypeSelected == entry,
-                            onClick = {
-                                if (entry == proposicaoTypeSelected) {
-                                    proposicaoTypeSelected = null
-                                } else {
-                                    proposicaoTypeSelected = entry
-                                }
-
-                                onAction(Action.ChooseFilter(proposicaoTypeSelected?.name))
-                            },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = ProposicaoType.entries.size
-                            ),
-                            label = {
-                                val labelResource = when (entry) {
-                                    ProposicaoType.PEC -> Res.string.recent_proposicoes_section_filter_1
-                                    ProposicaoType.MPV -> Res.string.recent_proposicoes_section_filter_2
-                                    ProposicaoType.PLP -> Res.string.recent_proposicoes_section_filter_3
-                                }
-                                Text(text = stringResource(labelResource))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            SingleChoiceSegmentedButtonRow {
+                ProposicaoType.entries.forEachIndexed { index, entry ->
+                    SegmentedButton(
+                        selected = proposicaoTypeSelected == entry,
+                        onClick = {
+                            if (entry == proposicaoTypeSelected) {
+                                proposicaoTypeSelected = null
+                            } else {
+                                proposicaoTypeSelected = entry
                             }
-                        )
-                    }
+
+                            onAction(Action.ChooseFilter(proposicaoTypeSelected?.name))
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = ProposicaoType.entries.size
+                        ),
+                        label = {
+                            val labelResource = when (entry) {
+                                ProposicaoType.PEC -> Res.string.recent_proposicoes_section_filter_1
+                                ProposicaoType.MPV -> Res.string.recent_proposicoes_section_filter_2
+                                ProposicaoType.PLP -> Res.string.recent_proposicoes_section_filter_3
+                            }
+                            Text(text = stringResource(labelResource))
+                        }
+                    )
                 }
             }
         }

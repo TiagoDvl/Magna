@@ -1,8 +1,8 @@
-package com.tick.magna.data.repository
+package com.tick.magna.data.repository.proposicoes
 
 import com.tick.magna.SiglaTipo
-import com.tick.magna.data.domain.Proposicao
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.proposicoes.result.RecentProposicoesResult
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.ProposicaoDaoInterface
 import com.tick.magna.data.source.local.dao.SiglaTipoDaoInterface
@@ -51,14 +51,13 @@ class ProposicoesRepository(
         }
     }
 
-    override fun observeRecentProposicoes(siglaTipo: String?): Flow<List<Proposicao>> {
-        loggerInterface.d("Started Observation of Proposições", TAG)
+    override fun observeRecentProposicoes(siglaTipo: String?): Flow<RecentProposicoesResult> {
+        var isFetchingFromApi = true
 
         return proposicoesDao.getProposicoes(siglaTipo.orEmpty()).map { proposicoes ->
             loggerInterface.d("Local Proposições -> ${proposicoes.size}", TAG)
-            proposicoes.map { it ->
+            val proposicoesDomain = proposicoes.map { it ->
                 val deputados = if (it.autores != null) {
-                    loggerInterface.d("Fetching Local Autores for proposição: -> ${it.autores}", TAG)
                     deputadosDao.getDeputados(it.autores.split(", ")).mapNotNull { it.toDomain() }
                 } else {
                     emptyList()
@@ -66,6 +65,12 @@ class ProposicoesRepository(
 
                 it.toDomain(deputados)
             }
+
+            RecentProposicoesResult(
+                isLoading = isFetchingFromApi,
+                proposicoes = proposicoesDomain
+            )
+
         }.also {
             coroutineScope.launch {
                 val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo.orEmpty())
@@ -74,15 +79,12 @@ class ProposicoesRepository(
                 val localProposicoes = proposicoesResponse.dados.map { proposicoes ->
                     async {
                         val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
-                        loggerInterface.d("Fetching Autores for proposição: -> ${proposicoes.id}", TAG)
                         val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
                         val autores = proposicaoAutoresResponse.dados
                             .sortedBy { it.ordemAssinatura }
                             .joinToString { autor ->
                                 autor.uri.split("/").last()
                             }
-
-                        loggerInterface.d("Autores: -> $autores", TAG)
 
                         ProposicaoEntity(
                             id = proposicoes.id.toString(),
@@ -95,7 +97,8 @@ class ProposicoesRepository(
                     }
                 }.awaitAll()
 
-                loggerInterface.d("Organized Proposições: -> ${localProposicoes.size}", TAG)
+                loggerInterface.d("Organized Proposições -> ${localProposicoes.size}", TAG)
+                isFetchingFromApi = false
                 proposicoesDao.insertProposicoes(localProposicoes)
             }
         }

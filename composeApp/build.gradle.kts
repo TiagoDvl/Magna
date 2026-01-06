@@ -32,6 +32,9 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
+            // BOM
+            implementation(libs.androidx.compose.bom)
+
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)

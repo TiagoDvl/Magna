@@ -21,8 +21,8 @@ import com.tick.magna.data.repository.LegislaturaRepository
 import com.tick.magna.data.repository.LegislaturaRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
-import com.tick.magna.data.repository.ProposicoesRepository
-import com.tick.magna.data.repository.ProposicoesRepositoryInterface
+import com.tick.magna.data.repository.proposicoes.ProposicoesRepository
+import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
 import com.tick.magna.data.source.local.dao.DeputadoDao
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface

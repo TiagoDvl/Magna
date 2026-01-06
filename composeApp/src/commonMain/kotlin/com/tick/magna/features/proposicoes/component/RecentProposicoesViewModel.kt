@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.ProposicoesRepositoryInterface
+import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,15 +29,14 @@ class RecentProposicoesViewModel(
         viewModelScope.launch(dispatcherInterface.io) {
             _filterParam
                 .flatMapLatest { param ->
-                    loggerInterface.d("RecentProposicoesViewModel", "filterParam: $param")
                     proposicoesRepository.observeRecentProposicoes(param)
                 }
                 .flowOn(dispatcherInterface.io)
-                .collect { proposicoes ->
+                .collect { proposicoesResult ->
                     _state.update {
                         it.copy(
-                            isLoading = false,
-                            proposicoes = proposicoes
+                            isLoading = proposicoesResult.isLoading,
+                            proposicoes = proposicoesResult.proposicoes
                         )
                     }
                 }

@@ -3,7 +3,7 @@ package com.tick.magna.data.usecases
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
-import com.tick.magna.data.repository.ProposicoesRepositoryInterface
+import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
