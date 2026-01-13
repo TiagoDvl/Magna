@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -26,8 +25,6 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -40,20 +37,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
 import com.tick.magna.data.usecases.SyncUserInformationState
+import com.tick.magna.features.comissoes.ComissoesPermanentesComponent
 import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.proposicoes.component.RecentProposicoesComponent
 import com.tick.magna.ui.core.button.MagnaButton
-import com.tick.magna.ui.core.image.Image
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -247,23 +241,12 @@ private fun MagnaHomeContent(
 
                 HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
 
-                val carouselMultiBrowseState = rememberCarouselState {
-                    homeState.filteredDeputados?.size ?: 0
-                }
-                HorizontalMultiBrowseCarousel(
+                ComissoesPermanentesComponent(
                     modifier = sectionsBaseModifier,
-                    state = carouselMultiBrowseState,
-                    preferredItemWidth = 100.dp,
-                ) { itemIndex ->
-                    Card(modifier = Modifier.fillMaxSize()) {
-                        homeState.filteredDeputados?.get(itemIndex)?.let {
-                            Image(
-                                modifier = Modifier.fillMaxSize(),
-                                imageUrl = it.profilePicture,
-                            )
-                        }
+                    onComissaoClick = {
+
                     }
-                }
+                )
             }
         }
     }

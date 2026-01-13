@@ -93,14 +93,6 @@ private fun RecentProposicoesComponentContent(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-
-        }
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(Res.string.recent_proposicoes_section_title),

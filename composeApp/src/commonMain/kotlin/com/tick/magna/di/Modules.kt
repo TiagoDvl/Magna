@@ -21,6 +21,8 @@ import com.tick.magna.data.repository.LegislaturaRepository
 import com.tick.magna.data.repository.LegislaturaRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
+import com.tick.magna.data.repository.orgaos.OrgaosRepository
+import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepository
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
@@ -46,6 +48,8 @@ import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.LegislaturaApi
 import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
+import com.tick.magna.data.source.remote.api.OrgaosApi
+import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.PartidosApi
 import com.tick.magna.data.source.remote.api.PartidosApiInterface
 import com.tick.magna.data.source.remote.api.ProposicoesApi
@@ -110,6 +114,7 @@ val dataModule = module {
     single<PartidosApiInterface> { PartidosApi(get()) }
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
     single<ProposicoesApiInterface> { ProposicoesApi(get()) }
+    single<OrgaosApiInterface> { OrgaosApi(get()) }
 
     // Repositories
     single<DeputadosRepositoryInterface> {
@@ -126,6 +131,7 @@ val dataModule = module {
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
+    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get()) }
 }
 
 val useCaseModule = module {

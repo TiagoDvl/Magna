@@ -48,4 +48,6 @@
     <string name="deputado_details_expense_supplier_name">Nome do Fornecedor</string>
     <string name="deputado_details_expense_supplier_cnpjcpf">CNPJ/CPF do Fornecedor</string>
     <string name="deputado_details_check_document">Consultar documento</string>
+
+    <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
 </resources>

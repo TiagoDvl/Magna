@@ -28,6 +28,7 @@ class SyncUserInformationUseCase(
                 val syncPartidosSuccess = partidosRepository.syncPartidos().also { logger.d("syncPartidosSuccess > $it", TAG) }
                 val siglaTiposSuccess = proposicoesRepositoryInterface.syncSiglaTipos().also { logger.d("siglaTiposSuccess > $it", TAG) }
                 val deputadosSuccess = deputadosRepositoryInterface.syncDeputados().also { logger.d("deputadosSuccess > $it", TAG) }
+
                 if (syncPartidosSuccess && siglaTiposSuccess && deputadosSuccess) {
                     logger.d("Sync Success", TAG)
                     emit(SyncUserInformationState.Done)
