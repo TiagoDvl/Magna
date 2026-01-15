@@ -1,0 +1,15 @@
+CREATE TABLE Orgao (
+    id TEXT PRIMARY KEY,
+    sigla TEXT,
+    nome TEXT,
+    nomeResumido TEXT
+);
+
+insertOrgao:
+INSERT OR REPLACE INTO Orgao(id, sigla, nome, nomeResumido)
+VALUES (?, ?, ?, ?);
+
+selectOrgaosByIds:
+SELECT *
+FROM Orgao
+WHERE id IN ?;

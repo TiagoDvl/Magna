@@ -12,32 +12,25 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tick.magna.features.comissoes.domain.ComissaoPermanente
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_permanentes_section_title
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ComissoesPermanentesComponent(
     modifier: Modifier = Modifier,
+    viewModel: ComissoesPermanentesViewModel = koinViewModel(),
     onComissaoClick: () -> Unit
 ) {
     val dimensions = LocalDimensions.current
-
-    val items = remember {
-        listOf(
-            ComissaoPermanente("Agro", "Comissão de Agropecuária"),
-            ComissaoPermanente("Agro", "Comissão de Agropecuária"),
-            ComissaoPermanente("Agro", "Comissão de Agropecuária"),
-            ComissaoPermanente("Agro", "Comissão de Agropecuária"),
-            ComissaoPermanente("Agro", "Comissão de Agropecuária"),
-        )
-    }
+    val state = viewModel.state.collectAsStateWithLifecycle()
+    val horizontalMultiBrowseCarouselState = rememberCarouselState { state.value.count() }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -50,7 +43,7 @@ fun ComissoesPermanentesComponent(
         )
 
         HorizontalMultiBrowseCarousel(
-            state = rememberCarouselState { items.count() },
+            state = horizontalMultiBrowseCarouselState,
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
@@ -59,7 +52,7 @@ fun ComissoesPermanentesComponent(
             itemSpacing = 8.dp,
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) { i ->
-            val item = items[i]
+            val item = state.value[i]
             Card(
                 modifier = Modifier
                     .height(186.dp)

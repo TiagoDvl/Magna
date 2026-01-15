@@ -7,6 +7,7 @@ import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
+import com.tick.magna.OrgaoQueries
 import com.tick.magna.PartidoQueries
 import com.tick.magna.ProposicaoQueries
 import com.tick.magna.SiglaTipoQueries
@@ -34,6 +35,8 @@ import com.tick.magna.data.source.local.dao.DeputadoExpenseDao
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDao
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
+import com.tick.magna.data.source.local.dao.OrgaoDao
+import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDao
 import com.tick.magna.data.source.local.dao.PartidoDaoInterface
 import com.tick.magna.data.source.local.dao.ProposicaoDao
@@ -61,6 +64,7 @@ import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
+import com.tick.magna.features.comissoes.ComissoesPermanentesViewModel
 import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
@@ -88,12 +92,14 @@ val databaseModule = module {
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
+    single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
     single<LegislaturaDaoInterface> { LegislaturaDao(get(), get(), get()) }
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
+    single<OrgaoDaoInterface> { OrgaoDao(get(), get()) }
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }
     single<ProposicaoDaoInterface> { ProposicaoDao(get(), get()) }
@@ -131,7 +137,7 @@ val dataModule = module {
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
-    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get()) }
+    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get()) }
 }
 
 val useCaseModule = module {
@@ -158,6 +164,7 @@ val viewModelModule = module {
         DeputadoDetailsViewModel(handle, get(), get(), get(), get())
     }
     viewModel { RecentProposicoesViewModel(get(), get(), get()) }
+    viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
 }
 
 val appModules = listOf(
