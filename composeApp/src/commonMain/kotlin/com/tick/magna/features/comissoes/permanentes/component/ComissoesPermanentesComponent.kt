@@ -1,19 +1,22 @@
-package com.tick.magna.features.comissoes
+package com.tick.magna.features.comissoes.permanentes.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.ui.core.theme.LocalDimensions
@@ -26,7 +29,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ComissoesPermanentesComponent(
     modifier: Modifier = Modifier,
     viewModel: ComissoesPermanentesViewModel = koinViewModel(),
-    onComissaoClick: () -> Unit
+    onComissaoClick: (String) -> Unit
 ) {
     val dimensions = LocalDimensions.current
     val state = viewModel.state.collectAsStateWithLifecycle()
@@ -46,20 +49,35 @@ fun ComissoesPermanentesComponent(
             state = horizontalMultiBrowseCarouselState,
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(top = 16.dp, bottom = 16.dp),
-            preferredItemWidth = 186.dp,
-            itemSpacing = 8.dp,
-            contentPadding = PaddingValues(horizontal = 16.dp)
+                .wrapContentHeight(),
+            preferredItemWidth = 200.dp,
+            itemSpacing = 4.dp,
         ) { i ->
             val item = state.value[i]
             Card(
                 modifier = Modifier
-                    .height(186.dp)
+                    .height(200.dp)
                     .fillMaxWidth()
+                    .padding(dimensions.grid8),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                onClick = { onComissaoClick(item.comissaoPermanenteId) }
             ) {
-                Text(text = item.nomeResumido)
-                Text(text = item.nome)
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(dimensions.grid8)
+                ) {
+                    Text(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        text = item.nomeResumido,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        text = item.nome,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }

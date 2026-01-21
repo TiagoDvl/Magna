@@ -1,11 +1,11 @@
-package com.tick.magna.features.comissoes
+package com.tick.magna.features.comissoes.permanentes.component
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
-import com.tick.magna.features.comissoes.domain.ComissaoPermanente
+import com.tick.magna.features.comissoes.permanentes.component.domain.ComissaoPermanente
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
@@ -27,6 +27,7 @@ class ComissoesPermanentesViewModel(
                 loggerInterface.d("2 - mapNotNull -> $orgao")
                 if (orgao.nome != null && orgao.nomeResumido != null) {
                     ComissaoPermanente(
+                        comissaoPermanenteId = orgao.id,
                         nomeResumido = orgao.nomeResumido,
                         nome = orgao.nome
                     )

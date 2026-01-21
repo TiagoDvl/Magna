@@ -73,33 +73,37 @@ class ProposicoesRepository(
 
         }.also {
             coroutineScope.launch {
-                val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo.orEmpty())
-                loggerInterface.d("Remote Proposições -> ${proposicoesResponse.dados.size}", TAG)
+                try {
+                    val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo.orEmpty())
+                    loggerInterface.d("Remote Proposições -> ${proposicoesResponse.dados.size}", TAG)
 
-                val localProposicoes = proposicoesResponse.dados.map { proposicoes ->
-                    async {
-                        val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
-                        val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
-                        val autores = proposicaoAutoresResponse.dados
-                            .sortedBy { it.ordemAssinatura }
-                            .joinToString { autor ->
-                                autor.uri.split("/").last()
-                            }
+                    val localProposicoes = proposicoesResponse.dados.map { proposicoes ->
+                        async {
+                            val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
+                            val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
+                            val autores = proposicaoAutoresResponse.dados
+                                .sortedBy { it.ordemAssinatura }
+                                .joinToString { autor ->
+                                    autor.uri.split("/").last()
+                                }
 
-                        ProposicaoEntity(
-                            id = proposicoes.id.toString(),
-                            codTipo = siglaTipo.sigla,
-                            ementa = proposicoes.ementa,
-                            dataApresentacao = proposicoes.dataApresentacao,
-                            autores = autores,
-                            url = ""
-                        )
-                    }
-                }.awaitAll()
+                            ProposicaoEntity(
+                                id = proposicoes.id.toString(),
+                                codTipo = siglaTipo.sigla,
+                                ementa = proposicoes.ementa,
+                                dataApresentacao = proposicoes.dataApresentacao,
+                                autores = autores,
+                                url = ""
+                            )
+                        }
+                    }.awaitAll()
 
-                loggerInterface.d("Organized Proposições -> ${localProposicoes.size}", TAG)
-                isFetchingFromApi = false
-                proposicoesDao.insertProposicoes(localProposicoes)
+                    loggerInterface.d("Organized Proposições -> ${localProposicoes.size}", TAG)
+                    isFetchingFromApi = false
+                    proposicoesDao.insertProposicoes(localProposicoes)
+                } catch (exception: Exception) {
+                    loggerInterface.d("Remote Proposições -> Failed with exception: $exception", TAG)
+                }
             }
         }
     }

@@ -22,6 +22,8 @@ import com.tick.magna.data.repository.LegislaturaRepository
 import com.tick.magna.data.repository.LegislaturaRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
+import com.tick.magna.data.repository.eventos.EventosRepository
+import com.tick.magna.data.repository.eventos.EventosRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepository
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepository
@@ -49,6 +51,8 @@ import com.tick.magna.data.source.local.platformModule
 import com.tick.magna.data.source.remote.HttpClientFactory
 import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
+import com.tick.magna.data.source.remote.api.EventosApi
+import com.tick.magna.data.source.remote.api.EventosApiInterface
 import com.tick.magna.data.source.remote.api.LegislaturaApi
 import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
 import com.tick.magna.data.source.remote.api.OrgaosApi
@@ -57,6 +61,8 @@ import com.tick.magna.data.source.remote.api.PartidosApi
 import com.tick.magna.data.source.remote.api.PartidosApiInterface
 import com.tick.magna.data.source.remote.api.ProposicoesApi
 import com.tick.magna.data.source.remote.api.ProposicoesApiInterface
+import com.tick.magna.data.source.remote.api.VotacoesApi
+import com.tick.magna.data.source.remote.api.VotacoesApiInterface
 import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
 import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
 import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
@@ -64,7 +70,8 @@ import com.tick.magna.data.usecases.GetDeputadoUseCase
 import com.tick.magna.data.usecases.GetDeputadosListUseCase
 import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
-import com.tick.magna.features.comissoes.ComissoesPermanentesViewModel
+import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesViewModel
+import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailViewModel
 import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
@@ -121,6 +128,8 @@ val dataModule = module {
     single<LegislaturaApiInterface> { LegislaturaApi(get()) }
     single<ProposicoesApiInterface> { ProposicoesApi(get()) }
     single<OrgaosApiInterface> { OrgaosApi(get()) }
+    single<VotacoesApiInterface> { VotacoesApi(get()) }
+    single<EventosApiInterface> { EventosApi(get(), get()) }
 
     // Repositories
     single<DeputadosRepositoryInterface> {
@@ -137,7 +146,8 @@ val dataModule = module {
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
-    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get()) }
+    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
+    single<EventosRepositoryInterface> { EventosRepository(get(), get()) }
 }
 
 val useCaseModule = module {
@@ -160,11 +170,10 @@ val viewModelModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
-    viewModel { (handle: SavedStateHandle) ->
-        DeputadoDetailsViewModel(handle, get(), get(), get(), get())
-    }
+    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
 }
 
 val appModules = listOf(

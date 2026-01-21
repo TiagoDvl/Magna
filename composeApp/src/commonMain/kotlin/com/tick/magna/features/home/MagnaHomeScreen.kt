@@ -43,7 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
-import com.tick.magna.features.comissoes.ComissoesPermanentesComponent
+import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesComponent
+import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
 import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.proposicoes.component.RecentProposicoesComponent
@@ -243,9 +244,7 @@ private fun MagnaHomeContent(
 
                 ComissoesPermanentesComponent(
                     modifier = sectionsBaseModifier,
-                    onComissaoClick = {
-
-                    }
+                    onComissaoClick = { navigateTo(ComissaoPermanenteDetailArgs(it)) }
                 )
             }
         }

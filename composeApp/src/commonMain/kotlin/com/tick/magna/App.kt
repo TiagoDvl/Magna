@@ -10,9 +10,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
+import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
+import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailScreen
 import com.tick.magna.features.deputados.detail.DeputadoDetailScreen
 import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
@@ -26,6 +29,7 @@ import com.tick.magna.features.welcome.WelcomeScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 @Preview
@@ -75,6 +79,15 @@ fun App(
 
                 composable<DeputadoDetailsArgs> {
                     DeputadoDetailScreen(navController = navController)
+                }
+
+                composable<ComissaoPermanenteDetailArgs> {
+                    val args = it.toRoute<ComissaoPermanenteDetailArgs>()
+
+                    ComissaoPermanenteDetailScreen(
+                        viewModel = koinViewModel { parametersOf(args.comissaoPermanenteId) },
+                        navController = navController
+                    )
                 }
             }
 
