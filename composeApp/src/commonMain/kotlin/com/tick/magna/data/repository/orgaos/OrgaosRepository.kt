@@ -47,18 +47,22 @@ class OrgaosRepository(
         try {
             val votacoesResponse = votacoesApi.getVotacoesFromOrgao(idOrgao).dados
 
-            val votacoes = votacoesResponse.map { votacao ->
-                with(votacoesApi.getVotacaoDetail(votacao.id).dados) {
-                    Votacao(
-                        id = id,
-                        dataHoraRegistro = dataHoraRegistro,
-                        descricao = descricao,
-                        aprovacao = aprovacao == 1,
-                        proposicoesAfetadas = proposicoesAfetadas.map { it.ementa },
-                        idEvento = idEvento
-                    )
+            val votacoes = votacoesResponse
+                .map { votacao ->
+                    with(votacoesApi.getVotacaoDetail(votacao.id).dados) {
+                        Votacao(
+                            id = id,
+                            dataHoraRegistro = dataHoraRegistro,
+                            descricao = descricao,
+                            aprovacao = aprovacao == 1,
+                            proposicoesAfetadas = proposicoesAfetadas.map { it.ementa },
+                            idEvento = idEvento
+                        )
+                    }
+                }.filter {
+                    it.proposicoesAfetadas.isNotEmpty()
                 }
-            }
+            
             return votacoes
         } catch (exception: Exception) {
             loggerInterface.d("Fetching comissoes permanentes votações failed with: $exception")

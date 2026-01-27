@@ -48,9 +48,11 @@ class SyncUserInformationUseCase(
 }
 
 sealed interface SyncUserInformationState {
-    data object Running: SyncUserInformationState
-    data object Done: SyncUserInformationState
-    data object Retry: SyncUserInformationState
+
+    data object Initial : SyncUserInformationState
+    data object Running : SyncUserInformationState
+    data object Done : SyncUserInformationState
+    data object Retry : SyncUserInformationState
 }
 
 

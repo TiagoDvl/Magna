@@ -4,7 +4,7 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.usecases.SyncUserInformationState
 
 data class HomeState(
-    val syncState: SyncUserInformationState = SyncUserInformationState.Running,
+    val syncState: SyncUserInformationState = SyncUserInformationState.Initial,
     val filteredDeputados: List<Deputado>? = null
 )
 

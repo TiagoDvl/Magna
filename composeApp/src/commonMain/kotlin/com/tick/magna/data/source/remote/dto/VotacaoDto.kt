@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class VotacaoDto(
     val id: String,
-    val uriEvento: String,
+    val uriEvento: String?,
+    val uriProposicaoObjeto: String?,
 )

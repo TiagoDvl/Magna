@@ -173,7 +173,7 @@ val viewModelModule = module {
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get(), get()) }
 }
 
 val appModules = listOf(

@@ -116,6 +116,7 @@ private fun MagnaHomeContent(
 
     LaunchedEffect(homeState.syncState) {
         when (homeState.syncState) {
+            SyncUserInformationState.Initial -> Unit
             SyncUserInformationState.Done -> hideSheet()
             SyncUserInformationState.Retry -> showSheet(HomeSheetState.RETRY_SYNC)
             SyncUserInformationState.Running -> showSheet(HomeSheetState.RUNNING_SYNC)

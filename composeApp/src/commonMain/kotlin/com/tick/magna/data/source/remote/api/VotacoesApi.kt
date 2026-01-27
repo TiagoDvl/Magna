@@ -14,8 +14,9 @@ class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
     override suspend fun getVotacoesFromOrgao(idOrgao: String): VotacoesResponse {
         return httpClient.get("$baseUrl/votacoes") {
             parameter("idOrgao", idOrgao)
-            parameter("ordem", "DESC")
-            parameter("itens", 10)
+            parameter("dataInicio", "2025-12-01")
+            parameter("ordenarPor", "idProposicaoObjeto")
+            parameter("itens", "20")
         }.body()
     }
 
