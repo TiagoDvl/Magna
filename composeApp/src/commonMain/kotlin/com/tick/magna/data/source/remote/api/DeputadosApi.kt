@@ -27,7 +27,7 @@ internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInt
         return httpClient.get("$baseUrl/deputados/$id/despesas") {
             parameter("idLegislatura", legislaturaId)
             parameter("ordem", "DESC")
-            parameter("ano", year)
+            parameter("ano", "2025")
         }.body()
     }
 }

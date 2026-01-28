@@ -72,7 +72,7 @@ import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesViewModel
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailViewModel
-import com.tick.magna.features.deputados.detail.DeputadoDetailsViewModel
+import com.tick.magna.features.deputados.details.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel

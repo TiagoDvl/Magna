@@ -42,7 +42,7 @@ fun DespesaDto.toLocal(deputadoId: String, legislaturaId: String): DeputadoExpen
         year = ano.toString(),
         month = mes.toString(),
         despesaType = tipoDespesa,
-        documentData = dataDocumento,
+        documentData = formatter.format(LocalDateTime.parse(dataDocumento)),
         documentNumber = numDocumento,
         documentValue = "R$ $valorDocumento",
         documentUrl = urlDocumento,

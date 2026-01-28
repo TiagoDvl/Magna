@@ -1,6 +1,5 @@
 package com.tick.magna.features.deputados.recent
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,7 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.data.usecases.RecentDeputadosState
-import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.button.CtaButton
@@ -43,7 +42,6 @@ import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.ic_person_hand_raised
-import magna.composeapp.generated.resources.ic_satisfied
 import magna.composeapp.generated.resources.recent_deputados_feature_discovery_title
 import magna.composeapp.generated.resources.recent_deputados_find_more
 import magna.composeapp.generated.resources.recent_deputados_more

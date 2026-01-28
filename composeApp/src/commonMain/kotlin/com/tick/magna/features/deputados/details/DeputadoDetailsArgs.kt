@@ -1,4 +1,4 @@
-package com.tick.magna.features.deputados.detail
+package com.tick.magna.features.deputados.details
 
 import kotlinx.serialization.Serializable
 

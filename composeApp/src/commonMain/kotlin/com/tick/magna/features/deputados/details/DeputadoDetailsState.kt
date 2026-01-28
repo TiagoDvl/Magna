@@ -1,4 +1,4 @@
-package com.tick.magna.features.deputados.detail
+package com.tick.magna.features.deputados.details
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails

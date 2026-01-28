@@ -50,4 +50,5 @@
     <string name="deputado_details_check_document">Consultar documento</string>
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
+    <string name="comissoes_permanentes_votacoes_title">Votações recentes: %1$s</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.tick.magna.features.deputados.detail
+package com.tick.magna.features.deputados.details
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,7 +52,7 @@ import com.tick.magna.ui.core.avatar.AvatarSize
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
-import com.tick.magna.ui.core.topbar.MagnaTopBar
+import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.deputado_details_check_document
@@ -68,6 +68,7 @@ import magna.composeapp.generated.resources.deputado_details_expense_year
 import magna.composeapp.generated.resources.deputado_details_loading_details
 import magna.composeapp.generated.resources.deputado_details_loading_expenses
 import magna.composeapp.generated.resources.folder_eye
+import magna.composeapp.generated.resources.ic_arrow_right
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.painterResource
@@ -121,7 +122,7 @@ private fun DeputadoDetails(
         modifier = Modifier.fillMaxSize(),
         sheetContainerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            MagnaTopBar(
+            MagnaMediumTopBar(
                 titleText = state.deputado?.name.orEmpty(),
                 leftIcon = painterResource(Res.drawable.ic_chevron_left),
                 leftIconClick = navigateBack
@@ -139,6 +140,7 @@ private fun DeputadoDetails(
                         onCloseSheet = { hideSheet() }
                     )
                 }
+
                 null -> Unit
             }
         },
@@ -244,6 +246,7 @@ private fun DetailContent(
                     )
                 }
             }
+
             is DetailsState.Content -> {
                 GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
                 SocialsDetails(socials = detailsState.deputadoDetails.socials.orEmpty())
@@ -354,7 +357,7 @@ fun DeputadoExpenses(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid24)
         ) {
             when (state) {
                 ExpensesState.Loading -> {
@@ -377,48 +380,57 @@ fun DeputadoExpenses(
                         }
                     }
                 }
+
                 is ExpensesState.Content -> {
                     items(state.expenses) { expense ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    onClick = {
-                                        onExpenseClick(expense)
-                                    }
-                                ),
-                            verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
-                        ) {
-                            BaseText(text = expense.tipoDespesa, style = style.bodyLarge.copy(color = colors.onSurface))
-                            BaseText(
-                                text = expense.nomeFornecedor,
-                                style = style.bodyMedium.copy(
-                                    color = colors.onSurface,
-                                    fontWeight = FontWeight.ExtraLight
-                                )
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(dimensions.grid2),
-                                verticalAlignment = Alignment.CenterVertically
+                        Row(Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier
+                                    .weight(0.8f)
+                                    .clickable(
+                                        onClick = {
+                                            onExpenseClick(expense)
+                                        }
+                                    ),
+                                verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
                             ) {
+
+                                BaseText(text = expense.tipoDespesa, style = style.bodyLarge.copy(color = colors.onSurface))
                                 BaseText(
-                                    text = expense.valorDocumento,
-                                    style = style.bodySmall.copy(
-                                        color = colors.secondary,
-                                        fontWeight = FontWeight.SemiBold
+                                    text = expense.nomeFornecedor,
+                                    style = style.bodyMedium.copy(
+                                        color = colors.onSurface,
+                                        fontWeight = FontWeight.ExtraLight
                                     )
                                 )
-                                BaseText(text = "-", style = style.bodySmall.copy(color = colors.onSurface))
-                                BaseText(text = expense.dataDocumento, style = style.bodySmall.copy(color = colors.onSurface))
-
-                                if (expense.urlDocumento != null) {
-                                    Icon(
-                                        modifier = Modifier.size(dimensions.grid16),
-                                        painter = painterResource(Res.drawable.folder_eye),
-                                        contentDescription = null
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid2),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    BaseText(
+                                        text = expense.valorDocumento,
+                                        style = style.bodySmall.copy(
+                                            color = colors.secondary,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
                                     )
+                                    BaseText(text = "-", style = style.bodySmall.copy(color = colors.onSurface))
+                                    BaseText(text = expense.dataDocumento, style = style.bodySmall.copy(color = colors.onSurface))
+
+                                    if (expense.urlDocumento != null) {
+                                        Icon(
+                                            modifier = Modifier.size(dimensions.grid16),
+                                            painter = painterResource(Res.drawable.folder_eye),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
+
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_arrow_right),
+                                contentDescription = null
+                            )
                         }
                     }
                 }

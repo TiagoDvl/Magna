@@ -17,7 +17,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MagnaTopBar(
+fun MagnaLargeTopBar(
     titleText: String,
     leftIcon: Painter? = null,
     leftIconClick: () -> Unit = {},
@@ -54,7 +54,7 @@ fun MagnaTopBar(
 @Composable
 fun PreviewMagnaTopBar() {
     MagnaTheme {
-        MagnaTopBar(
+        MagnaLargeTopBar(
             titleText = "Top Bar title",
             leftIcon = painterResource(Res.drawable.ic_arrow_back),
         )
@@ -65,7 +65,7 @@ fun PreviewMagnaTopBar() {
 @Composable
 fun PreviewMagnaTopBarNoIcon() {
     MagnaTheme {
-        MagnaTopBar(
+        MagnaLargeTopBar(
             titleText = "Top Bar title",
         )
     }

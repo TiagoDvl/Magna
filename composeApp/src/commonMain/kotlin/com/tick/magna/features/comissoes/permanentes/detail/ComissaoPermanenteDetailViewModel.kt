@@ -37,16 +37,11 @@ class ComissaoPermanenteDetailViewModel(
             val orgao = comissoesPermanentes.find { it.id == args.comissaoPermanenteId }
 
             orgao?.let {
-                val votacoes = orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
-                logger.d("Votações: $votacoes")
-                logger.d("Votações Size: ${votacoes.size}")
+                _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
 
-                _state.update {
-                    it.copy(
-                        comissaoPermanenteNomeResumido = orgao.nomeResumido,
-                        votacoes = votacoes
-                    )
-                }
+                val votacoes = orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
+
+                _state.update { it.copy(votacoes = votacoes) }
             }
         }
     }

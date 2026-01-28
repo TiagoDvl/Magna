@@ -16,8 +16,8 @@ import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailScreen
-import com.tick.magna.features.deputados.detail.DeputadoDetailScreen
-import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
+import com.tick.magna.features.deputados.details.DeputadoDetailScreen
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs

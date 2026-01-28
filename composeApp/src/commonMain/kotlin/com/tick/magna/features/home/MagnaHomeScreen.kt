@@ -45,7 +45,7 @@ import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesComponent
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
-import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.proposicoes.component.RecentProposicoesComponent
 import com.tick.magna.ui.core.button.MagnaButton

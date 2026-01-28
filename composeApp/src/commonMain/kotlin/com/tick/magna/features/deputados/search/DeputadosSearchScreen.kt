@@ -41,15 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.deputadosMock
-import com.tick.magna.features.deputados.detail.DeputadoDetailsArgs
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
-import com.tick.magna.ui.core.button.CtaButton
 import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
-import com.tick.magna.ui.core.topbar.MagnaTopBar
+import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.cancel
 import magna.composeapp.generated.resources.deputados_search_dialog_title
@@ -167,7 +166,7 @@ private fun DeputadosSearchContent(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            MagnaTopBar(
+            MagnaMediumTopBar(
                 titleText = stringResource(Res.string.deputados_search_title),
                 leftIcon = painterResource(Res.drawable.ic_chevron_left),
                 leftIconClick = navigateBack

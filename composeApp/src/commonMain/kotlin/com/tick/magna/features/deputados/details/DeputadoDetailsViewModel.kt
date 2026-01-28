@@ -1,4 +1,4 @@
-package com.tick.magna.features.deputados.detail
+package com.tick.magna.features.deputados.details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
