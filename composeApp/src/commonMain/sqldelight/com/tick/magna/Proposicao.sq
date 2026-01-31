@@ -11,7 +11,7 @@ insertProposicao:
 INSERT OR REPLACE INTO Proposicao VALUES ?;
 
 getProposicoes:
-SELECT * FROM Proposicao ORDER BY dataApresentacao DESC LIMIT 3;
+SELECT * FROM Proposicao ORDER BY dataApresentacao DESC LIMIT 5;
 
 getProposicoesByCodTipo:
-SELECT * FROM Proposicao WHERE codTipo = :codTipo ORDER BY dataApresentacao DESC LIMIT 3;
+SELECT * FROM Proposicao WHERE codTipo = :codTipo ORDER BY dataApresentacao DESC LIMIT 5;

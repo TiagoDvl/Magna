@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -93,6 +95,7 @@ private fun MagnaHomeContent(
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
+    val scrollState = rememberScrollState()
     val bottomSheetState: SheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
         skipHiddenState = false
@@ -226,6 +229,7 @@ private fun MagnaHomeContent(
             Column(
                 modifier = Modifier.fillMaxSize()
                     .padding(paddingValues)
+                    .verticalScroll(scrollState)
                     .background(MaterialTheme.colorScheme.surface),
             ) {
                 val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)

@@ -27,8 +27,11 @@
 
     <string name="recent_proposicoes_section_title">Novas proposições</string>
     <string name="recent_proposicoes_section_filter_1">PEC</string>
+    <string name="recent_proposicoes_section_filter_1_label">Propostas de Emenda à Constituição</string>
     <string name="recent_proposicoes_section_filter_2">MPV</string>
+    <string name="recent_proposicoes_section_filter_2_label">Medidas Provisórias</string>
     <string name="recent_proposicoes_section_filter_3">PLP</string>
+    <string name="recent_proposicoes_section_filter_3_label">Projetos de Lei Complementar</string>
 
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
     <string name="deputados_search_title">Pesquisar deputados</string>

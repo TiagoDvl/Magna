@@ -7,4 +7,5 @@ import com.tick.magna.data.domain.Proposicao
 data class RecentProposicoesState(
     val isLoading: Boolean = true,
     val proposicoes: List<Proposicao> = emptyList(),
+    val selectedProposicao: ProposicaoType = ProposicaoType.PEC
 )

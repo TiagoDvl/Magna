@@ -17,11 +17,11 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
         return httpClient.get("$baseUrl/referencias/proposicoes/siglaTipo").body()
     }
 
-    override suspend fun getProposicoes(siglaTipo: String): ProposicoesResponse {
+    override suspend fun getProposicoes(siglaTipo: String?): ProposicoesResponse {
         return httpClient.get("$baseUrl/proposicoes") {
             parameter("ordem", "desc")
-            parameter("siglaTipo", siglaTipo)
-            parameter("itens", 3)
+            siglaTipo?.let { parameter("siglaTipo", it) }
+            parameter("itens", 5)
         }.body()
     }
 

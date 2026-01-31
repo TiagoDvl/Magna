@@ -55,7 +55,7 @@ class ProposicoesRepository(
         var isFetchingFromApi = true
 
         return proposicoesDao.getProposicoes(siglaTipo.orEmpty()).map { proposicoes ->
-            loggerInterface.d("Local Proposições -> ${proposicoes.size}", TAG)
+            loggerInterface.d("Local Proposições for $siglaTipo... isFetchingFromApi: $isFetchingFromApi", TAG)
             val proposicoesDomain = proposicoes.map { it ->
                 val deputados = if (it.autores != null) {
                     deputadosDao.getDeputados(it.autores.split(", ")).mapNotNull { it.toDomain() }
@@ -74,12 +74,13 @@ class ProposicoesRepository(
         }.also {
             coroutineScope.launch {
                 try {
-                    val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo.orEmpty())
-                    loggerInterface.d("Remote Proposições -> ${proposicoesResponse.dados.size}", TAG)
+                    val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo)
+                    loggerInterface.d("Remote Proposições for $siglaTipo", TAG)
 
                     val localProposicoes = proposicoesResponse.dados.map { proposicoes ->
                         async {
                             val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
+                            val proposicaoDetailsResponse = proposicoesApi.getProposicaoDetail(proposicoes.id.toString())
                             val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
                             val autores = proposicaoAutoresResponse.dados
                                 .sortedBy { it.ordemAssinatura }
@@ -89,20 +90,20 @@ class ProposicoesRepository(
 
                             ProposicaoEntity(
                                 id = proposicoes.id.toString(),
-                                codTipo = siglaTipo.sigla,
+                                codTipo = siglaTipo.sigla, // TODO: This needs fixing.
                                 ementa = proposicoes.ementa,
                                 dataApresentacao = proposicoes.dataApresentacao,
                                 autores = autores,
-                                url = ""
+                                url = proposicaoDetailsResponse.dados.urlInteiroTeor
                             )
                         }
                     }.awaitAll()
 
-                    loggerInterface.d("Organized Proposições -> ${localProposicoes.size}", TAG)
+                    loggerInterface.d("Saving Proposições for $siglaTipo", TAG)
                     isFetchingFromApi = false
                     proposicoesDao.insertProposicoes(localProposicoes)
                 } catch (exception: Exception) {
-                    loggerInterface.d("Remote Proposições -> Failed with exception: $exception", TAG)
+                    loggerInterface.d("Remote Proposições for $siglaTipo -> Failed with exception: $exception", TAG)
                 }
             }
         }

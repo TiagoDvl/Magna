@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProposicaoDetailDto(
     val id: String,
-    val uriAutores: String?
+    val urlInteiroTeor: String?
 )

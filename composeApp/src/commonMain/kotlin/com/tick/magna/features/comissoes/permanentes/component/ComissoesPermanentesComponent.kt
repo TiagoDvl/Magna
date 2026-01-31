@@ -53,30 +53,32 @@ fun ComissoesPermanentesComponent(
             preferredItemWidth = 200.dp,
             itemSpacing = 4.dp,
         ) { i ->
-            val item = state.value[i]
-            Card(
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-                    .padding(dimensions.grid8),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                onClick = { onComissaoClick(item.comissaoPermanenteId) }
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(dimensions.grid8)
+            if (state.value.isNotEmpty()) {
+                val item = state.value[i]
+                Card(
+                    modifier = Modifier
+                        .height(200.dp)
+                        .fillMaxWidth()
+                        .padding(dimensions.grid8),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    onClick = { onComissaoClick(item.comissaoPermanenteId) }
                 ) {
-                    Text(
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        text = item.nomeResumido,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        text = item.nome,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(dimensions.grid8)
+                    ) {
+                        Text(
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            text = item.nomeResumido,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            text = item.nome,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
