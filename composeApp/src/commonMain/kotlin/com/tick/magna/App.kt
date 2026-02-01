@@ -23,7 +23,6 @@ import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
 import com.tick.magna.features.splash.SplashArgs
-import com.tick.magna.features.splash.SplashScreen
 import com.tick.magna.features.welcome.WelcomeArgs
 import com.tick.magna.features.welcome.WelcomeScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -59,11 +58,11 @@ fun App(
 
             NavHost(
                 navController = navController,
-                startDestination = startDestination
+                startDestination = HomeArgs
             ) {
-                composable<SplashArgs> {
-                    SplashScreen()
-                }
+//                composable<SplashArgs> {
+//                    SplashScreen()
+//                }
 
                 composable<WelcomeArgs> {
                     WelcomeScreen()

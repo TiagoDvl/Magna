@@ -12,8 +12,3 @@ sealed interface HomeAction {
     data object RetrySync : HomeAction
     data class SearchDeputado(val query: String) : HomeAction
 }
-
-enum class HomeSheetState {
-    RUNNING_SYNC,
-    RETRY_SYNC
-}

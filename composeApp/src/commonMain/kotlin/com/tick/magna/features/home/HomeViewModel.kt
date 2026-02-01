@@ -52,7 +52,7 @@ class HomeViewModel(
     fun trySync() {
         syncJob?.cancel()
         syncJob = viewModelScope.launch(dispatcher.io) {
-            _homeState.update { it.copy(syncState = SyncUserInformationState.Running) }
+            _homeState.update { it.copy(syncState = SyncUserInformationState.Downloading) }
             syncUserInformation().collect { state ->
                 _homeState.update {
                     logger.d("Updating to State $state")
@@ -61,5 +61,4 @@ class HomeViewModel(
             }
         }
     }
-
 }

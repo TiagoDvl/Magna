@@ -13,7 +13,9 @@ internal class UserDao(
 ): UserDaoInterface {
 
     override fun setupInitialUser() {
-        userQueries.insertUser(User(0, null))
+        // This sets the 2023-02-01 Legislatura (57).
+        // In the future we can create a flow so users might wanna visit other Legislaturas.
+        userQueries.insertUser(User(0, "57"))
     }
 
     override fun getUser(): Flow<User?> {

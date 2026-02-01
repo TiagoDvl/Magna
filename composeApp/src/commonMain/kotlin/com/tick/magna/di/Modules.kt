@@ -28,6 +28,8 @@ import com.tick.magna.data.repository.orgaos.OrgaosRepository
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepository
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
+import com.tick.magna.data.repository.user.UserRepository
+import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
 import com.tick.magna.data.source.local.dao.DeputadoDao
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
@@ -148,6 +150,7 @@ val dataModule = module {
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
     single<EventosRepositoryInterface> { EventosRepository(get(), get()) }
+    single<UserRepositoryInterface> { UserRepository(get()) }
 }
 
 val useCaseModule = module {

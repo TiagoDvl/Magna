@@ -15,6 +15,13 @@
     <string name="welcome_loading_legislations_indicator">Buscando legislaturas</string>
     <string name="welcome_loading_legislations">Legislaturas</string>
 
+    <string name="home_sync_dialog_title">Baixando dados iniciais</string>
+    <string name="home_sync_dialog_loading">Estamos buscando dados do governo para configurar a sua conta.</string>
+    <string name="home_sync_dialog_retry">Os dados vêm todos do governo. As vezes demora um pouco. Como está sua conexão de internet?</string>
+    <string name="home_sync_dialog_done">Tudo pronto! A casa é sua.</string>
+    <string name="home_sync_dialog_downloading_button">Baixando informações</string>
+    <string name="home_sync_dialog_retry_button">Tentar outra vez</string>
+    <string name="home_sync_dialog_done_button">Vamos lá</string>
     <string name="home_sync_title">Buscando dados sobre a legislatura</string>
     <string name="home_retry_sync_title">Algo deu errado durante sua configuração. Quer tentar novamente?</string>
     <string name="home_search_deputados_placeholder">Pesquisar deputados</string>
