@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import kotlinx.coroutines.Job

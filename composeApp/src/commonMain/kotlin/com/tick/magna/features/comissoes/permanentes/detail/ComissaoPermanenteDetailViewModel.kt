@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.Votacao
-import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.eventos.EventosRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,11 +17,9 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ComissaoPermanenteDetailViewModel(
-    private val savedStateHandle: SavedStateHandle,
-    private val dispatcher: DispatcherInterface,
+    savedStateHandle: SavedStateHandle,
+    dispatcher: DispatcherInterface,
     private val orgaosRepository: OrgaosRepositoryInterface,
-    private val eventosRepository: EventosRepositoryInterface,
-    private val logger: AppLoggerInterface,
 ) : ViewModel() {
 
     private val args = savedStateHandle.toRoute<ComissaoPermanenteDetailArgs>()

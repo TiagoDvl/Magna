@@ -3,7 +3,6 @@ package com.tick.magna.features.proposicoes.component
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
-import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.stateIn
 class RecentProposicoesViewModel(
     proposicoesRepository: ProposicoesRepositoryInterface,
     dispatcherInterface: DispatcherInterface,
-    loggerInterface: AppLoggerInterface,
 ) : ViewModel() {
 
     private val _proposicaoFilter = MutableStateFlow(ProposicaoType.PEC)

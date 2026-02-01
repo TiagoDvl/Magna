@@ -1,8 +1,8 @@
 package com.tick.magna.data.usecases
 
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
+import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepositoryInterface

@@ -61,7 +61,7 @@ class RoundedPentagonShape(
             path.lineTo(cornerStart.x, cornerStart.y)
 
             // Rounded corner
-            path.quadraticBezierTo(
+            path.quadraticTo(
                 current.x, current.y,
                 cornerEnd.x, cornerEnd.y
             )
@@ -71,16 +71,6 @@ class RoundedPentagonShape(
         return Outline.Generic(path)
     }
 }
-
-// Helper extension functions
-private operator fun Offset.minus(other: Offset) =
-    Offset(x - other.x, y - other.y)
-
-private operator fun Offset.plus(other: Offset) =
-    Offset(x + other.x, y + other.y)
-
-private operator fun Offset.times(scalar: Float) =
-    Offset(x * scalar, y * scalar)
 
 private fun Offset.normalize(): Offset {
     val length = sqrt(x * x + y * y)

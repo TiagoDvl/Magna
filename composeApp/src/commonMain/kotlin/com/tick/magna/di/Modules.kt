@@ -1,8 +1,9 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package com.tick.magna.di
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
-import com.tick.magna.AppViewModel
 import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
@@ -16,12 +17,12 @@ import com.tick.magna.data.dispatcher.AppDispatcher
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.logger.NapierLogger
-import com.tick.magna.data.repository.DeputadosRepository
-import com.tick.magna.data.repository.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.LegislaturaRepository
 import com.tick.magna.data.repository.LegislaturaRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
+import com.tick.magna.data.repository.deputados.DeputadosRepository
+import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.eventos.EventosRepository
 import com.tick.magna.data.repository.eventos.EventosRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepository
@@ -65,12 +66,6 @@ import com.tick.magna.data.source.remote.api.ProposicoesApi
 import com.tick.magna.data.source.remote.api.ProposicoesApiInterface
 import com.tick.magna.data.source.remote.api.VotacoesApi
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
-import com.tick.magna.data.usecases.CheckUserConfigurationUseCase
-import com.tick.magna.data.usecases.ConfigureLegislaturaUseCase
-import com.tick.magna.data.usecases.GetDeputadoDetailsUseCase
-import com.tick.magna.data.usecases.GetDeputadoUseCase
-import com.tick.magna.data.usecases.GetDeputadosListUseCase
-import com.tick.magna.data.usecases.GetRecentDeputadosUseCase
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesViewModel
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailViewModel
@@ -79,10 +74,10 @@ import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.proposicoes.component.RecentProposicoesViewModel
-import com.tick.magna.features.welcome.WelcomeViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.factoryOf
@@ -154,12 +149,6 @@ val dataModule = module {
 }
 
 val useCaseModule = module {
-    factoryOf(::GetDeputadosListUseCase)
-    factoryOf(::GetRecentDeputadosUseCase)
-    factoryOf(::CheckUserConfigurationUseCase)
-    factoryOf(::ConfigureLegislaturaUseCase)
-    factoryOf(::GetDeputadoDetailsUseCase)
-    factoryOf(::GetDeputadoUseCase)
     factoryOf(::SyncUserInformationUseCase)
 }
 
@@ -168,15 +157,13 @@ val loggingModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { AppViewModel(get(), get()) }
-    viewModel { WelcomeViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get()) }
-    viewModel { RecentProposicoesViewModel(get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get()) }
+    viewModel { RecentProposicoesViewModel(get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get()) }
 }
 
 val appModules = listOf(

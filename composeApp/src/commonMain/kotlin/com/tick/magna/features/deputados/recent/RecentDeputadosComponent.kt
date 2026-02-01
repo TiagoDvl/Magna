@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.deputadosMock
-import com.tick.magna.data.usecases.RecentDeputadosState
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.core.avatar.Avatar

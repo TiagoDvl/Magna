@@ -3,8 +3,7 @@ package com.tick.magna.features.deputados.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
-import com.tick.magna.data.usecases.DeputadosListState
-import com.tick.magna.data.usecases.GetDeputadosListUseCase
+import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -12,8 +11,8 @@ import kotlinx.coroutines.launch
 
 class DeputadosSearchViewModel(
     private val dispatcher: DispatcherInterface,
-    getDeputadosList: GetDeputadosListUseCase
-): ViewModel() {
+    private val deputadosRepository: DeputadosRepositoryInterface,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(DeputadosSearchState())
     val state = _state.asStateFlow()
@@ -26,23 +25,17 @@ class DeputadosSearchViewModel(
 
     init {
         viewModelScope.launch(dispatcher.io) {
-            getDeputadosList().collect {
-                when (it) {
-                    DeputadosListState.Loading -> _state.update { state -> state.copy(isLoading = true) }
-                    is DeputadosListState.Success -> {
-                        val deputadosUfs = it.deputados.mapNotNull { deputado -> deputado.uf }.sorted().toSet()
-                        val deputadosPartidos = it.deputados.mapNotNull { deputado -> deputado.partido }.sorted().toSet()
+            deputadosRepository.getDeputados().collect { deputados ->
+                val deputadosUfs = deputados.mapNotNull { deputado -> deputado.uf }.sorted().toSet()
+                val deputadosPartidos = deputados.mapNotNull { deputado -> deputado.partido }.sorted().toSet()
 
-                        _state.update { state ->
-                            state.copy(
-                                isLoading = false,
-                                deputados = it.deputados,
-                                deputadosUfs = deputadosUfs,
-                                deputadoPartidos = deputadosPartidos
-                            )
-                        }
-                    }
-                    DeputadosListState.Error -> _state.update { state -> state.copy(isError = true) }
+                _state.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        deputados = deputados,
+                        deputadosUfs = deputadosUfs,
+                        deputadoPartidos = deputadosPartidos
+                    )
                 }
             }
         }

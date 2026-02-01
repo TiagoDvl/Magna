@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
-import com.tick.magna.ui.core.image.Image
+import com.tick.magna.ui.core.image.MagnaImage
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_light_users
@@ -38,7 +38,7 @@ fun Avatar(
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            Image(
+            MagnaImage(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = contentScale,
                 imageUrl = photoUrl,
