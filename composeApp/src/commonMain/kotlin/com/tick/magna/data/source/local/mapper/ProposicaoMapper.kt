@@ -12,6 +12,6 @@ fun ProposicaoEntity.toDomain(deputadosAutores: List<Deputado>): Proposicao {
         ementa = ementa.orEmpty(),
         dataApresentacao = formatter.format(LocalDateTime.parse(dataApresentacao.orEmpty())),
         autores = deputadosAutores,
-        url = ""
+        url = url
     )
 }

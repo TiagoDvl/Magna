@@ -7,5 +7,6 @@ enum class MagnaComissaoPermanente(val idOrgao: String) {
     CONSTITUICAO_E_JUSTICA("2003"),
     COMUNICACAO("539385"),
     SEGURANCA_PUBLICA("5503"),
-    SAUDE("2014");
+    SAUDE("2014"),
+    CIENCIA_TECNOLOGIA_INOVACAO("2002");
 }

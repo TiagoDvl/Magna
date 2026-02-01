@@ -10,6 +10,15 @@ fun DeputadoDetailsEntity.toDomain(): DeputadoDetails {
         gabineteTelephone = gabineteTelephone,
         gabineteEmail = gabineteEmail,
         urlWebsite = urlWebsite,
-        socials = socials?.split(", "),
+        socials = buildMap {
+            socials?.split(", ")?.forEach { social ->
+                when {
+                    social.contains("facebook", ignoreCase = true) -> put("Facebook", social)
+                    social.contains("twitter", ignoreCase = true) -> put("Twitter", social)
+                    social.contains("instagram", ignoreCase = true) -> put("Instagram", social)
+                    social.contains("youtube", ignoreCase = true) -> put("Youtube", social)
+                }
+            }
+        },
     )
 }

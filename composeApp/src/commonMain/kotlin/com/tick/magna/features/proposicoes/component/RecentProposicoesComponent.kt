@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -75,6 +76,7 @@ private fun RecentProposicoesComponentContent(
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
     val dimensions = LocalDimensions.current
+    val uriHandler = LocalUriHandler.current
 
     val listState = rememberLazyListState()
 
@@ -105,13 +107,14 @@ private fun RecentProposicoesComponentContent(
                 verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
                 state = listState,
             ) {
-                items(state.proposicoes) {
+                items(state.proposicoes) { item ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.medium,
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 2.dp
-                        )
+                        ),
+                        onClick = { item.url?.let { uriHandler.openUri(it) } }
                     ) {
                         ListItem(
                             modifier = Modifier.defaultMinSize(minHeight = 60.dp),
@@ -120,31 +123,31 @@ private fun RecentProposicoesComponentContent(
                             ),
                             headlineContent = {
                                 Text(
-                                    text = it.ementa,
-                                    maxLines = 2,
+                                    text = item.ementa,
+                                    maxLines = 4,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             },
                             overlineContent = {
-                                Text(text = it.type)
+                                Text(text = item.type)
                             },
                             supportingContent = {
                                 Column(
                                     verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
                                 ) {
-                                    Text(text = it.dataApresentacao)
+                                    Text(text = item.dataApresentacao)
                                     Row(
                                         modifier = Modifier.padding(top = dimensions.grid8),
                                         verticalAlignment = Alignment.Bottom,
                                     ) {
-                                        if (it.autores.isNotEmpty()) {
+                                        if (item.autores.isNotEmpty()) {
                                             Icon(
                                                 modifier = Modifier.padding(end = dimensions.grid4).alpha(0.75F),
                                                 painter = painterResource(Res.drawable.ic_signature),
                                                 contentDescription = null
                                             )
                                         }
-                                        it.autores.take(3).forEachIndexed { index, deputado ->
+                                        item.autores.take(7).forEachIndexed { index, deputado ->
                                             val padding = if (index == 0) 0.dp else dimensions.grid8
 
                                             Avatar(
@@ -152,7 +155,7 @@ private fun RecentProposicoesComponentContent(
                                                 photoUrl = deputado.profilePicture
                                             )
                                         }
-                                        if (it.autores.size > 4) {
+                                        if (item.autores.size > 8) {
                                             BaseText(text = "...")
                                         }
                                     }
@@ -160,12 +163,14 @@ private fun RecentProposicoesComponentContent(
                             },
                             leadingContent = {},
                             trailingContent = {
-                                Box(modifier = Modifier.fillMaxHeight()) {
-                                    Icon(
-                                        modifier = Modifier.align(Alignment.Center),
-                                        painter = painterResource(Res.drawable.ic_arrow_right),
-                                        contentDescription = null
-                                    )
+                                if (item.url != null) {
+                                    Box(modifier = Modifier.fillMaxHeight()) {
+                                        Icon(
+                                            modifier = Modifier.align(Alignment.Center),
+                                            painter = painterResource(Res.drawable.ic_arrow_right),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             },
                         )

@@ -36,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -249,7 +250,7 @@ private fun DetailContent(
 
             is DetailsState.Content -> {
                 GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
-                SocialsDetails(socials = detailsState.deputadoDetails.socials.orEmpty())
+                SocialsDetails(socials = detailsState.deputadoDetails.socials)
             }
         }
     }
@@ -300,33 +301,21 @@ private fun GabineteDetails(
 @Composable
 private fun SocialsDetails(
     modifier: Modifier = Modifier,
-    socials: List<String>
+    socials: Map<String, String>
 ) {
     val dimensions = LocalDimensions.current
     val chipsStyle = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurface)
-    val mappedSocials = socials.mapNotNull { social ->
-        when {
-            social.contains("facebook", ignoreCase = true) -> "Facebook"
-            social.contains("twitter", ignoreCase = true) -> "Twitter"
-            social.contains("instagram", ignoreCase = true) -> "Instagram"
-            social.contains("youtube", ignoreCase = true) -> "Youtube"
-            else -> null
-        }
-    }.take(4)
+    val uriHandler = LocalUriHandler.current
+
 
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
         content = {
-            mappedSocials.forEach { text ->
+            socials.entries.forEach { entry ->
                 AssistChip(
-                    label = {
-                        BaseText(
-                            text = text,
-                            style = chipsStyle
-                        )
-                    },
-                    onClick = {}
+                    label = { BaseText(text = entry.key, style = chipsStyle) },
+                    onClick = { uriHandler.openUri(entry.value) }
                 )
             }
         }
@@ -445,11 +434,12 @@ fun DeputadoExpenseDetails(
     onCloseSheet: () -> Unit = {}
 ) {
     val dimensions = LocalDimensions.current
+    val uriHandler = LocalUriHandler.current
     val style = MaterialTheme.typography
     val colors = MaterialTheme.colorScheme
 
     Column(
-        modifier = Modifier.sizeIn(minHeight = 300.dp).fillMaxWidth().padding(dimensions.grid8),
+        modifier = Modifier.sizeIn(minHeight = 300.dp).fillMaxWidth().padding(dimensions.grid16),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
     ) {
         Row(
@@ -487,7 +477,7 @@ fun DeputadoExpenseDetails(
         Button(
             modifier = Modifier.fillMaxWidth(),
             enabled = deputadoExpense.urlDocumento != null,
-            onClick = {},
+            onClick = { deputadoExpense.urlDocumento?.let { uriHandler.openUri(it) } },
             content = {
                 BaseText(
                     text = stringResource(Res.string.deputado_details_check_document)

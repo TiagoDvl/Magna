@@ -39,9 +39,7 @@ class OrgaosRepository(
     override fun getComissoesPermanentes(): Flow<List<Orgao>> {
         return flow {
             emit(
-                orgaosDao.getOrgaosFromIds(
-                    MagnaComissaoPermanente.entries.map { it.idOrgao }
-                ).map { it.toDomain() }
+                orgaosDao.getOrgaosFromIds(MagnaComissaoPermanente.entries.map { it.idOrgao }).map { it.toDomain() }
             )
         }
     }

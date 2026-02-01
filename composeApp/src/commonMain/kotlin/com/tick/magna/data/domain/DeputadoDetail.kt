@@ -6,7 +6,7 @@ data class DeputadoDetails(
     val gabineteTelephone: String?,
     val gabineteEmail: String?,
     val urlWebsite: String?,
-    val socials: List<String>?,
+    val socials: Map<String, String> = emptyMap(),
 )
 
 val deputadoDetailMock = DeputadoDetails(
@@ -15,9 +15,9 @@ val deputadoDetailMock = DeputadoDetails(
     gabineteTelephone = "2367004",
     gabineteEmail = "deputado@gmail.com",
     urlWebsite = "http://www.deputado.com.br",
-    socials = listOf(
-        "https://www.facebook.com/deputado",
-        "https://www.twitter.com/deputado",
-        "https://www.instagram.com/deputado",
+    socials = mapOf(
+        "Facebook" to "https://www.facebook.com/deputado",
+        "Twitter" to "https://www.twitter.com/deputado",
+        "Instagram" to "https://www.instagram.com/deputado",
     )
 )
