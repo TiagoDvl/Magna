@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -50,7 +52,6 @@ import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
-import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
@@ -121,7 +122,7 @@ private fun DeputadoDetails(
 
     BottomSheetScaffold(
         modifier = Modifier.fillMaxSize(),
-        sheetContainerColor = MaterialTheme.colorScheme.background,
+        sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         topBar = {
             MagnaMediumTopBar(
                 titleText = state.deputado?.name.orEmpty(),
@@ -208,18 +209,18 @@ private fun DetailAvatar(
         ) {
             val chipsStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
             deputado?.let {
-                BaseText(
+                Text(
                     text = "\uD83D\uDCCD ${deputado.uf}",
                     style = chipsStyle.copy(fontWeight = FontWeight.Bold)
                 )
 
-                BaseText(
+                Text(
                     text = "-",
                     style = chipsStyle
                 )
 
                 deputado.partido?.let { partido ->
-                    BaseText(
+                    Text(
                         text = partido,
                         style = chipsStyle
                     )
@@ -239,7 +240,7 @@ private fun DetailContent(
             DetailsState.Loading -> {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     LoadingComponent(modifier = Modifier.fillMaxWidth().height(160.dp))
-                    BaseText(
+                    Text(
                         text = stringResource(Res.string.deputado_details_loading_details),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.tertiary
@@ -268,28 +269,28 @@ private fun GabineteDetails(
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
     ) {
         deputadoDetails.gabineteBuilding?.let {
-            BaseText(
+            Text(
                 text = "\uD83C\uDFE2 $it",
                 style = gabineteDetailsStyle
             )
         }
 
         deputadoDetails.gabineteRoom?.let {
-            BaseText(
+            Text(
                 text = "\uD83D\uDEAA $it",
                 style = gabineteDetailsStyle
             )
         }
 
         deputadoDetails.gabineteTelephone?.let {
-            BaseText(
+            Text(
                 text = "\uD83D\uDCDE $it",
                 style = gabineteDetailsStyle
             )
         }
 
         deputadoDetails.gabineteEmail?.let {
-            BaseText(
+            Text(
                 text = "✉\uFE0F $it",
                 style = gabineteDetailsStyle,
                 maxLines = 1
@@ -314,7 +315,7 @@ private fun SocialsDetails(
         content = {
             socials.entries.forEach { entry ->
                 AssistChip(
-                    label = { BaseText(text = entry.key, style = chipsStyle) },
+                    label = { Text(text = entry.key, style = chipsStyle) },
                     onClick = { uriHandler.openUri(entry.value) }
                 )
             }
@@ -329,18 +330,19 @@ fun DeputadoExpenses(
     onExpenseClick: (DeputadoExpense) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
-    val style = MaterialTheme.typography
-    val colors = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier.fillMaxSize().padding(top = dimensions.grid8),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid20)
     ) {
-        BaseText(
+        Text(
             text = stringResource(Res.string.deputado_details_expense_title),
-            style = style.titleLarge.copy(
-                color = colors.secondary,
-                fontWeight = FontWeight.Bold
+            style = typography.titleLarge.copy(
+                textAlign = TextAlign.Center,
+                color = colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
             )
         )
 
@@ -360,7 +362,7 @@ fun DeputadoExpenses(
                                 color = MaterialTheme.colorScheme.tertiary
                             )
 
-                            BaseText(
+                            Text(
                                 text = stringResource(Res.string.deputado_details_loading_expenses),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.tertiary
@@ -384,11 +386,11 @@ fun DeputadoExpenses(
                                 verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
                             ) {
 
-                                BaseText(text = expense.tipoDespesa, style = style.bodyLarge.copy(color = colors.onSurface))
-                                BaseText(
+                                Text(text = expense.tipoDespesa, style = typography.bodyLarge.copy(color = colorScheme.secondary))
+                                Text(
                                     text = expense.nomeFornecedor,
-                                    style = style.bodyMedium.copy(
-                                        color = colors.onSurface,
+                                    style = typography.bodyMedium.copy(
+                                        color = colorScheme.onSurface,
                                         fontWeight = FontWeight.ExtraLight
                                     )
                                 )
@@ -396,20 +398,21 @@ fun DeputadoExpenses(
                                     horizontalArrangement = Arrangement.spacedBy(dimensions.grid2),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    BaseText(
+                                    Text(
                                         text = expense.valorDocumento,
-                                        style = style.bodySmall.copy(
-                                            color = colors.secondary,
+                                        style = typography.bodySmall.copy(
+                                            color = colorScheme.tertiary,
                                             fontWeight = FontWeight.SemiBold
                                         )
                                     )
-                                    BaseText(text = "-", style = style.bodySmall.copy(color = colors.onSurface))
-                                    BaseText(text = expense.dataDocumento, style = style.bodySmall.copy(color = colors.onSurface))
+                                    Text(text = "-", style = typography.bodySmall.copy(color = colorScheme.onSurface))
+                                    Text(text = expense.dataDocumento, style = typography.bodySmall.copy(color = colorScheme.onSurface))
 
                                     if (expense.urlDocumento != null) {
                                         Icon(
                                             modifier = Modifier.size(dimensions.grid16),
                                             painter = painterResource(Res.drawable.folder_eye),
+                                            tint = colorScheme.tertiary,
                                             contentDescription = null
                                         )
                                     }
@@ -418,6 +421,7 @@ fun DeputadoExpenses(
 
                             Icon(
                                 painter = painterResource(Res.drawable.ic_arrow_right),
+                                tint = colorScheme.tertiary,
                                 contentDescription = null
                             )
                         }
@@ -439,7 +443,11 @@ fun DeputadoExpenseDetails(
     val colors = MaterialTheme.colorScheme
 
     Column(
-        modifier = Modifier.sizeIn(minHeight = 300.dp).fillMaxWidth().padding(dimensions.grid16),
+        modifier = Modifier
+            .sizeIn(minHeight = 300.dp)
+            .fillMaxWidth()
+            .padding(horizontal = dimensions.grid16)
+            .padding(bottom = dimensions.grid24),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
     ) {
         Row(
@@ -447,7 +455,7 @@ fun DeputadoExpenseDetails(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BaseText(
+            Text(
                 modifier = Modifier.weight(0.80f),
                 text = deputadoExpense.tipoDespesa,
                 style = style.titleSmall.copy(
@@ -479,7 +487,7 @@ fun DeputadoExpenseDetails(
             enabled = deputadoExpense.urlDocumento != null,
             onClick = { deputadoExpense.urlDocumento?.let { uriHandler.openUri(it) } },
             content = {
-                BaseText(
+                Text(
                     text = stringResource(Res.string.deputado_details_check_document)
                 )
             }
@@ -500,14 +508,14 @@ fun ExpenseRow(
     Column(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
     ) {
-        BaseText(
+        Text(
             text = "$title:",
             style = style.bodyMedium.copy(
                 color = colors.onSurface,
                 fontWeight = FontWeight.Bold
             )
         )
-        BaseText(
+        Text(
             text = value,
             style = style.bodyMedium.copy(color = colors.onSurface)
         )

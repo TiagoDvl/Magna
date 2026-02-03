@@ -88,6 +88,7 @@ private fun MagnaHomeContent(
     navigateTo: (Any) -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
 
     val scrollState = rememberScrollState()
     var showInitialSyncDialog by remember { mutableStateOf(false) }
@@ -104,20 +105,33 @@ private fun MagnaHomeContent(
         AlertDialog(
             onDismissRequest = { },
             title = {
-                Text(stringResource(Res.string.home_sync_dialog_title))
+                Text(
+                    text = stringResource(Res.string.home_sync_dialog_title),
+                    style = typography.titleLarge.copy(color = colorScheme.primary)
+                )
             },
             text = {
                 Column(
                     modifier = modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (homeState.syncState is SyncUserInformationState.Done) {
-                        Text(stringResource(Res.string.home_sync_dialog_done))
+                        Text(
+                            text = stringResource(Res.string.home_sync_dialog_done),
+                            style = typography.bodyMedium
+                        )
                     } else {
-                        Text(stringResource(Res.string.home_sync_dialog_loading))
+                        Text(
+                            text = stringResource(Res.string.home_sync_dialog_loading),
+                            style = typography.bodyMedium
+                        )
 
                         if (homeState.syncState is SyncUserInformationState.Retry) {
-                            Text(stringResource(Res.string.home_sync_dialog_retry))
+                            Text(
+                                text = stringResource(Res.string.home_sync_dialog_retry),
+                                style = typography.bodyMedium
+                            )
                         }
 
                         if (homeState.syncState is SyncUserInformationState.Downloading) {
@@ -169,6 +183,10 @@ private fun MagnaHomeContent(
             ) {
                 SearchBar(
                     modifier = Modifier.align(Alignment.Center),
+                    colors = SearchBarDefaults.colors(
+                        containerColor = colorScheme.surfaceContainer,
+                        dividerColor = colorScheme.tertiary
+                    ),
                     inputField = {
                         SearchBarDefaults.InputField(
                             query = textFieldState.text.toString(),

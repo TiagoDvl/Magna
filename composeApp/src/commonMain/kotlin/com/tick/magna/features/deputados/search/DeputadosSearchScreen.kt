@@ -23,8 +23,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,7 +47,6 @@ import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
-import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
@@ -105,11 +106,9 @@ private fun DeputadosSearchContent(
         AlertDialog(
             onDismissRequest = { dialogType = null },
             title = {
-                BaseText(
+                Text(
                     text = stringResource(Res.string.deputados_search_dialog_title),
-                    style = typography.titleLarge.copy(
-                        color = colorScheme.secondary
-                    )
+                    style = typography.titleLarge.copy(color = colorScheme.primary)
                 )
             },
             text = {
@@ -138,12 +137,10 @@ private fun DeputadosSearchContent(
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            BaseText(
+                            Text(
                                 modifier = Modifier.fillMaxWidth(),
                                 text = it,
-                                style = typography.labelMedium.copy(
-                                    color = colorScheme.onSurface
-                                )
+                                style = typography.labelMedium
                             )
                         }
                     }
@@ -151,12 +148,8 @@ private fun DeputadosSearchContent(
             },
             confirmButton = {
                 TextButton(onClick = { dialogType = null }) {
-                    BaseText(
+                    Text(
                         text = stringResource(Res.string.cancel),
-                        style = typography.bodyLarge.copy(
-                            color = colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
                     )
                 }
             }
@@ -185,6 +178,10 @@ private fun DeputadosSearchContent(
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth().padding(dimensions.grid4),
                         shape = RoundedCornerShape(dimensions.grid16),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = colorScheme.surfaceContainer,
+                            focusedContainerColor = colorScheme.surfaceContainerHigh
+                        ),
                         value = searchQuery,
                         onValueChange = {
                             searchQuery = it
@@ -226,7 +223,7 @@ private fun DeputadosSearchContent(
                                         stringResource(Res.string.deputados_search_uf_label)
                                     }
 
-                                    BaseText(text = text)
+                                    Text(text = text)
                                 },
                                 onClick = {
                                     if (selectedUf.isNotEmpty()) {
@@ -245,7 +242,7 @@ private fun DeputadosSearchContent(
                                     } else {
                                         stringResource(Res.string.deputados_search_partido_label)
                                     }
-                                    BaseText(text = text)
+                                    Text(text = text)
                                 },
                                 onClick = {
                                     if (selectedPartido.isNotEmpty()) {
@@ -280,13 +277,16 @@ private fun DeputadosSearchContent(
                                     ) {
                                         onDeputadoClick(deputado.id)
                                     },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = colorScheme.surfaceContainer
+                                ),
                                 headlineContent = {
                                     Text(text = deputado.name)
                                 },
                                 supportingContent = {
                                     Row(horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)) {
                                         deputado.uf?.let {
-                                            BaseText(
+                                            Text(
                                                 text = deputado.uf,
                                                 style = MaterialTheme.typography.bodySmall.copy(
                                                     color = MaterialTheme.colorScheme.onSurface,
@@ -294,7 +294,7 @@ private fun DeputadosSearchContent(
                                                 )
                                             )
                                         }
-                                        BaseText(
+                                        Text(
                                             text = "-",
                                             style = MaterialTheme.typography.bodySmall.copy(
                                                 color = MaterialTheme.colorScheme.onSurface
@@ -302,7 +302,7 @@ private fun DeputadosSearchContent(
                                         )
 
                                         deputado.partido?.let {
-                                            BaseText(
+                                            Text(
                                                 text = deputado.partido,
                                                 style = MaterialTheme.typography.bodySmall.copy(
                                                     color = MaterialTheme.colorScheme.onSurface

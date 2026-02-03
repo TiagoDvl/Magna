@@ -33,13 +33,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.proposicoesMock
 import com.tick.magna.ui.core.avatar.Avatar
-import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
@@ -86,12 +87,20 @@ private fun RecentProposicoesComponentContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.align(Alignment.Start),
             text = stringResource(state.selectedProposicao.getProposicaoLabel()),
+            style = MaterialTheme.typography.titleLarge.copy(
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+            )
         )
+
         if (state.proposicoes.isEmpty() || state.isLoading) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(dimensions.grid2),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.onSecondary
             )
         }
 
@@ -119,23 +128,37 @@ private fun RecentProposicoesComponentContent(
                         ListItem(
                             modifier = Modifier.defaultMinSize(minHeight = 60.dp),
                             colors = ListItemDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                             ),
                             headlineContent = {
                                 Text(
                                     text = item.ementa,
                                     maxLines = 4,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 )
                             },
                             overlineContent = {
-                                Text(text = item.type)
+                                Text(
+                                    text = item.type,
+                                    style = typography.bodyLarge.copy(
+                                        color = colorScheme.secondary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
                             },
                             supportingContent = {
                                 Column(
                                     verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
                                 ) {
-                                    Text(text = item.dataApresentacao)
+                                    Text(
+                                        text = item.dataApresentacao,
+                                        style = typography.bodySmall.copy(
+                                            color = colorScheme.tertiary
+                                        )
+                                    )
                                     Row(
                                         modifier = Modifier.padding(top = dimensions.grid8),
                                         verticalAlignment = Alignment.Bottom,
@@ -144,6 +167,7 @@ private fun RecentProposicoesComponentContent(
                                             Icon(
                                                 modifier = Modifier.padding(end = dimensions.grid4).alpha(0.75F),
                                                 painter = painterResource(Res.drawable.ic_signature),
+                                                tint = colorScheme.tertiary,
                                                 contentDescription = null
                                             )
                                         }
@@ -155,9 +179,6 @@ private fun RecentProposicoesComponentContent(
                                                 photoUrl = deputado.profilePicture
                                             )
                                         }
-                                        if (item.autores.size > 8) {
-                                            BaseText(text = "...")
-                                        }
                                     }
                                 }
                             },
@@ -168,6 +189,7 @@ private fun RecentProposicoesComponentContent(
                                         Icon(
                                             modifier = Modifier.align(Alignment.Center),
                                             painter = painterResource(Res.drawable.ic_arrow_right),
+                                            tint = colorScheme.secondary,
                                             contentDescription = null
                                         )
                                     }
@@ -191,6 +213,10 @@ private fun RecentProposicoesComponentContent(
                         shape = SegmentedButtonDefaults.itemShape(
                             index = index,
                             count = ProposicaoType.entries.size
+                        ),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContentColor = colorScheme.onSecondaryContainer,
+                            activeContainerColor = colorScheme.secondaryContainer
                         ),
                         label = {
                             val labelResource = when (entry) {

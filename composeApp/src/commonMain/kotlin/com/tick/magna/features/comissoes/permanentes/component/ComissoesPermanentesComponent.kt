@@ -1,6 +1,6 @@
 package com.tick.magna.features.comissoes.permanentes.component
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,21 +11,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.agro
 import magna.composeapp.generated.resources.comissoes_permanentes_section_title
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -42,11 +42,14 @@ fun ComissoesPermanentesComponent(
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(Res.string.comissoes_permanentes_section_title),
+            style = MaterialTheme.typography.titleLarge.copy(
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+            )
         )
 
         HorizontalMultiBrowseCarousel(
@@ -68,30 +71,22 @@ fun ComissoesPermanentesComponent(
                     onClick = { onComissaoClick(item.comissaoPermanenteId) }
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(dimensions.grid8)
+                            .background(MaterialTheme.colorScheme.surfaceDim)
                     ) {
-                        Image(
-                            painter = painterResource(Res.drawable.agro),
-                            modifier = Modifier.fillMaxSize(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit
+                        Text(
+                            modifier = Modifier.align(Alignment.Center),
+                            text = item.nomeResumido,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(dimensions.grid8)
-                        ) {
-                            Text(
-                                modifier = Modifier.align(Alignment.TopCenter),
-                                text = item.nomeResumido,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                modifier = Modifier.align(Alignment.BottomStart),
-                                text = item.nome,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
                     }
                 }
             }

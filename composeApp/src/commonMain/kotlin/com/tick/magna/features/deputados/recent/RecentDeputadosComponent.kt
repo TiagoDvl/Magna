@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,9 +35,7 @@ import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.core.avatar.Avatar
-import com.tick.magna.ui.core.button.CtaButton
 import com.tick.magna.ui.core.shape.RoundedPentagonShape
-import com.tick.magna.ui.core.text.BaseText
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
@@ -125,6 +125,9 @@ private fun RecentDeputados(
     deputados: List<Deputado>,
     onNavigate: (Any) -> Unit
 ) {
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
@@ -132,15 +135,20 @@ private fun RecentDeputados(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
         ) {
-            BaseText(
+            Text(
                 text = stringResource(Res.string.recent_deputados_title),
-                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.secondary)
+                style = typography.titleLarge.copy(
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                )
             )
-            BaseText(
+            Text(
                 modifier = Modifier.clickable(null, null, onClick = { onNavigate(DeputadosSearchArgs) }),
                 text = stringResource(Res.string.recent_deputados_more),
-                style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.tertiary)
+                style = typography.titleSmall.copy(color = MaterialTheme.colorScheme.tertiary)
             )
         }
 
@@ -152,8 +160,8 @@ private fun RecentDeputados(
                 Card(
                     modifier = Modifier.fillMaxSize().width(80.dp),
                     colors = CardDefaults.cardColors().copy(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        containerColor = colorScheme.surfaceContainer,
+                        contentColor = colorScheme.onSurface
                     ),
                     onClick = {
                         onNavigate(DeputadoDetailsArgs(deputado.id))
@@ -168,10 +176,14 @@ private fun RecentDeputados(
                             modifier = Modifier.weight(1f).fillMaxWidth(),
                             photoUrl = deputado.profilePicture
                         )
-                        BaseText(
+                        Text(
                             modifier = Modifier.padding(LocalDimensions.current.grid8),
                             text = deputado.name,
-                            style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+                            style = typography.bodyMedium.copy(
+                                color = colorScheme.tertiary,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Medium
+                            ),
                             maxLines = 2
                         )
                     }
@@ -180,21 +192,34 @@ private fun RecentDeputados(
 
             item {
                 Card(
-                    modifier = Modifier.fillMaxHeight().width(80.dp)
+                    modifier = Modifier.fillMaxHeight().width(80.dp),
+                    colors = CardDefaults.cardColors().copy(
+                        containerColor = colorScheme.surfaceContainer,
+                        contentColor = colorScheme.onSurface
+                    ),
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        BaseText(
+                        Text(
                             text = stringResource(Res.string.recent_deputados_find_more),
-                            style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center)
+                            style = typography.bodyMedium.copy(
+                                color = colorScheme.tertiary,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Medium
+                            ),
                         )
-                        CtaButton(
-                            modifier = Modifier.padding(top = 8.dp),
-                            icon = painterResource(Res.drawable.ic_chevron_right),
-                            onClick = { onNavigate(DeputadosSearchArgs) }
+
+                        Button(
+                            onClick = { onNavigate(DeputadosSearchArgs) },
+                            content = {
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_chevron_right),
+                                    contentDescription = null
+                                )
+                            }
                         )
                     }
                 }
