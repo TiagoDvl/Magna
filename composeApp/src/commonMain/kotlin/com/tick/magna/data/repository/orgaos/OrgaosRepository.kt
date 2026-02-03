@@ -37,10 +37,11 @@ class OrgaosRepository(
     }
 
     override fun getComissoesPermanentes(): Flow<List<Orgao>> {
+        val comissoesPermanentesIds = MagnaComissaoPermanente.entries.map { it.idOrgao }
+
         return flow {
-            emit(
-                orgaosDao.getOrgaosFromIds(MagnaComissaoPermanente.entries.map { it.idOrgao }).map { it.toDomain() }
-            )
+            val orgaos = orgaosDao.getOrgaosFromIds(comissoesPermanentesIds).map { it.toDomain() }
+            emit(orgaos)
         }
     }
 
