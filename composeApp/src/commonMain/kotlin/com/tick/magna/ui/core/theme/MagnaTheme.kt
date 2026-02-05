@@ -94,8 +94,8 @@ fun MagnaTheme(
         LocalDimensions provides LocalDimensions.current,
     ) {
         MaterialTheme(
-//            colorScheme = colorScheme,
-//            typography = magnaTypography(),
+            colorScheme = colorScheme,
+            typography = magnaTypography(),
             content = content
         )
     }

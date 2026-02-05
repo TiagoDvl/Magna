@@ -3,6 +3,7 @@ package com.tick.magna.data.repository.deputados
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
@@ -11,7 +12,6 @@ import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
-import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +34,7 @@ internal class DeputadosRepository(
     private val deputadoExpenseDao: DeputadoExpenseDaoInterface,
     private val loggerInterface: AppLoggerInterface,
     private val coroutineScope: CoroutineScope
-): DeputadosRepositoryInterface {
+) : DeputadosRepositoryInterface {
 
     companion object Companion {
         private const val TAG = "DeputadosRepository"
