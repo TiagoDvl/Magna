@@ -21,7 +21,6 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
         return httpClient.get("$baseUrl/proposicoes") {
             parameter("ordem", "desc")
             siglaTipo?.let { parameter("siglaTipo", it) }
-            parameter("itens", 5)
         }.body()
     }
 

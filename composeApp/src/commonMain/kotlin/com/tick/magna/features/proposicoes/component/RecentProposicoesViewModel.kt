@@ -23,6 +23,7 @@ class RecentProposicoesViewModel(
 
     val state: StateFlow<RecentProposicoesState> = _proposicaoFilter
         .flatMapLatest { param ->
+            println("Param: $param")
             proposicoesRepository.observeRecentProposicoes(param.name).map { result ->
                 RecentProposicoesState(
                     isLoading = result.isLoading,

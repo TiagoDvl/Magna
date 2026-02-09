@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
 class ComissoesPermanentesViewModel(
@@ -22,9 +21,7 @@ class ComissoesPermanentesViewModel(
     val state: StateFlow<List<ComissaoPermanente>> = orgaosRepository
         .getComissoesPermanentes()
         .map { listaOrgaos ->
-            loggerInterface.d("1 - map -> $listaOrgaos")
             listaOrgaos.mapNotNull { orgao ->
-                loggerInterface.d("2 - mapNotNull -> $orgao")
                 if (orgao.nome != null && orgao.nomeResumido != null) {
                     ComissaoPermanente(
                         comissaoPermanenteId = orgao.id,
@@ -35,9 +32,6 @@ class ComissoesPermanentesViewModel(
                     null
                 }
             }
-        }
-        .onEach {
-            loggerInterface.d("ComissoesPermanentesViewModel -> $it")
         }
         .flowOn(dispatcherInterface.io)
         .stateIn(
