@@ -43,8 +43,6 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.materialIconsExtended)
-            //implementation(compose.material3) Expressive Material Theme is only available in alpha
-//            implementation("org.jetbrains.compose.material3:material3:1.9.0-alpha04")
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
@@ -118,6 +116,26 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("keystore/magna-keystore.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
     }
 }
 
