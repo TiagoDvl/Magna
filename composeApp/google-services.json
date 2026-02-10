@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389700160251",
+    "project_id": "magna-ff9e1",
+    "storage_bucket": "magna-ff9e1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389700160251:android:b26871c16a7f89645fbe5e",
+        "android_client_info": {
+          "package_name": "com.tick.magna"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClh1AjpOqkAUmqdTSQrPFtBlxjaDUlLm4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
