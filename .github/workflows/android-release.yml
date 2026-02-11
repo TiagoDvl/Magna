@@ -108,18 +108,18 @@ jobs:
         run: |
           echo $ENCODED_KEYSTORE | base64 -di > magna-keystore.jks
 
-      - name: Build Release AAB
+      - name: Build Release APK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew bundleRelease
+        run: ./gradlew assembleRelease
 
-      - name: Upload AAB artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-aab
-          path: composeApp/build/outputs/bundle/release/*.aab
+          name: release-apk
+          path: composeApp/build/outputs/apk/release/*.apk
 
       - name: Deploy to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -127,7 +127,7 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: Testers
-          file: composeApp/build/outputs/bundle/release/composeApp-release.aab
+          file: composeApp/build/outputs/apk/release/composeApp-release.apk
           releaseNotes: "Nova versão disponível para testes"
 
   # deploy-playstore:
