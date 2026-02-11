@@ -126,7 +126,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: testers
+          groups: Testers
           file: composeApp/build/outputs/bundle/release/composeApp-release.aab
           releaseNotes: "Nova versão disponível para testes"
 
