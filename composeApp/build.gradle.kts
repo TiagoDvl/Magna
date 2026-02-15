@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.sqldelight)
+    id("com.google.gms.google-services")
 }
 
 kotlin {
@@ -69,6 +70,9 @@ kotlin {
             implementation(libs.ktor.client.android)
             implementation(libs.android.driver)
             implementation(libs.material.icons.core)
+
+            implementation(project.dependencies.platform("com.google.firebase:firebase-bom:34.9.0"))
+            implementation("com.google.firebase:firebase-analytics")
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
