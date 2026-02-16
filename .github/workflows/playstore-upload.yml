@@ -19,12 +19,16 @@ jobs:
           echo $ENCODED_KEYSTORE | base64 -di > magna-keystore.jks
 
       - name: Build Release AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew bundleRelease
 
       - name: Sign AAB
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs/bundle/release
+          releaseDirectory: composeApp/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -35,6 +39,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
           packageName: com.tick.magna
-          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: composeApp/build/outputs/bundle/release/composeApp-release.aab
           track: internal
           whatsNewDirectory: distribution/whatsnew
