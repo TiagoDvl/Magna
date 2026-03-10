@@ -9,9 +9,9 @@ actual class DatabaseDriverFactory(private val context: Context) {
 
     actual fun createDriver(): SqlDriver {
         return AndroidSqliteDriver(
-            MagnaDatabase.Schema,
-            context,
-            "magna.db"
+            schema = MagnaDatabase.Schema,
+            context = context,
+            name = "magna.db"
         )
     }
 }

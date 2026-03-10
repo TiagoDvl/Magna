@@ -258,7 +258,6 @@ private fun MagnaHomeContent(
         sheetContent = {}
     ) { paddingValues ->
         if (homeState.syncState is SyncUserInformationState.Done) {
-            println("COmposed huh")
             Column(
                 modifier = Modifier.fillMaxSize()
                     .padding(paddingValues)

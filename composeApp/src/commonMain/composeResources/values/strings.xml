@@ -18,7 +18,7 @@
     <string name="home_sync_dialog_title">Baixando dados iniciais</string>
     <string name="home_sync_dialog_loading">Estamos buscando dados do governo para configurar a sua conta.</string>
     <string name="home_sync_dialog_retry">Os dados vêm todos do governo. As vezes demora um pouco. Como está sua conexão de internet?</string>
-    <string name="home_sync_dialog_done">Tudo pronto! A casa é sua.</string>
+    <string name="home_sync_dialog_done">Tudo pronto! A casa é sua, pode entrar.</string>
     <string name="home_sync_dialog_downloading_button">Baixando informações</string>
     <string name="home_sync_dialog_retry_button">Tentar outra vez</string>
     <string name="home_sync_dialog_done_button">Vamos lá</string>

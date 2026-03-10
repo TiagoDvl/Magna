@@ -149,6 +149,8 @@ sqldelight {
             packageName.set("com.tick.magna")
             srcDirs.setFrom("src/commonMain/sqldelight")
             dialect(libs.sqldelight.dialect)
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/migrations"))
+            verifyMigrations.set(true)
         }
     }
 }
