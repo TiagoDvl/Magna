@@ -1,16 +1,14 @@
 package com.tick.magna.features.deputados.search
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,18 +17,16 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -94,8 +91,6 @@ private fun DeputadosSearchContent(
     var selectedUf by remember { mutableStateOf("") }
     var selectedPartido by remember { mutableStateOf("") }
 
-    val containerColor = if (state.deputadosSearch != null) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.background
-
     if (dialogType != null) {
         val options = when (dialogType) {
             DeputadosSearchDialogType.UF -> state.deputadosUfs
@@ -112,34 +107,28 @@ private fun DeputadosSearchContent(
                 )
             },
             text = {
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 400.dp)
-                ) {
-                    items(items = options.toList()) {
+                LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
+                    items(items = options.toList()) { option ->
                         TextButton(
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 when (dialogType) {
                                     DeputadosSearchDialogType.UF -> {
-                                        selectedUf = it
-                                        Filter.UF(it)
+                                        selectedUf = option
+                                        onFilter(Filter.UF(option))
                                     }
-
                                     DeputadosSearchDialogType.PARTIDO -> {
-                                        selectedPartido = it
-                                        Filter.Partido(it)
+                                        selectedPartido = option
+                                        onFilter(Filter.Partido(option))
                                     }
-
-                                    else -> null
-                                }?.let { filter ->
-                                    onFilter(filter)
+                                    else -> Unit
                                 }
                                 dialogType = null
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                            }
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = it,
+                                text = option,
                                 style = typography.labelMedium
                             )
                         }
@@ -148,9 +137,7 @@ private fun DeputadosSearchContent(
             },
             confirmButton = {
                 TextButton(onClick = { dialogType = null }) {
-                    Text(
-                        text = stringResource(Res.string.cancel),
-                    )
+                    Text(text = stringResource(Res.string.cancel))
                 }
             }
         )
@@ -173,10 +160,15 @@ private fun DeputadosSearchContent(
             state.isLoading -> LoadingComponent()
             else -> {
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
                 ) {
                     OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth().padding(dimensions.grid4),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensions.grid16),
                         shape = RoundedCornerShape(dimensions.grid16),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedContainerColor = colorScheme.surfaceContainer,
@@ -208,119 +200,118 @@ private fun DeputadosSearchContent(
                         singleLine = true,
                     )
 
-                    Box(modifier = Modifier.fillMaxWidth().padding(dimensions.grid4)) {
-
-                        Row(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                            horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-                        ) {
-
-                            AssistChip(
-                                label = {
-                                    val text = if (selectedUf.isNotEmpty()) {
-                                        "\uD83D\uDCCD $selectedUf"
-                                    } else {
-                                        stringResource(Res.string.deputados_search_uf_label)
-                                    }
-
-                                    Text(text = text)
-                                },
-                                onClick = {
-                                    if (selectedUf.isNotEmpty()) {
-                                        selectedUf = ""
-                                        onFilter(Filter.UF(""))
-                                    } else {
-                                        dialogType = DeputadosSearchDialogType.UF
-                                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensions.grid16),
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
+                    ) {
+                        AssistChip(
+                            label = {
+                                val text = if (selectedUf.isNotEmpty()) {
+                                    "\uD83D\uDCCD $selectedUf"
+                                } else {
+                                    stringResource(Res.string.deputados_search_uf_label)
                                 }
-                            )
-
-                            AssistChip(
-                                label = {
-                                    val text = if (selectedPartido.isNotEmpty()) {
-                                        "\uD83D\uDCBC $selectedPartido"
-                                    } else {
-                                        stringResource(Res.string.deputados_search_partido_label)
-                                    }
-                                    Text(text = text)
-                                },
-                                onClick = {
-                                    if (selectedPartido.isNotEmpty()) {
-                                        selectedPartido = ""
-                                        onFilter(Filter.Partido(""))
-                                    } else {
-                                        dialogType = DeputadosSearchDialogType.PARTIDO
-                                    }
+                                Text(text = text)
+                            },
+                            onClick = {
+                                if (selectedUf.isNotEmpty()) {
+                                    selectedUf = ""
+                                    onFilter(Filter.UF(""))
+                                } else {
+                                    dialogType = DeputadosSearchDialogType.UF
                                 }
-                            )
-                        }
+                            }
+                        )
+
+                        AssistChip(
+                            label = {
+                                val text = if (selectedPartido.isNotEmpty()) {
+                                    "\uD83D\uDCBC $selectedPartido"
+                                } else {
+                                    stringResource(Res.string.deputados_search_partido_label)
+                                }
+                                Text(text = text)
+                            },
+                            onClick = {
+                                if (selectedPartido.isNotEmpty()) {
+                                    selectedPartido = ""
+                                    onFilter(Filter.Partido(""))
+                                } else {
+                                    dialogType = DeputadosSearchDialogType.PARTIDO
+                                }
+                            }
+                        )
                     }
 
-                    HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
-
                     LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(containerColor)
-                            .padding(LocalDimensions.current.grid8),
-                        verticalArrangement = Arrangement.spacedBy(dimensions.grid12)
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            horizontal = dimensions.grid16,
+                            vertical = dimensions.grid8
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
                     ) {
-                        val items = state.deputadosSearch ?: state.deputados
+                        val deputados = state.deputadosSearch ?: state.deputados
 
-                        items(items) { deputado ->
-                            ListItem(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = ripple()
-                                    ) {
-                                        onDeputadoClick(deputado.id)
-                                    },
-                                colors = ListItemDefaults.colors(
+                        items(deputados) { deputado ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                colors = CardDefaults.cardColors(
                                     containerColor = colorScheme.surfaceContainer
                                 ),
-                                headlineContent = {
-                                    Text(text = deputado.name)
-                                },
-                                supportingContent = {
-                                    Row(horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)) {
-                                        deputado.uf?.let {
-                                            Text(
-                                                text = deputado.uf,
-                                                style = MaterialTheme.typography.bodySmall.copy(
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            )
-                                        }
+                                onClick = { onDeputadoClick(deputado.id) }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(dimensions.grid12),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid12)
+                                ) {
+                                    Avatar(
+                                        modifier = Modifier.size(40.dp),
+                                        photoUrl = deputado.profilePicture
+                                    )
+
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                                    ) {
                                         Text(
-                                            text = "-",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
+                                            text = deputado.name,
+                                            style = typography.titleSmall.copy(
+                                                fontWeight = FontWeight.SemiBold
+                                            ),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
 
-                                        deputado.partido?.let {
+                                        val metadata = listOfNotNull(
+                                            deputado.uf,
+                                            deputado.partido
+                                        ).joinToString(" · ")
+
+                                        if (metadata.isNotEmpty()) {
                                             Text(
-                                                text = deputado.partido,
-                                                style = MaterialTheme.typography.bodySmall.copy(
-                                                    color = MaterialTheme.colorScheme.onSurface
+                                                text = metadata,
+                                                style = typography.labelSmall.copy(
+                                                    color = colorScheme.onSurfaceVariant
                                                 )
                                             )
                                         }
                                     }
-                                },
-                                trailingContent = {
+
                                     Icon(
                                         painter = painterResource(Res.drawable.ic_chevron_right),
-                                        contentDescription = null,
+                                        tint = colorScheme.outline,
+                                        contentDescription = null
                                     )
-                                },
-                                leadingContent = {
-                                    Avatar(photoUrl = deputado.profilePicture)
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -339,7 +330,7 @@ private fun PreviewDeputadosSearchContentIdle() {
                 isError = false,
                 deputados = deputadosMock,
                 deputadosSearch = null,
-                filters = mutableMapOf(
+                filters = mapOf(
                     FilterKey.UF to Filter.UF("AM"),
                     FilterKey.PARTIDO to Filter.Partido("PSOL")
                 )
@@ -358,7 +349,7 @@ private fun PreviewDeputadosSearchContentSearchMode() {
                 isError = false,
                 deputados = deputadosMock,
                 deputadosSearch = deputadosMock.subList(0, 4),
-                filters = mutableMapOf(
+                filters = mapOf(
                     FilterKey.UF to Filter.UF("AM"),
                     FilterKey.PARTIDO to Filter.Partido("PSOL")
                 )
