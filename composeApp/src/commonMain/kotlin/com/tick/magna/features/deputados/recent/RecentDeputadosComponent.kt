@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,9 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.Deputado
@@ -72,7 +71,7 @@ private fun RecentDeputadosComponentContent(
     onNavigate: (Any) -> Unit = {},
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().height(180.dp)
+        modifier = modifier.fillMaxWidth().height(200.dp)
     ) {
         when (state) {
             RecentDeputadosState.Empty -> FeatureDiscovery()
@@ -89,32 +88,31 @@ private fun FeatureDiscovery() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8, Alignment.CenterVertically)
     ) {
         Surface(
-            modifier = Modifier.size(100.dp).alpha(0.75f),
+            modifier = Modifier.size(72.dp).alpha(0.6f),
             shape = RoundedPentagonShape(cornerRadius = dimensions.grid8, rotationDegrees = 30f),
-            color = colorScheme.onSurface
+            color = colorScheme.primary
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    modifier = Modifier.size(60.dp).alpha(0.75f),
+                    modifier = Modifier.size(40.dp),
                     painter = painterResource(Res.drawable.ic_person_hand_raised),
                     contentDescription = null,
-                    tint = Color.White
+                    tint = colorScheme.onPrimary
                 )
             }
         }
 
         Text(
-            modifier = Modifier.padding(top = 8.dp),
             text = stringResource(Res.string.recent_deputados_feature_discovery_title),
-            style = MaterialTheme.typography.bodyLarge.copy(
+            style = MaterialTheme.typography.bodyMedium.copy(
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
     }
@@ -127,10 +125,11 @@ private fun RecentDeputados(
 ) {
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
+    val dimensions = LocalDimensions.current
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -140,7 +139,6 @@ private fun RecentDeputados(
             Text(
                 text = stringResource(Res.string.recent_deputados_title),
                 style = typography.titleLarge.copy(
-                    textAlign = TextAlign.Center,
                     color = colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -148,44 +146,50 @@ private fun RecentDeputados(
             Text(
                 modifier = Modifier.clickable(null, null, onClick = { onNavigate(DeputadosSearchArgs) }),
                 text = stringResource(Res.string.recent_deputados_more),
-                style = typography.titleSmall.copy(color = MaterialTheme.colorScheme.tertiary)
+                style = typography.titleSmall.copy(color = colorScheme.tertiary)
             )
         }
 
         LazyRow(
             modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8)
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
         ) {
             items(deputados) { deputado ->
                 Card(
-                    modifier = Modifier.fillMaxSize().width(80.dp),
+                    modifier = Modifier.fillMaxHeight().width(80.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                    colors = CardDefaults.cardColors().copy(
+                    colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainer,
                         contentColor = colorScheme.onSurface
                     ),
-                    onClick = {
-                        onNavigate(DeputadoDetailsArgs(deputado.id))
-                    }
+                    onClick = { onNavigate(DeputadoDetailsArgs(deputado.id)) }
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid4),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(dimensions.grid4),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
+                        verticalArrangement = Arrangement.Top
                     ) {
                         Avatar(
-                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            modifier = Modifier
+                                .weight(0.8f)
+                                .fillMaxWidth(),
                             photoUrl = deputado.profilePicture
                         )
                         Text(
-                            modifier = Modifier.padding(LocalDimensions.current.grid8),
+                            modifier = Modifier
+                                .weight(0.2f)
+                                .fillMaxWidth()
+                                .padding(top = dimensions.grid4),
                             text = deputado.name,
-                            style = typography.bodyMedium.copy(
-                                color = colorScheme.tertiary,
+                            style = typography.labelSmall.copy(
+                                color = colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Medium
                             ),
-                            maxLines = 2
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -195,33 +199,34 @@ private fun RecentDeputados(
                 Card(
                     modifier = Modifier.fillMaxHeight().width(80.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                    colors = CardDefaults.cardColors().copy(
-                        containerColor = colorScheme.surfaceContainer,
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorScheme.surfaceContainerLow,
                         contentColor = colorScheme.onSurface
                     ),
+                    onClick = { onNavigate(DeputadosSearchArgs) }
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(LocalDimensions.current.grid8),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(dimensions.grid8),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.spacedBy(
+                            dimensions.grid8,
+                            Alignment.CenterVertically
+                        )
                     ) {
+                        Icon(
+                            modifier = Modifier.size(28.dp).alpha(0.7f),
+                            painter = painterResource(Res.drawable.ic_chevron_right),
+                            contentDescription = null,
+                            tint = colorScheme.secondary
+                        )
                         Text(
                             text = stringResource(Res.string.recent_deputados_find_more),
-                            style = typography.bodyMedium.copy(
-                                color = colorScheme.tertiary,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Medium
-                            ),
-                        )
-
-                        Button(
-                            onClick = { onNavigate(DeputadosSearchArgs) },
-                            content = {
-                                Icon(
-                                    painter = painterResource(Res.drawable.ic_chevron_right),
-                                    contentDescription = null
-                                )
-                            }
+                            style = typography.labelSmall.copy(
+                                color = colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
                         )
                     }
                 }
