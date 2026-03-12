@@ -29,7 +29,7 @@ class RecentDeputadosViewModel(
             deputadosRepository.getRecentDeputados().collect { recentDeputados ->
                 val state = when {
                     recentDeputados.isEmpty() -> RecentDeputadosState.Empty
-                    else -> RecentDeputadosState.Peak(recentDeputados.reversed().take(MAX_RECENT_DEPUTADOS))
+                    else -> RecentDeputadosState.Peak(recentDeputados.take(MAX_RECENT_DEPUTADOS))
                 }
                 logger.d("recentDeputados: ${recentDeputados.size} items → $state", TAG)
                 _recentDeputadosState.value = state

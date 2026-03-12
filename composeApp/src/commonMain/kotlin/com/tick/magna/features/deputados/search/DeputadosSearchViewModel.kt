@@ -51,20 +51,21 @@ class DeputadosSearchViewModel(
 
     private fun handleFilter(filter: Filter) {
         viewModelScope.launch(dispatcher.default) {
-            val filters = state.value.filters
-
-            if (filter.isRemoved) {
-                filters.remove(filter.filterKey)
+            val updatedFilters = if (filter.isRemoved) {
+                state.value.filters - filter.filterKey
             } else {
-                filters[filter.filterKey] = filter
+                state.value.filters + (filter.filterKey to filter)
             }
 
             val filteredDeputados = _state.value.deputados.filter { deputado ->
-                filters.all { filter -> filter.value.filter(deputado) }
+                updatedFilters.all { (_, f) -> f.filter(deputado) }
             }
 
-            logger.d("handleFilter: ${filters.size} active filters → ${filteredDeputados.size} results", TAG)
-            _state.update { it.copy(deputadosSearch = if (filters.isEmpty()) null else filteredDeputados) }
+            logger.d("handleFilter: ${updatedFilters.size} active filters → ${filteredDeputados.size} results", TAG)
+            _state.update { it.copy(
+                filters = updatedFilters,
+                deputadosSearch = if (updatedFilters.isEmpty()) null else filteredDeputados
+            ) }
         }
     }
 }

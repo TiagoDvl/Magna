@@ -59,8 +59,6 @@ class ComissaoPermanenteDetailViewModel(
     }
 }
 
-sealed interface Action
-
 data class ComissaoPermanenteState(
     val comissaoPermanenteNomeResumido: String? = null,
     val votacoes: List<Votacao> = emptyList(),

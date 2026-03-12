@@ -10,6 +10,7 @@ import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -27,7 +28,7 @@ class DeputadoDetailsViewModel(
     private val deputadoIdArgs: String = savedStateHandle.toRoute<DeputadoDetailsArgs>().deputadoId
 
     private val _state = MutableStateFlow(DeputadoDetailsState())
-    val state: StateFlow<DeputadoDetailsState> = _state
+    val state: StateFlow<DeputadoDetailsState> = _state.asStateFlow()
 
     init {
         logger.d("init: deputadoId=$deputadoIdArgs", TAG)

@@ -1,11 +1,12 @@
 package com.tick.magna.features.deputados.search
 
 import com.tick.magna.data.domain.Deputado
+import com.tick.magna.util.normalizeForSearch
 
 data class DeputadosSearchState(
     val isLoading: Boolean = true,
     val isError: Boolean = false,
-    val filters: MutableMap<FilterKey, Filter> = mutableMapOf(),
+    val filters: Map<FilterKey, Filter> = emptyMap(),
     val deputados: List<Deputado> = emptyList(),
     val deputadosSearch: List<Deputado>? = null,
     val deputadosUfs: Set<String> = emptySet(),
@@ -27,7 +28,7 @@ sealed class Filter(
     ): Filter(
         filterKey = FilterKey.TEXT,
         filter = { deputado ->
-            query.isNotBlank() && deputado.name.contains(query)
+            query.isNotBlank() && deputado.name.normalizeForSearch().contains(query.normalizeForSearch())
         },
         isRemoved = isEmpty
     )
