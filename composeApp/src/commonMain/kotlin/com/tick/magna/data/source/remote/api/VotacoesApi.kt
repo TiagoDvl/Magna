@@ -9,10 +9,8 @@ import io.ktor.client.request.parameter
 
 class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
 
-    private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
-
     override suspend fun getVotacoesFromOrgao(idOrgao: String): VotacoesResponse {
-        return httpClient.get("$baseUrl/votacoes") {
+        return httpClient.get("votacoes") {
             parameter("idOrgao", idOrgao)
             parameter("ordenarPor", "idProposicaoObjeto")
             parameter("itens", "20")
@@ -20,6 +18,6 @@ class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
     }
 
     override suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse {
-        return httpClient.get("$baseUrl/votacoes/$idVotacao").body()
+        return httpClient.get("votacoes/$idVotacao").body()
     }
 }

@@ -8,10 +8,8 @@ import io.ktor.client.request.parameter
 
 class OrgaosApi(private val httpClient: HttpClient) : OrgaosApiInterface {
 
-    private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
-
     override suspend fun getComissoesPermanentes(): OrgaosResponse {
-        return httpClient.get("$baseUrl/orgaos"){
+        return httpClient.get("orgaos") {
             parameter("codTipoOrgao", 2)
         }.body()
     }

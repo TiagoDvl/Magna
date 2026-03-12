@@ -9,22 +9,21 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
 internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInterface {
-    private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
 
     override suspend fun getDeputados(
         legislaturaId: String
     ): DeputadosResponse {
-        return httpClient.get("$baseUrl/deputados") {
+        return httpClient.get("deputados") {
             parameter("idLegislatura", legislaturaId)
         }.body()
     }
 
     override suspend fun getDeputadoById(id: String): DeputadoByIdResponse {
-        return httpClient.get("$baseUrl/deputados/$id").body()
+        return httpClient.get("deputados/$id").body()
     }
 
     override suspend fun getDeputadoExpenses(id: String, legislaturaId: String, year: String): DespesasResponse {
-        return httpClient.get("$baseUrl/deputados/$id/despesas") {
+        return httpClient.get("deputados/$id/despesas") {
             parameter("idLegislatura", legislaturaId)
             parameter("ordem", "DESC")
         }.body()

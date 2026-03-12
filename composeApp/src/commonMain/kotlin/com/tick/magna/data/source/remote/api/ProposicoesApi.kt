@@ -10,25 +10,23 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
 class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterface {
-    private val baseUrl = "https://dadosabertos.camara.leg.br/api/v2"
-
 
     override suspend fun getSiglaTipos(): ProposicoesSiglaTipoResponse {
-        return httpClient.get("$baseUrl/referencias/proposicoes/siglaTipo").body()
+        return httpClient.get("referencias/proposicoes/siglaTipo").body()
     }
 
     override suspend fun getProposicoes(siglaTipo: String?): ProposicoesResponse {
-        return httpClient.get("$baseUrl/proposicoes") {
+        return httpClient.get("proposicoes") {
             parameter("ordem", "desc")
             siglaTipo?.let { parameter("siglaTipo", it) }
         }.body()
     }
 
     override suspend fun getProposicaoDetail(idProposicao: String): ProposicaoDetailResponse {
-        return httpClient.get("$baseUrl/proposicoes/$idProposicao").body()
+        return httpClient.get("proposicoes/$idProposicao").body()
     }
 
     override suspend fun getProposicaoAutores(idProposicao: String): ProposicaoAutoresResponse {
-        return httpClient.get("$baseUrl/proposicoes/$idProposicao/autores").body()
+        return httpClient.get("proposicoes/$idProposicao/autores").body()
     }
 }
