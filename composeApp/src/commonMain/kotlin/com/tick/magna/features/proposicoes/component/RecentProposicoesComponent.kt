@@ -1,16 +1,18 @@
 package com.tick.magna.features.proposicoes.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -19,8 +21,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -81,6 +81,12 @@ private fun RecentProposicoesComponentContent(
 
     val listState = rememberLazyListState()
 
+    val typeColor = when (state.selectedProposicao) {
+        ProposicaoType.PEC -> colorScheme.primary
+        ProposicaoType.MPV -> colorScheme.secondary
+        ProposicaoType.PLP -> colorScheme.tertiary
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
@@ -95,111 +101,6 @@ private fun RecentProposicoesComponentContent(
                 fontWeight = FontWeight.SemiBold,
             )
         )
-
-        if (state.proposicoes.isEmpty() || state.isLoading) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().height(dimensions.grid2),
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.onSecondary
-            )
-        }
-
-        LaunchedEffect(state.isLoading) {
-            if (!state.isLoading) {
-                listState.scrollToItem(0)
-            }
-        }
-
-        Box(modifier = Modifier.height(400.dp)) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-                state = listState,
-            ) {
-                items(state.proposicoes) { item ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 0.dp
-                        ),
-                        onClick = { item.url?.let { uriHandler.openUri(it) } }
-                    ) {
-                        ListItem(
-                            modifier = Modifier.defaultMinSize(minHeight = 60.dp),
-                            colors = ListItemDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            ),
-                            headlineContent = {
-                                Text(
-                                    text = item.ementa,
-                                    maxLines = 4,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                )
-                            },
-                            overlineContent = {
-                                Text(
-                                    text = item.type,
-                                    style = typography.bodyLarge.copy(
-                                        color = colorScheme.secondary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                )
-                            },
-                            supportingContent = {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
-                                ) {
-                                    Text(
-                                        text = item.dataApresentacao,
-                                        style = typography.bodySmall.copy(
-                                            color = colorScheme.tertiary
-                                        )
-                                    )
-                                    Row(
-                                        modifier = Modifier.padding(top = dimensions.grid8),
-                                        verticalAlignment = Alignment.Bottom,
-                                    ) {
-                                        if (item.autores.isNotEmpty()) {
-                                            Icon(
-                                                modifier = Modifier.padding(end = dimensions.grid4).alpha(0.75F),
-                                                painter = painterResource(Res.drawable.ic_signature),
-                                                tint = colorScheme.tertiary,
-                                                contentDescription = null
-                                            )
-                                        }
-                                        item.autores.take(7).forEachIndexed { index, deputado ->
-                                            val padding = if (index == 0) 0.dp else dimensions.grid8
-
-                                            Avatar(
-                                                modifier = Modifier.offset(x = -padding * index).shadow(elevation = 2.dp, CircleShape).zIndex(3 - index.toFloat()),
-                                                photoUrl = deputado.profilePicture
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                            leadingContent = {},
-                            trailingContent = {
-                                if (item.url != null) {
-                                    Box(modifier = Modifier.fillMaxHeight()) {
-                                        Icon(
-                                            modifier = Modifier.align(Alignment.Center),
-                                            painter = painterResource(Res.drawable.ic_arrow_right),
-                                            tint = colorScheme.secondary,
-                                            contentDescription = null
-                                        )
-                                    }
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -227,6 +128,132 @@ private fun RecentProposicoesComponentContent(
                             Text(text = stringResource(labelResource))
                         }
                     )
+                }
+            }
+        }
+
+        if (state.proposicoes.isEmpty() || state.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().height(dimensions.grid2),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+
+        LaunchedEffect(state.isLoading) {
+            if (!state.isLoading) {
+                listState.scrollToItem(0)
+            }
+        }
+
+        Box(modifier = Modifier.height(380.dp)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+                state = listState,
+            ) {
+                items(state.proposicoes) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorScheme.surfaceContainer
+                        ),
+                        onClick = { item.url?.let { uriHandler.openUri(it) } }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min)
+                        ) {
+                            // Borda esquerda colorida por tipo
+                            Box(
+                                modifier = Modifier
+                                    .width(dimensions.grid4)
+                                    .fillMaxHeight()
+                                    .background(typeColor)
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(dimensions.grid12),
+                                verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                            ) {
+                                // Tipo como overline colorido
+                                Text(
+                                    text = item.type,
+                                    style = typography.labelMedium.copy(
+                                        color = typeColor,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+
+                                // Ementa
+                                Text(
+                                    text = item.ementa,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+
+                                // Footer: avatares à esquerda, data + seta à direita
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = dimensions.grid4),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (item.autores.isNotEmpty()) {
+                                            Icon(
+                                                modifier = Modifier
+                                                    .padding(end = dimensions.grid4)
+                                                    .alpha(0.75F),
+                                                painter = painterResource(Res.drawable.ic_signature),
+                                                tint = colorScheme.tertiary,
+                                                contentDescription = null
+                                            )
+                                        }
+                                        item.autores.take(7).forEachIndexed { index, deputado ->
+                                            val padding = if (index == 0) 0.dp else dimensions.grid8
+
+                                            Avatar(
+                                                modifier = Modifier
+                                                    .offset(x = -padding * index)
+                                                    .shadow(elevation = 2.dp, CircleShape)
+                                                    .zIndex(3 - index.toFloat()),
+                                                photoUrl = deputado.profilePicture
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
+                                    ) {
+                                        Text(
+                                            text = item.dataApresentacao,
+                                            style = typography.bodySmall.copy(
+                                                color = colorScheme.tertiary
+                                            )
+                                        )
+                                        if (item.url != null) {
+                                            Icon(
+                                                painter = painterResource(Res.drawable.ic_arrow_right),
+                                                tint = colorScheme.secondary,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
