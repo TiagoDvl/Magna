@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,12 @@ class DeputadoDetailsViewModel(
     savedStateHandle: SavedStateHandle,
     dispatcherInterface: DispatcherInterface,
     deputadosRepository: DeputadosRepositoryInterface,
+    private val logger: AppLoggerInterface,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "DeputadoDetailsViewModel"
+    }
 
     private val deputadoIdArgs: String = savedStateHandle.toRoute<DeputadoDetailsArgs>().deputadoId
 
@@ -24,6 +30,7 @@ class DeputadoDetailsViewModel(
     val state: StateFlow<DeputadoDetailsState> = _state
 
     init {
+        logger.d("init: deputadoId=$deputadoIdArgs", TAG)
         viewModelScope.launch(dispatcherInterface.io) {
             combine(
                 deputadosRepository.getDeputado(deputadoIdArgs),
@@ -42,8 +49,9 @@ class DeputadoDetailsViewModel(
                         else -> ExpensesState.Content(expensesResult)
                     }
                 )
-            }.collect {
-                _state.value = it
+            }.collect { state ->
+                logger.d("state → detailsState=${state.detailsState::class.simpleName}, expensesState=${state.expensesState::class.simpleName}", TAG)
+                _state.value = state
             }
         }
     }

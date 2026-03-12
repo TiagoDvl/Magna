@@ -34,7 +34,6 @@ class ProposicoesRepository(
 
     override suspend fun syncSiglaTipos(): Boolean {
         return try {
-            loggerInterface.d("Started Sync for Proposições SiglaTipos", TAG)
             val siglaTiposResponse = proposicoesApi.getSiglaTipos().dados
             val localSiglaTipos = siglaTiposResponse.map {
                 SiglaTipo(
@@ -45,10 +44,11 @@ class ProposicoesRepository(
                 )
             }
             siglaTipoDao.insertSiglaTipos(localSiglaTipos)
+            loggerInterface.i("syncSiglaTipos: saved ${localSiglaTipos.size} siglaTipos", TAG)
             true
 
         } catch (exception: Exception) {
-            loggerInterface.e("Failed to Sync Proposições SiglaTipos", exception, TAG)
+            loggerInterface.e("syncSiglaTipos: failed", exception, TAG)
             false
         }
     }
@@ -60,7 +60,7 @@ class ProposicoesRepository(
         coroutineScope.launch {
             try {
                 val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo)
-                loggerInterface.d("Remote Proposições for $siglaTipo", TAG)
+                loggerInterface.d("observeRecentProposicoes: fetched ${proposicoesResponse.dados.size} proposicoes for siglaTipo=$siglaTipo", TAG)
 
                 val localProposicoes = supervisorScope {
                     proposicoesResponse.dados.map { proposicao ->
@@ -86,11 +86,11 @@ class ProposicoesRepository(
                     }.awaitAll()
                 }
 
-                loggerInterface.d("Saving Proposições for $siglaTipo", TAG)
                 proposicoesDao.insertProposicoes(localProposicoes)
+                loggerInterface.d("observeRecentProposicoes: saved ${localProposicoes.size} proposicoes for siglaTipo=$siglaTipo", TAG)
                 isLoadingSignal.value = false
             } catch (exception: Exception) {
-                loggerInterface.d("Remote Proposições for $siglaTipo -> Failed with exception: $exception", TAG)
+                loggerInterface.e("observeRecentProposicoes: failed for siglaTipo=$siglaTipo", exception, TAG)
                 isLoadingSignal.value = false
                 isErrorSignal.value = true
             }
@@ -101,7 +101,6 @@ class ProposicoesRepository(
             isLoadingSignal,
             isErrorSignal
         ) { proposicoes, isLoading, isError ->
-            loggerInterface.d("Proposições for $siglaTipo, isLoading: $isLoading, isError: $isError", TAG)
             val proposicoesDomain = proposicoes.map { proposicao ->
                 val deputados = if (proposicao.autores != null) {
                     deputadosDao.getDeputados(proposicao.autores.split(", ")).mapNotNull { it.toDomain() }

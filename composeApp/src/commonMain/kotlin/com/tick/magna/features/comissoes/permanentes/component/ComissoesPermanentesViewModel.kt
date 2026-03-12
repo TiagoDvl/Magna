@@ -15,8 +15,12 @@ import kotlinx.coroutines.flow.stateIn
 class ComissoesPermanentesViewModel(
     orgaosRepository: OrgaosRepositoryInterface,
     dispatcherInterface: DispatcherInterface,
-    loggerInterface: AppLoggerInterface,
+    private val loggerInterface: AppLoggerInterface,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "ComissoesPermanentesViewModel"
+    }
 
     val state: StateFlow<List<ComissaoPermanente>> = orgaosRepository
         .getComissoesPermanentes()
@@ -31,6 +35,8 @@ class ComissoesPermanentesViewModel(
                 } else {
                     null
                 }
+            }.also { comissoes ->
+                loggerInterface.d("comissoesPermanentes: ${comissoes.size} loaded", TAG)
             }
         }
         .flowOn(dispatcherInterface.io)

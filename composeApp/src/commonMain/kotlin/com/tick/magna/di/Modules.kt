@@ -141,11 +141,11 @@ val dataModule = module {
         )
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
-    single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get()) }
+    single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
-    single<EventosRepositoryInterface> { EventosRepository(get(), get()) }
-    single<UserRepositoryInterface> { UserRepository(get()) }
+    single<EventosRepositoryInterface> { EventosRepository(get(), get(), get()) }
+    single<UserRepositoryInterface> { UserRepository(get(), get()) }
 }
 
 val useCaseModule = module {
@@ -158,12 +158,12 @@ val loggingModule = module {
 
 val viewModelModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get()) }
-    viewModel { RecentDeputadosViewModel(get(), get()) }
-    viewModel { DeputadosSearchViewModel(get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get()) }
-    viewModel { RecentProposicoesViewModel(get(), get()) }
+    viewModel { RecentDeputadosViewModel(get(), get(), get()) }
+    viewModel { DeputadosSearchViewModel(get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get()) }
+    viewModel { RecentProposicoesViewModel(get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
 }
 
 val appModules = listOf(

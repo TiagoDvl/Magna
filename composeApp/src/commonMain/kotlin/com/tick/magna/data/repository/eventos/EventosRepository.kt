@@ -3,13 +3,19 @@ package com.tick.magna.data.repository.eventos
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Pauta
 import com.tick.magna.data.domain.Proposicao
+import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.remote.api.EventosApiInterface
 import kotlinx.coroutines.CoroutineScope
 
 class EventosRepository(
     private val eventosApi: EventosApiInterface,
     private val coroutineScope: CoroutineScope,
+    private val logger: AppLoggerInterface,
 ) : EventosRepositoryInterface {
+
+    companion object {
+        private const val TAG = "EventosRepository"
+    }
 
     override suspend fun getEventoPautas(idEvento: String): Result<List<Pauta>> = runCatching {
         val pautasResponse = eventosApi.getPautas(idEvento).dados
@@ -35,11 +41,13 @@ class EventosRepository(
                     dataApresentacao = it.proposicao.dataApresentacao,
                     autores = emptyList(),
                     url = ""
-
                 ),
                 textoParecer = it.textoParecer.orEmpty(),
                 situacaoItem = it.situacaoItem
             )
         }
+    }.also { result ->
+        result.onSuccess { pautas -> logger.d("getEventoPautas: ${pautas.size} pautas for evento=$idEvento", TAG) }
+        result.onFailure { e -> logger.e("getEventoPautas: failed for evento=$idEvento", e, TAG) }
     }
 }

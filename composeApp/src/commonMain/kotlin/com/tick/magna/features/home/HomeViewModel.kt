@@ -20,6 +20,10 @@ class HomeViewModel(
     private val logger: AppLoggerInterface
 ): ViewModel() {
 
+    companion object {
+        private const val TAG = "HomeViewModel"
+    }
+
     private val _homeState = MutableStateFlow(HomeState())
     val homeState: StateFlow<HomeState> = _homeState.asStateFlow()
 
@@ -31,6 +35,7 @@ class HomeViewModel(
     }
 
     fun processAction(action: HomeAction) {
+        logger.d("processAction: $action", TAG)
         when (action) {
             HomeAction.RetrySync -> trySync()
             is HomeAction.SearchDeputado -> handleSearchQuery(action.query)
@@ -40,22 +45,20 @@ class HomeViewModel(
     private fun handleSearchQuery(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch(dispatcher.io) {
-            deputadosRepository.getDeputados(query).collect { filteredDeputados ->
-                _homeState.update {
-                    it.copy(filteredDeputados = filteredDeputados)
-                }
+            deputadosRepository.getDeputados(query).collect { results ->
+                logger.d("Search '$query' → ${results.size} results", TAG)
+                _homeState.update { it.copy(filteredDeputados = results) }
             }
         }
     }
 
     fun trySync() {
+        logger.d("trySync", TAG)
         syncJob?.cancel()
         syncJob = viewModelScope.launch(dispatcher.io) {
             syncUserInformation().collect { state ->
-                _homeState.update {
-                    logger.d("Updating to State $state")
-                    it.copy(syncState = state)
-                }
+                logger.d("syncState → $state", TAG)
+                _homeState.update { it.copy(syncState = state) }
             }
         }
     }

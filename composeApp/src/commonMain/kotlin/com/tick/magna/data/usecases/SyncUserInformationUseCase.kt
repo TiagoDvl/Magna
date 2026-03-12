@@ -38,21 +38,23 @@ class SyncUserInformationUseCase(
 
                 when (userConfiguration) {
                     UserConfiguration.Configured -> {
-                        logger.d("UserConfiguration.Configured", TAG)
                         if (partidos.isEmpty() || deputados.isEmpty() || orgaos.isEmpty()) {
+                            logger.w("invoke: Configured but local data missing, re-syncing", TAG)
                             syncInitialDependencies()
                         } else {
+                            logger.d("invoke: Configured and data present, skipping sync", TAG)
                             emit(SyncUserInformationState.Done)
                         }
                     }
 
                     UserConfiguration.NotConfigured -> {
-                        logger.d("UserConfiguration.NotConfigured", TAG)
+                        logger.d("invoke: NotConfigured, running first-time setup", TAG)
                         userRepository.setupInitialConfiguration()
                         syncInitialDependencies()
                     }
                 }
             } catch (exception: Exception) {
+                logger.e("invoke: unexpected error", exception, TAG)
                 emit(SyncUserInformationState.Retry)
             }
         }
@@ -67,10 +69,10 @@ class SyncUserInformationUseCase(
         val orgaosSuccess = coroutineScope.async { orgaosRepository.syncComissoesPermanentes().also { logger.d("orgaosSuccess > $it", TAG) } }
 
         if (syncPartidosSuccess.await() && siglaTiposSuccess.await() && deputadosSuccess.await() && orgaosSuccess.await()) {
-            logger.d("Sync Success", TAG)
+            logger.i("syncInitialDependencies: all syncs completed successfully", TAG)
             emit(SyncUserInformationState.Done)
         } else {
-            logger.d("Something went wrong. Retry?", TAG)
+            logger.w("syncInitialDependencies: one or more syncs failed", TAG)
             emit(SyncUserInformationState.Retry)
         }
     }

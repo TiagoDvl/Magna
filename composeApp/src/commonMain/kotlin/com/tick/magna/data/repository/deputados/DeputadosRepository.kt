@@ -41,7 +41,7 @@ internal class DeputadosRepository(
     }
 
     override suspend fun getRecentDeputados(): Flow<List<Deputado>> {
-        loggerInterface.d("Fetching recent deputados", TAG)
+        loggerInterface.d("getRecentDeputados", TAG)
 
         return deputadoDao.getRecentDeputados().map { recentDeputados ->
             recentDeputados.mapNotNull { it.toDomain() }
@@ -49,74 +49,90 @@ internal class DeputadosRepository(
     }
 
     override suspend fun getDeputados(): Flow<List<Deputado>> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
-        loggerInterface.d("getDeputados for legislatura ID: $legislaturaId", TAG)
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("getDeputados: no legislaturaId, returning empty", TAG)
+                return flowOf(emptyList())
+            }
 
         return deputadoDao.getDeputados(legislaturaId).map { deputados ->
             deputados.mapNotNull { it.toDomain() }
         }.also {
             coroutineScope.launch {
                 try {
-                    loggerInterface.d("Fetching deputados for legislatura ID: $legislaturaId", TAG)
-                    val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
-
-                    deputadoDao.insertDeputados(deputadosResponse.dados.map { response -> response.toLocal(legislaturaId) })
+                    val response = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+                    deputadoDao.insertDeputados(response.dados.map { it.toLocal(legislaturaId) })
+                    loggerInterface.d("getDeputados: saved ${response.dados.size} deputados", TAG)
                 } catch (e: Exception) {
-                    loggerInterface.d("Failed to fetch deputados: ${e.message}", TAG)
+                    loggerInterface.e("getDeputados: API call failed", e, TAG)
                 }
             }
         }
     }
 
     override suspend fun getDeputados(query: String): Flow<List<Deputado>> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
-        loggerInterface.d("getDeputados for for query: $query", TAG)
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("getDeputados(query='$query'): no legislaturaId, returning empty", TAG)
+                return flowOf(emptyList())
+            }
 
+        loggerInterface.d("getDeputados: query='$query'", TAG)
         return deputadoDao.getDeputados(legislaturaId, query).map { deputados ->
             deputados.mapNotNull { it.toDomain() }
         }
     }
 
     override suspend fun syncDeputados(): Boolean {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
-        loggerInterface.d("SyncDeputados for legislatura ID: $legislaturaId", TAG)
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("syncDeputados: no legislaturaId, skipping", TAG)
+                return false
+            }
 
         return try {
-            loggerInterface.d("Fetching deputados for legislatura ID: $legislaturaId", TAG)
-            val deputadosResponse = deputadosApi.getDeputados(legislaturaId = legislaturaId)
-
-            deputadoDao.insertDeputados(deputadosResponse.dados.map { response -> response.toLocal(legislaturaId) })
-
+            val response = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+            deputadoDao.insertDeputados(response.dados.map { it.toLocal(legislaturaId) })
+            loggerInterface.i("syncDeputados: synced ${response.dados.size} deputados", TAG)
             true
         } catch (e: Exception) {
-            loggerInterface.d("Failed to fetch deputados: ${e.message}", TAG)
+            loggerInterface.e("syncDeputados: failed", e, TAG)
             false
         }
     }
 
     override suspend fun getDeputado(deputadoId: String): Flow<Deputado> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("getDeputado($deputadoId): no legislaturaId, returning empty", TAG)
+                return flowOf()
+            }
 
+        loggerInterface.d("getDeputado: deputadoId=$deputadoId", TAG)
         return deputadoDao.getDeputado(legislaturaId, deputadoId).mapNotNull {
             it.toDomain()
         }
     }
 
     override suspend fun getDeputadoDetails(deputadoId: String): Flow<DeputadoDetailsResult> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("getDeputadoDetails($deputadoId): no legislaturaId, returning empty", TAG)
+                return flowOf()
+            }
 
-        loggerInterface.d("getDeputadoDetails for legislatura ID: $legislaturaId", TAG)
+        loggerInterface.d("getDeputadoDetails: deputadoId=$deputadoId", TAG)
         deputadoDao.updateLastSeen(deputadoId)
 
         val apiFailed = MutableStateFlow(false)
 
         coroutineScope.launch {
             try {
-                loggerInterface.d("Fetching deputado details for legislatura ID: $legislaturaId", TAG)
                 val response = deputadosApi.getDeputadoById(deputadoId)
                 deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
+                loggerInterface.d("getDeputadoDetails: details saved for deputadoId=$deputadoId", TAG)
             } catch (e: Exception) {
-                loggerInterface.d("Failed to fetch deputado details: ${e.message}", TAG)
+                loggerInterface.e("getDeputadoDetails: API call failed for deputadoId=$deputadoId", e, TAG)
                 apiFailed.value = true
             }
         }
@@ -134,6 +150,8 @@ internal class DeputadosRepository(
     }
 
     override fun getDeputadoExpenses(deputadoId: String): Flow<List<DeputadoExpense>> {
+        loggerInterface.d("getDeputadoExpenses: deputadoId=$deputadoId", TAG)
+
         return userDao.getUser().flatMapLatest { user ->
             if (user != null && user.legislaturaId != null) {
                 deputadoExpenseDao.getDeputadoExpense(deputadoId, user.legislaturaId)
@@ -145,16 +163,19 @@ internal class DeputadosRepository(
         }.also {
             coroutineScope.launch {
                 val legislaturaId = userDao.getUser().first()?.legislaturaId
-                val currentYear = currentYear()
-
-                if (legislaturaId != null) {
-                    try {
-                        val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, currentYear.toString())
-                        val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
-                        deputadoExpenseDao.insertDeputadoExpenses(expenses)
-                    } catch (exception: Exception) {
-                        loggerInterface.d("Failed to fetch deputado expense: ${exception.message}", TAG)
+                    ?: run {
+                        loggerInterface.w("getDeputadoExpenses: no legislaturaId, skipping API call", TAG)
+                        return@launch
                     }
+
+                try {
+                    val currentYear = currentYear()
+                    val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, currentYear.toString())
+                    val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
+                    deputadoExpenseDao.insertDeputadoExpenses(expenses)
+                    loggerInterface.d("getDeputadoExpenses: saved ${expenses.size} expenses for year=$currentYear", TAG)
+                } catch (e: Exception) {
+                    loggerInterface.e("getDeputadoExpenses: API call failed for deputadoId=$deputadoId", e, TAG)
                 }
             }
         }

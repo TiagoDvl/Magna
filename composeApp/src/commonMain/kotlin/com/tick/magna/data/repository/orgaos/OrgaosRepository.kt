@@ -24,14 +24,18 @@ class OrgaosRepository(
     private val coroutineScope: CoroutineScope,
 ) : OrgaosRepositoryInterface {
 
+    companion object {
+        private const val TAG = "OrgaosRepository"
+    }
+
     override suspend fun syncComissoesPermanentes(): Boolean {
         return try {
             val comissoesPermanentes = orgaosApi.getComissoesPermanentes().dados
-            loggerInterface.d("Fetching comissoes permanentes successful -> ${comissoesPermanentes.size}")
             orgaosDao.insertOrgaos(comissoesPermanentes.map { it.toLocal() })
+            loggerInterface.i("syncComissoesPermanentes: saved ${comissoesPermanentes.size} orgaos", TAG)
             true
-        } catch (exception: Exception) {
-            loggerInterface.d("Fetching comissoes permanentes failed")
+        } catch (e: Exception) {
+            loggerInterface.e("syncComissoesPermanentes: failed", e, TAG)
             false
         }
     }
@@ -41,6 +45,7 @@ class OrgaosRepository(
 
         return flow {
             val orgaos = orgaosDao.getOrgaosFromIds(comissoesPermanentesIds).map { it.toDomain() }
+            loggerInterface.d("getComissoesPermanentes: ${orgaos.size} orgaos", TAG)
             emit(orgaos)
         }
     }
@@ -73,5 +78,8 @@ class OrgaosRepository(
                     )
                 }
             }
+    }.also { result ->
+        result.onSuccess { votacoes -> loggerInterface.d("getComissaoPermanenteVotacoes: ${votacoes.size} votacoes for orgao=$idOrgao", TAG) }
+        result.onFailure { e -> loggerInterface.e("getComissaoPermanenteVotacoes: failed for orgao=$idOrgao", e, TAG) }
     }
 }

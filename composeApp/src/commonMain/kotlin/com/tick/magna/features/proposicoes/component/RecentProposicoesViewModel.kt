@@ -3,6 +3,7 @@ package com.tick.magna.features.proposicoes.component
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,13 +18,18 @@ import kotlinx.coroutines.flow.stateIn
 class RecentProposicoesViewModel(
     proposicoesRepository: ProposicoesRepositoryInterface,
     dispatcherInterface: DispatcherInterface,
+    private val logger: AppLoggerInterface,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "RecentProposicoesViewModel"
+    }
 
     private val _proposicaoFilter = MutableStateFlow(ProposicaoType.PEC)
 
     val state: StateFlow<RecentProposicoesState> = _proposicaoFilter
         .flatMapLatest { param ->
-            println("Param: $param")
+            logger.d("filter → $param", TAG)
             proposicoesRepository.observeRecentProposicoes(param.name).map { result ->
                 RecentProposicoesState(
                     isLoading = result.isLoading,
@@ -36,11 +42,12 @@ class RecentProposicoesViewModel(
         .flowOn(dispatcherInterface.io)
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Lazily,
             RecentProposicoesState()
         )
 
     fun processAction(action: Action) {
+        logger.d("processAction: $action", TAG)
         when (action) {
             is Action.ChooseFilter -> updateFilter(action.proposicao)
         }
@@ -48,6 +55,7 @@ class RecentProposicoesViewModel(
 
     fun updateFilter(proposicao: ProposicaoType) {
         if (_proposicaoFilter.value != proposicao) {
+            logger.d("updateFilter → $proposicao", TAG)
             _proposicaoFilter.value = proposicao
         }
     }
@@ -56,4 +64,3 @@ class RecentProposicoesViewModel(
 sealed interface Action {
     data class ChooseFilter(val proposicao: ProposicaoType) : Action
 }
-

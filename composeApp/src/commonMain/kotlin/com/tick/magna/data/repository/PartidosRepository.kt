@@ -28,8 +28,11 @@ internal class PartidosRepository(
     }
 
     override suspend fun syncPartidos(): Boolean {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
-        loggerInterface.d("Syncing partidos for legislatura: $legislaturaId", TAG)
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("syncPartidos: no legislaturaId, skipping", TAG)
+                return false
+            }
 
         return try {
             val partidosResponse = partidosApi.getPartidos(legislaturaId).dados
@@ -48,27 +51,36 @@ internal class PartidosRepository(
                     website = null
                 )
             }
-            loggerInterface.d("Saving partidos of size: ${partidos.size}", TAG)
             partidoDao.insertPartidos(partidos)
+            loggerInterface.i("syncPartidos: saved ${partidos.size} partidos", TAG)
             true
-        } catch (exception: Exception) {
-            loggerInterface.d("SyncPartidos - Something went wrong: ${exception.message}", TAG)
+        } catch (e: Exception) {
+            loggerInterface.e("syncPartidos: failed", e, TAG)
             false
         }
     }
 
     override suspend fun getPartidos(): Flow<List<Partido>> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf(emptyList())
-        loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("getPartidos: no legislaturaId, returning empty", TAG)
+                return flowOf(emptyList())
+            }
 
+        loggerInterface.d("getPartidos: legislaturaId=$legislaturaId", TAG)
         return partidoDao.getPartidos(legislaturaId).mapNotNull { partidos ->
             partidos?.map { it.toDomain() }
         }
     }
 
     override suspend fun getPartidoById(partidoId: String): Flow<Partido> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return flowOf()
-        loggerInterface.d("Fetching partidos for legislatura: $legislaturaId", TAG)
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: run {
+                loggerInterface.w("getPartidoById($partidoId): no legislaturaId, returning empty", TAG)
+                return flowOf()
+            }
+
+        loggerInterface.d("getPartidoById: partidoId=$partidoId", TAG)
         return partidoDao.getPartido(legislaturaId, partidoId).map { partido ->
             partido.toDomain()
         }.also {
@@ -90,8 +102,9 @@ internal class PartidosRepository(
                     )
 
                     partidoDao.insertPartidos(listOf(partidoEntity))
-                } catch (exception: Exception) {
-                    loggerInterface.d("getPartidoById - Something went wrong: ${exception.message}", TAG)
+                    loggerInterface.d("getPartidoById: details saved for partidoId=$partidoId", TAG)
+                } catch (e: Exception) {
+                    loggerInterface.e("getPartidoById: API call failed for partidoId=$partidoId", e, TAG)
                 }
             }
         }

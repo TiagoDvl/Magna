@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.Votacao
+import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,12 @@ class ComissaoPermanenteDetailViewModel(
     savedStateHandle: SavedStateHandle,
     dispatcher: DispatcherInterface,
     private val orgaosRepository: OrgaosRepositoryInterface,
+    private val logger: AppLoggerInterface,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "ComissaoPermanenteDetailViewModel"
+    }
 
     private val args = savedStateHandle.toRoute<ComissaoPermanenteDetailArgs>()
 
@@ -32,13 +38,23 @@ class ComissaoPermanenteDetailViewModel(
             val comissoesPermanentes = orgaosRepository.getComissoesPermanentes().first()
             val orgao = comissoesPermanentes.find { it.id == args.comissaoPermanenteId }
 
-            orgao?.let {
-                _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
-
-                orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
-                    .onSuccess { votacoes -> _state.update { it.copy(votacoes = votacoes) } }
-                    .onFailure { _state.update { it.copy(isError = true) } }
+            if (orgao == null) {
+                logger.w("init: orgao not found for id=${args.comissaoPermanenteId}", TAG)
+                return@launch
             }
+
+            logger.d("init: loading votacoes for orgao=${orgao.nomeResumido}", TAG)
+            _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
+
+            orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
+                .onSuccess { votacoes ->
+                    logger.d("init: ${votacoes.size} votacoes loaded for orgao=${orgao.nomeResumido}", TAG)
+                    _state.update { it.copy(votacoes = votacoes) }
+                }
+                .onFailure { e ->
+                    logger.e("init: failed to load votacoes for orgao=${orgao.nomeResumido}", e, TAG)
+                    _state.update { it.copy(isError = true) }
+                }
         }
     }
 }

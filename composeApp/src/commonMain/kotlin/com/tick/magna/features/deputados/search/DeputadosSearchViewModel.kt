@@ -3,6 +3,7 @@ package com.tick.magna.features.deputados.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,12 +13,18 @@ import kotlinx.coroutines.launch
 class DeputadosSearchViewModel(
     private val dispatcher: DispatcherInterface,
     private val deputadosRepository: DeputadosRepositoryInterface,
+    private val logger: AppLoggerInterface,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "DeputadosSearchViewModel"
+    }
 
     private val _state = MutableStateFlow(DeputadosSearchState())
     val state = _state.asStateFlow()
 
     fun processAction(action: DeputadosSearchAction) {
+        logger.d("processAction: $action", TAG)
         when (action) {
             is DeputadosSearchAction.OnFilter -> handleFilter(action.filter)
         }
@@ -26,8 +33,9 @@ class DeputadosSearchViewModel(
     init {
         viewModelScope.launch(dispatcher.io) {
             deputadosRepository.getDeputados().collect { deputados ->
-                val deputadosUfs = deputados.mapNotNull { deputado -> deputado.uf }.sorted().toSet()
-                val deputadosPartidos = deputados.mapNotNull { deputado -> deputado.partido }.sorted().toSet()
+                val deputadosUfs = deputados.mapNotNull { it.uf }.sorted().toSet()
+                val deputadosPartidos = deputados.mapNotNull { it.partido }.sorted().toSet()
+                logger.d("loaded ${deputados.size} deputados, ${deputadosUfs.size} UFs, ${deputadosPartidos.size} partidos", TAG)
 
                 _state.update { state ->
                     state.copy(
@@ -55,6 +63,7 @@ class DeputadosSearchViewModel(
                 filters.all { filter -> filter.value.filter(deputado) }
             }
 
+            logger.d("handleFilter: ${filters.size} active filters → ${filteredDeputados.size} results", TAG)
             _state.update { it.copy(deputadosSearch = if (filters.isEmpty()) null else filteredDeputados) }
         }
     }
