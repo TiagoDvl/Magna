@@ -19,10 +19,10 @@ class RecentDeputadosViewModel(
 
     init {
         viewModelScope.launch(dispatcherInterface.io) {
-            deputadosRepository.getDeputados().collect { recentDeputados ->
+            deputadosRepository.getRecentDeputados().collect { recentDeputados ->
                 val state = when {
                     recentDeputados.isEmpty() -> RecentDeputadosState.Empty
-                    else -> RecentDeputadosState.Peak(recentDeputados.take(MAX_RECENT_DEPUTADOS))
+                    else -> RecentDeputadosState.Peak(recentDeputados.reversed().take(MAX_RECENT_DEPUTADOS))
                 }
                 _recentDeputadosState.value = state
             }

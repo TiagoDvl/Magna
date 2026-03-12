@@ -113,13 +113,13 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew :androidApp:assembleRelease
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: composeApp/build/outputs/apk/release/*.apk
+          path: androidApp/build/outputs/apk/release/*.apk
 
       - name: Deploy to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -127,7 +127,7 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: Testers
-          file: composeApp/build/outputs/apk/release/composeApp-release.apk
+          file: androidApp/build/outputs/apk/release/androidApp-release.apk
           releaseNotes: "Nova versão disponível para testes"
 
   # deploy-playstore:
