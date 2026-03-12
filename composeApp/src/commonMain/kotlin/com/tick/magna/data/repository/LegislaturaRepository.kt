@@ -17,8 +17,12 @@ internal class LegislaturaRepository(
         return legislaturaDao.getAllLegislaturas().map { legislaturas ->
             legislaturas.map { it.toDomain() }
         }.also {
-            val response = legislaturaApi.getAllLegislaturas().dados
-            legislaturaDao.insertLegislaturas(response.map { it.toLocal() })
+            try {
+                val response = legislaturaApi.getAllLegislaturas().dados
+                legislaturaDao.insertLegislaturas(response.map { it.toLocal() })
+            } catch (_: Exception) {
+                // local data continues to be emitted
+            }
         }
     }
 

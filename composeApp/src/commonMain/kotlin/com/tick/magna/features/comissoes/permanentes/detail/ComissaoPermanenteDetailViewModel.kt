@@ -35,9 +35,9 @@ class ComissaoPermanenteDetailViewModel(
             orgao?.let {
                 _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
 
-                val votacoes = orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
-
-                _state.update { it.copy(votacoes = votacoes) }
+                orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
+                    .onSuccess { votacoes -> _state.update { it.copy(votacoes = votacoes) } }
+                    .onFailure { _state.update { it.copy(isError = true) } }
             }
         }
     }
@@ -48,4 +48,5 @@ sealed interface Action
 data class ComissaoPermanenteState(
     val comissaoPermanenteNomeResumido: String? = null,
     val votacoes: List<Votacao> = emptyList(),
+    val isError: Boolean = false,
 )

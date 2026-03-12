@@ -11,10 +11,10 @@ class EventosRepository(
     private val coroutineScope: CoroutineScope,
 ) : EventosRepositoryInterface {
 
-    override suspend fun getEventoPautas(idEvento: String): List<Pauta> {
+    override suspend fun getEventoPautas(idEvento: String): Result<List<Pauta>> = runCatching {
         val pautasResponse = eventosApi.getPautas(idEvento).dados
 
-        return pautasResponse.map {
+        pautasResponse.map {
             Pauta(
                 ordem = it.ordem,
                 regime = it.regime,

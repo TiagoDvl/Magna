@@ -45,40 +45,33 @@ class OrgaosRepository(
         }
     }
 
-    override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): List<Votacao> {
-        try {
-            val votacoesResponse = votacoesApi.getVotacoesFromOrgao(idOrgao).dados
+    override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>> = runCatching {
+        val votacoesResponse = votacoesApi.getVotacoesFromOrgao(idOrgao).dados
 
-            val votacoes = votacoesResponse
-                .map { votacao ->
-                    with(votacoesApi.getVotacaoDetail(votacao.id).dados) {
-                        Votacao(
-                            id = id,
-                            dataHoraRegistro = dataHoraRegistro?.let { formatter.format(LocalDateTime.parse(dataHoraRegistro)) },
-                            descricao = descricao,
-                            aprovacao = aprovacao == 1,
-                            proposicoesAfetadas = proposicoesAfetadas.map { it.ementa },
-                            idEvento = idEvento
-                        )
-                    }
-                }.filter {
-                    it.proposicoesAfetadas.isNotEmpty()
-                }.sortedByDescending {
-                    val parts = it.dataHoraRegistro?.split("/")
-
-                    parts?.let {
-                        LocalDate(
-                            year = parts[2].toInt(),
-                            monthNumber = parts[1].toInt(),
-                            dayOfMonth = parts[0].toInt()
-                        )
-                    }
+        votacoesResponse
+            .map { votacao ->
+                with(votacoesApi.getVotacaoDetail(votacao.id).dados) {
+                    Votacao(
+                        id = id,
+                        dataHoraRegistro = dataHoraRegistro?.let { formatter.format(LocalDateTime.parse(dataHoraRegistro)) },
+                        descricao = descricao,
+                        aprovacao = aprovacao == 1,
+                        proposicoesAfetadas = proposicoesAfetadas.map { it.ementa },
+                        idEvento = idEvento
+                    )
                 }
+            }.filter {
+                it.proposicoesAfetadas.isNotEmpty()
+            }.sortedByDescending {
+                val parts = it.dataHoraRegistro?.split("/")
 
-            return votacoes
-        } catch (exception: Exception) {
-            loggerInterface.d("Fetching comissoes permanentes votações failed with: $exception")
-            return emptyList()
-        }
+                parts?.let {
+                    LocalDate(
+                        year = parts[2].toInt(),
+                        monthNumber = parts[1].toInt(),
+                        dayOfMonth = parts[0].toInt()
+                    )
+                }
+            }
     }
 }

@@ -14,12 +14,16 @@ sealed interface DetailsState {
 
     data object Loading: DetailsState
 
+    data object Error: DetailsState
+
     data class Content(val deputadoDetails: DeputadoDetails): DetailsState
 }
 
 sealed interface ExpensesState {
 
     data object Loading: ExpensesState
+
+    data object Error: ExpensesState
 
     data class Content(val expenses: List<DeputadoExpense>): ExpensesState
 }

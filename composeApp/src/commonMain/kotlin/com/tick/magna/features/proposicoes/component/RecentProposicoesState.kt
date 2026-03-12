@@ -6,6 +6,7 @@ import com.tick.magna.data.domain.Proposicao
 @Immutable
 data class RecentProposicoesState(
     val isLoading: Boolean = true,
+    val isError: Boolean = false,
     val proposicoes: List<Proposicao> = emptyList(),
     val selectedProposicao: ProposicaoType = ProposicaoType.PEC
 )

@@ -253,6 +253,7 @@ private fun DetailContent(
                 GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
                 SocialsDetails(socials = detailsState.deputadoDetails.socials)
             }
+            DetailsState.Error -> Unit
         }
     }
 }
@@ -427,6 +428,7 @@ fun DeputadoExpenses(
                         }
                     }
                 }
+                ExpensesState.Error -> Unit
             }
         }
     }

@@ -34,6 +34,7 @@ class DeputadoDetailsViewModel(
                     deputado = deputadoData,
                     detailsState = when (detailsResult) {
                         DeputadoDetailsResult.Fetching -> DetailsState.Loading
+                        DeputadoDetailsResult.Error -> DetailsState.Error
                         is DeputadoDetailsResult.Success -> DetailsState.Content(detailsResult.details)
                     },
                     expensesState = when {

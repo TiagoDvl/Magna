@@ -10,5 +10,5 @@ interface OrgaosRepositoryInterface {
 
     fun getComissoesPermanentes(): Flow<List<Orgao>>
 
-    suspend fun getComissaoPermanenteVotacoes(idOrgao: String) : List<Votacao>
+    suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>>
 }

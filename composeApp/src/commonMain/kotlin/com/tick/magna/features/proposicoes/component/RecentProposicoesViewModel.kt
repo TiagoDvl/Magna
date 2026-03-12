@@ -27,6 +27,7 @@ class RecentProposicoesViewModel(
             proposicoesRepository.observeRecentProposicoes(param.name).map { result ->
                 RecentProposicoesState(
                     isLoading = result.isLoading,
+                    isError = result.isError,
                     proposicoes = result.proposicoes,
                     selectedProposicao = param
                 )

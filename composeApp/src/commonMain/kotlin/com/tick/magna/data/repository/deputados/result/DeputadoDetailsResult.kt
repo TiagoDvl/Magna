@@ -6,5 +6,7 @@ sealed interface DeputadoDetailsResult {
 
     data object Fetching: DeputadoDetailsResult
 
+    data object Error: DeputadoDetailsResult
+
     data class Success(val details: DeputadoDetails): DeputadoDetailsResult
 }

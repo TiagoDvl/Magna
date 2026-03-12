@@ -7,7 +7,7 @@ data class DespesaDto(
     val ano: Int,
     val mes: Int,
     val tipoDespesa: String,
-    val codDocumento: Long,
+    val codDocumento: String,
     val tipoDocumento: String,
     val codTipoDocumento: Int,
     val dataDocumento: String,

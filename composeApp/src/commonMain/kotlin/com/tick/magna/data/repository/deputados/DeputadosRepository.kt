@@ -15,6 +15,8 @@ import com.tick.magna.data.source.remote.dto.toLocal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -108,22 +110,27 @@ internal class DeputadosRepository(
         loggerInterface.d("getDeputadoDetails for legislatura ID: $legislaturaId", TAG)
         deputadoDao.updateLastSeen(deputadoId)
 
-        return deputadoDetailsDao.getDeputadoDetails(legislaturaId, deputadoId).mapNotNull { deputadoDetailsEntity ->
-            if (deputadoDetailsEntity == null) {
-                DeputadoDetailsResult.Fetching
-            } else {
-                DeputadoDetailsResult.Success(deputadoDetailsEntity.toDomain())
-            }
-        }.also {
-            coroutineScope.launch {
-                try {
-                    loggerInterface.d("Fetching deputado details for legislatura ID: $legislaturaId", TAG)
-                    val response = deputadosApi.getDeputadoById(deputadoId)
+        val apiFailed = MutableStateFlow(false)
 
-                    deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
-                } catch (e: Exception) {
-                    loggerInterface.d("Failed to fetch deputado details: ${e.message}", TAG)
-                }
+        coroutineScope.launch {
+            try {
+                loggerInterface.d("Fetching deputado details for legislatura ID: $legislaturaId", TAG)
+                val response = deputadosApi.getDeputadoById(deputadoId)
+                deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
+            } catch (e: Exception) {
+                loggerInterface.d("Failed to fetch deputado details: ${e.message}", TAG)
+                apiFailed.value = true
+            }
+        }
+
+        return combine(
+            deputadoDetailsDao.getDeputadoDetails(legislaturaId, deputadoId),
+            apiFailed
+        ) { entity, failed ->
+            when {
+                entity != null -> DeputadoDetailsResult.Success(entity.toDomain())
+                failed -> DeputadoDetailsResult.Error
+                else -> DeputadoDetailsResult.Fetching
             }
         }
     }

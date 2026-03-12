@@ -73,22 +73,26 @@ internal class PartidosRepository(
             partido.toDomain()
         }.also {
             coroutineScope.launch {
-                val partidoDetail = partidosApi.getPartidoById(partidoId).dados
+                try {
+                    val partidoDetail = partidosApi.getPartidoById(partidoId).dados
 
-                val partidoEntity = PartidoEntity(
-                    id = partidoId,
-                    legislaturaId = legislaturaId,
-                    liderDeputadoId = null,
-                    sigla = partidoDetail.sigla,
-                    nome = partidoDetail.nome,
-                    situacao = partidoDetail.status?.situacao,
-                    totalPosse = partidoDetail.status?.totalPosse.toString(),
-                    totalMembros = partidoDetail.status?.totalMembros.toString(),
-                    logo = partidoDetail.urlLogo,
-                    website = partidoDetail.urlWebSite
-                )
+                    val partidoEntity = PartidoEntity(
+                        id = partidoId,
+                        legislaturaId = legislaturaId,
+                        liderDeputadoId = null,
+                        sigla = partidoDetail.sigla,
+                        nome = partidoDetail.nome,
+                        situacao = partidoDetail.status?.situacao,
+                        totalPosse = partidoDetail.status?.totalPosse.toString(),
+                        totalMembros = partidoDetail.status?.totalMembros.toString(),
+                        logo = partidoDetail.urlLogo,
+                        website = partidoDetail.urlWebSite
+                    )
 
-                partidoDao.insertPartidos(listOf(partidoEntity))
+                    partidoDao.insertPartidos(listOf(partidoEntity))
+                } catch (exception: Exception) {
+                    loggerInterface.d("getPartidoById - Something went wrong: ${exception.message}", TAG)
+                }
             }
         }
     }

@@ -12,8 +12,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import com.tick.magna.Proposicao as ProposicaoEntity
 
 class ProposicoesRepository(
@@ -52,36 +54,20 @@ class ProposicoesRepository(
     }
 
     override fun observeRecentProposicoes(siglaTipo: String?): Flow<RecentProposicoesResult> {
-        var isFetchingFromApi = true
+        val isLoadingSignal = MutableStateFlow(true)
+        val isErrorSignal = MutableStateFlow(false)
 
-        return proposicoesDao.getProposicoes(siglaTipo.orEmpty()).map { proposicoes ->
-            loggerInterface.d("Local Proposições for $siglaTipo... isFetchingFromApi: $isFetchingFromApi", TAG)
-            val proposicoesDomain = proposicoes.map { it ->
-                val deputados = if (it.autores != null) {
-                    deputadosDao.getDeputados(it.autores.split(", ")).mapNotNull { it.toDomain() }
-                } else {
-                    emptyList()
-                }
+        coroutineScope.launch {
+            try {
+                val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo)
+                loggerInterface.d("Remote Proposições for $siglaTipo", TAG)
 
-                it.toDomain(deputados)
-            }
-
-            RecentProposicoesResult(
-                isLoading = isFetchingFromApi,
-                proposicoes = proposicoesDomain
-            )
-
-        }.also {
-            coroutineScope.launch {
-                try {
-                    val proposicoesResponse = proposicoesApi.getProposicoes(siglaTipo)
-                    loggerInterface.d("Remote Proposições for $siglaTipo", TAG)
-
-                    val localProposicoes = proposicoesResponse.dados.map { proposicoes ->
+                val localProposicoes = supervisorScope {
+                    proposicoesResponse.dados.map { proposicao ->
                         async {
-                            val siglaTipo = siglatipoDao.getSiglaTipoById(proposicoes.codTipo.toString())
-                            val proposicaoDetailsResponse = proposicoesApi.getProposicaoDetail(proposicoes.id.toString())
-                            val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicoes.id.toString())
+                            val siglaTipoEntity = siglatipoDao.getSiglaTipoById(proposicao.codTipo.toString())
+                            val proposicaoDetailsResponse = proposicoesApi.getProposicaoDetail(proposicao.id.toString())
+                            val proposicaoAutoresResponse = proposicoesApi.getProposicaoAutores(proposicao.id.toString())
                             val autores = proposicaoAutoresResponse.dados
                                 .sortedBy { it.ordemAssinatura }
                                 .joinToString { autor ->
@@ -89,23 +75,46 @@ class ProposicoesRepository(
                                 }
 
                             ProposicaoEntity(
-                                id = proposicoes.id.toString(),
-                                codTipo = siglaTipo.sigla, // TODO: This needs fixing.
-                                ementa = proposicoes.ementa,
-                                dataApresentacao = proposicoes.dataApresentacao,
+                                id = proposicao.id.toString(),
+                                codTipo = siglaTipoEntity.sigla, // TODO: This needs fixing.
+                                ementa = proposicao.ementa,
+                                dataApresentacao = proposicao.dataApresentacao,
                                 autores = autores,
                                 url = proposicaoDetailsResponse.dados.urlInteiroTeor
                             )
                         }
                     }.awaitAll()
-
-                    loggerInterface.d("Saving Proposições for $siglaTipo", TAG)
-                    isFetchingFromApi = false
-                    proposicoesDao.insertProposicoes(localProposicoes)
-                } catch (exception: Exception) {
-                    loggerInterface.d("Remote Proposições for $siglaTipo -> Failed with exception: $exception", TAG)
                 }
+
+                loggerInterface.d("Saving Proposições for $siglaTipo", TAG)
+                proposicoesDao.insertProposicoes(localProposicoes)
+                isLoadingSignal.value = false
+            } catch (exception: Exception) {
+                loggerInterface.d("Remote Proposições for $siglaTipo -> Failed with exception: $exception", TAG)
+                isLoadingSignal.value = false
+                isErrorSignal.value = true
             }
+        }
+
+        return combine(
+            proposicoesDao.getProposicoes(siglaTipo.orEmpty()),
+            isLoadingSignal,
+            isErrorSignal
+        ) { proposicoes, isLoading, isError ->
+            loggerInterface.d("Proposições for $siglaTipo, isLoading: $isLoading, isError: $isError", TAG)
+            val proposicoesDomain = proposicoes.map { proposicao ->
+                val deputados = if (proposicao.autores != null) {
+                    deputadosDao.getDeputados(proposicao.autores.split(", ")).mapNotNull { it.toDomain() }
+                } else {
+                    emptyList()
+                }
+                proposicao.toDomain(deputados)
+            }
+            RecentProposicoesResult(
+                isLoading = isLoading,
+                isError = isError,
+                proposicoes = proposicoesDomain
+            )
         }
     }
 }

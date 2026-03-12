@@ -28,6 +28,8 @@ object HttpClientFactory {
                 level = LogLevel.INFO
             }
 
+            expectSuccess = true
+
             defaultRequest {
                 url("https://dadosabertos.camara.leg.br/api/v2/")
             }
