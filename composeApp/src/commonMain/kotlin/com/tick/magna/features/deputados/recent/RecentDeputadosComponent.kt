@@ -159,6 +159,7 @@ private fun RecentDeputados(
             items(deputados) { deputado ->
                 Card(
                     modifier = Modifier.fillMaxSize().width(80.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                     colors = CardDefaults.cardColors().copy(
                         containerColor = colorScheme.surfaceContainer,
                         contentColor = colorScheme.onSurface
@@ -193,6 +194,7 @@ private fun RecentDeputados(
             item {
                 Card(
                     modifier = Modifier.fillMaxHeight().width(80.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                     colors = CardDefaults.cardColors().copy(
                         containerColor = colorScheme.surfaceContainer,
                         contentColor = colorScheme.onSurface

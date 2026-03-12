@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.votacoesMock
@@ -90,6 +91,7 @@ private fun ComissaoPermanenteVotacoes(
                     content = {
                         items(state.votacoes) { votacao ->
                             Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (votacao.aprovacao) {
                                         colorScheme.surfaceContainerLowest

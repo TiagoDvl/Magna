@@ -67,7 +67,7 @@ fun ComissoesPermanentesComponent(
                         .height(200.dp)
                         .fillMaxWidth()
                         .padding(dimensions.grid8),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                     onClick = { onComissaoClick(item.comissaoPermanenteId) }
                 ) {
                     Box(

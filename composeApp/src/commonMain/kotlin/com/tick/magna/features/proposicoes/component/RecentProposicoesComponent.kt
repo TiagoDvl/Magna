@@ -121,7 +121,7 @@ private fun RecentProposicoesComponentContent(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.medium,
                         elevation = CardDefaults.cardElevation(
-                            defaultElevation = 2.dp
+                            defaultElevation = 0.dp
                         ),
                         onClick = { item.url?.let { uriHandler.openUri(it) } }
                     ) {

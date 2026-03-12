@@ -45,13 +45,13 @@ val inverseOnSurfaceLight = Color(0xFFF1F0F4)
 val inversePrimaryLight = Color(0xFF9DD4AC)
 
 // Surface variations for depth
-val surfaceDimLight = Color(0xFFDBDBDF)
+val surfaceDimLight = Color(0xFFDDE4EE)
 val surfaceBrightLight = Color(0xFFFFFCF4)
 val surfaceContainerLowestLight = Color(0xFFFFFEFA)
-val surfaceContainerLowLight = Color(0xFFF6F5F2)
-val surfaceContainerLight = Color(0xFFEFEFF3)
-val surfaceContainerHighLight = Color(0xFFE9E9ED)
-val surfaceContainerHighestLight = Color(0xFFE3E3E7)
+val surfaceContainerLowLight = Color(0xFFF4F6FA)
+val surfaceContainerLight = Color(0xFFEEF2F8)
+val surfaceContainerHighLight = Color(0xFFE8EDF5)
+val surfaceContainerHighestLight = Color(0xFFE2E8F2)
 
 // Dark Theme - Sophisticated dark mode
 // Primary: Lighter green for dark backgrounds
