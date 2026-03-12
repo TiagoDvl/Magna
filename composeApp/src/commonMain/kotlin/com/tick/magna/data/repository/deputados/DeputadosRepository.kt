@@ -12,6 +12,7 @@ import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
+import com.tick.magna.util.currentYear
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -23,9 +24,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class DeputadosRepository(
@@ -147,7 +145,7 @@ internal class DeputadosRepository(
         }.also {
             coroutineScope.launch {
                 val legislaturaId = userDao.getUser().first()?.legislaturaId
-                val currentYear = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
+                val currentYear = currentYear()
 
                 if (legislaturaId != null) {
                     try {
