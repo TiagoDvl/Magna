@@ -1,9 +1,11 @@
 package com.tick.magna.features.deputados.details
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,8 +20,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -58,12 +62,9 @@ import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.deputado_details_check_document
-import magna.composeapp.generated.resources.deputado_details_expense_despesa_type
 import magna.composeapp.generated.resources.deputado_details_expense_document_date
 import magna.composeapp.generated.resources.deputado_details_expense_document_number
-import magna.composeapp.generated.resources.deputado_details_expense_document_value
 import magna.composeapp.generated.resources.deputado_details_expense_month
-import magna.composeapp.generated.resources.deputado_details_expense_supplier_cnpjcpf
 import magna.composeapp.generated.resources.deputado_details_expense_supplier_name
 import magna.composeapp.generated.resources.deputado_details_expense_title
 import magna.composeapp.generated.resources.deputado_details_expense_year
@@ -96,8 +97,6 @@ private fun DeputadoDetails(
     state: DeputadoDetailsState,
     navigateBack: () -> Unit = {}
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-
     val bottomSheetState: SheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
         skipHiddenState = false,
@@ -135,14 +134,13 @@ private fun DeputadoDetails(
         sheetShadowElevation = LocalDimensions.current.grid12,
         sheetSwipeEnabled = true,
         sheetContent = {
-            when (val state = localSheetState) {
+            when (val sheetState = localSheetState) {
                 is DeputadoDetailsSheetState.Expense -> {
                     DeputadoExpenseDetails(
-                        deputadoExpense = state.deputadoExpense,
+                        deputadoExpense = sheetState.deputadoExpense,
                         onCloseSheet = { hideSheet() }
                     )
                 }
-
                 null -> Unit
             }
         },
@@ -153,19 +151,14 @@ private fun DeputadoDetails(
                 .padding(paddingValues)
         ) {
             DetailHeader(
-                modifier = Modifier.padding(LocalDimensions.current.grid8),
+                modifier = Modifier.padding(LocalDimensions.current.grid16),
                 deputado = state.deputado,
                 detailsState = state.detailsState
             )
 
-            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
-
             DeputadoExpenses(
-                modifier = Modifier.padding(LocalDimensions.current.grid8),
                 state = state.expensesState,
-                onExpenseClick = {
-                    showSheet(DeputadoDetailsSheetState.Expense(it))
-                },
+                onExpenseClick = { showSheet(DeputadoDetailsSheetState.Expense(it)) },
             )
         }
     }
@@ -192,9 +185,13 @@ private fun DetailAvatar(
     modifier: Modifier = Modifier,
     deputado: Deputado?,
 ) {
+    val dimensions = LocalDimensions.current
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
         Avatar(
             photoUrl = deputado?.profilePicture,
@@ -203,28 +200,20 @@ private fun DetailAvatar(
             placeholder = painterResource(Res.drawable.ic_light_users),
         )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid8),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val chipsStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
-            deputado?.let {
-                Text(
-                    text = "\uD83D\uDCCD ${deputado.uf}",
-                    style = chipsStyle.copy(fontWeight = FontWeight.Bold)
-                )
+        deputado?.let {
+            val metadata = listOfNotNull(
+                deputado.uf?.let { "\uD83D\uDCCD $it" },
+                deputado.partido
+            ).joinToString("  ·  ")
 
+            if (metadata.isNotEmpty()) {
                 Text(
-                    text = "-",
-                    style = chipsStyle
-                )
-
-                deputado.partido?.let { partido ->
-                    Text(
-                        text = partido,
-                        style = chipsStyle
+                    text = metadata,
+                    style = typography.bodyMedium.copy(
+                        color = colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold
                     )
-                }
+                )
             }
         }
     }
@@ -248,7 +237,6 @@ private fun DetailContent(
                     )
                 }
             }
-
             is DetailsState.Content -> {
                 GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
                 SocialsDetails(socials = detailsState.deputadoDetails.socials)
@@ -263,39 +251,25 @@ private fun GabineteDetails(
     modifier: Modifier = Modifier,
     deputadoDetails: DeputadoDetails
 ) {
-    val gabineteDetailsStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+    val gabineteDetailsStyle = MaterialTheme.typography.bodyMedium.copy(
+        color = MaterialTheme.colorScheme.onSurface
+    )
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
     ) {
         deputadoDetails.gabineteBuilding?.let {
-            Text(
-                text = "\uD83C\uDFE2 $it",
-                style = gabineteDetailsStyle
-            )
+            Text(text = "\uD83C\uDFE2 $it", style = gabineteDetailsStyle)
         }
-
         deputadoDetails.gabineteRoom?.let {
-            Text(
-                text = "\uD83D\uDEAA $it",
-                style = gabineteDetailsStyle
-            )
+            Text(text = "\uD83D\uDEAA $it", style = gabineteDetailsStyle)
         }
-
         deputadoDetails.gabineteTelephone?.let {
-            Text(
-                text = "\uD83D\uDCDE $it",
-                style = gabineteDetailsStyle
-            )
+            Text(text = "\uD83D\uDCDE $it", style = gabineteDetailsStyle)
         }
-
         deputadoDetails.gabineteEmail?.let {
-            Text(
-                text = "✉\uFE0F $it",
-                style = gabineteDetailsStyle,
-                maxLines = 1
-            )
+            Text(text = "✉\uFE0F $it", style = gabineteDetailsStyle, maxLines = 1)
         }
     }
 }
@@ -306,22 +280,22 @@ private fun SocialsDetails(
     socials: Map<String, String>
 ) {
     val dimensions = LocalDimensions.current
-    val chipsStyle = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+    val chipsStyle = MaterialTheme.typography.labelMedium.copy(
+        color = MaterialTheme.colorScheme.onSurface
+    )
     val uriHandler = LocalUriHandler.current
-
 
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-        content = {
-            socials.entries.forEach { entry ->
-                AssistChip(
-                    label = { Text(text = entry.key, style = chipsStyle) },
-                    onClick = { uriHandler.openUri(entry.value) }
-                )
-            }
+    ) {
+        socials.entries.forEach { entry ->
+            AssistChip(
+                label = { Text(text = entry.key, style = chipsStyle) },
+                onClick = { uriHandler.openUri(entry.value) }
+            )
         }
-    )
+    }
 }
 
 @Composable
@@ -335,10 +309,11 @@ fun DeputadoExpenses(
     val colorScheme = MaterialTheme.colorScheme
 
     Column(
-        modifier = modifier.fillMaxSize().padding(top = dimensions.grid8),
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid20)
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
     ) {
         Text(
+            modifier = Modifier.padding(horizontal = dimensions.grid16),
             text = stringResource(Res.string.deputado_details_expense_title),
             style = typography.titleLarge.copy(
                 textAlign = TextAlign.Center,
@@ -349,7 +324,11 @@ fun DeputadoExpenses(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid24)
+            contentPadding = PaddingValues(
+                horizontal = dimensions.grid16,
+                vertical = dimensions.grid8
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
         ) {
             when (state) {
                 ExpensesState.Loading -> {
@@ -360,14 +339,11 @@ fun DeputadoExpenses(
                             verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
                         ) {
                             CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.tertiary
+                                color = colorScheme.tertiary
                             )
-
                             Text(
                                 text = stringResource(Res.string.deputado_details_loading_expenses),
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
+                                style = typography.bodySmall.copy(color = colorScheme.tertiary)
                             )
                         }
                     }
@@ -375,59 +351,87 @@ fun DeputadoExpenses(
 
                 is ExpensesState.Content -> {
                     items(state.expenses) { expense ->
-                        Row(Modifier.fillMaxWidth()) {
-                            Column(
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = colorScheme.surfaceContainer
+                            ),
+                            onClick = { onExpenseClick(expense) }
+                        ) {
+                            Row(
                                 modifier = Modifier
-                                    .weight(0.8f)
-                                    .clickable(
-                                        onClick = {
-                                            onExpenseClick(expense)
-                                        }
-                                    ),
-                                verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                                    .fillMaxWidth()
+                                    .padding(dimensions.grid12),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
                             ) {
-
-                                Text(text = expense.tipoDespesa, style = typography.bodyLarge.copy(color = colorScheme.secondary))
-                                Text(
-                                    text = expense.nomeFornecedor,
-                                    style = typography.bodyMedium.copy(
-                                        color = colorScheme.onSurface,
-                                        fontWeight = FontWeight.ExtraLight
-                                    )
-                                )
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid2),
-                                    verticalAlignment = Alignment.CenterVertically
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
                                 ) {
                                     Text(
-                                        text = expense.valorDocumento,
-                                        style = typography.bodySmall.copy(
-                                            color = colorScheme.tertiary,
+                                        text = expense.tipoDespesa,
+                                        style = typography.bodyMedium.copy(
+                                            color = colorScheme.secondary,
                                             fontWeight = FontWeight.SemiBold
-                                        )
+                                        ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
-                                    Text(text = "-", style = typography.bodySmall.copy(color = colorScheme.onSurface))
-                                    Text(text = expense.dataDocumento, style = typography.bodySmall.copy(color = colorScheme.onSurface))
-
-                                    if (expense.urlDocumento != null) {
-                                        Icon(
-                                            modifier = Modifier.size(dimensions.grid16),
-                                            painter = painterResource(Res.drawable.folder_eye),
-                                            tint = colorScheme.tertiary,
-                                            contentDescription = null
+                                    Text(
+                                        text = expense.nomeFornecedor,
+                                        style = typography.bodySmall.copy(
+                                            color = colorScheme.onSurface
+                                        ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = expense.valorDocumento,
+                                            style = typography.labelSmall.copy(
+                                                color = colorScheme.tertiary,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
                                         )
+                                        Text(
+                                            text = "·",
+                                            style = typography.labelSmall.copy(
+                                                color = colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                        Text(
+                                            text = expense.dataDocumento,
+                                            style = typography.labelSmall.copy(
+                                                color = colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                        if (expense.urlDocumento != null) {
+                                            Icon(
+                                                modifier = Modifier.size(dimensions.grid16),
+                                                painter = painterResource(Res.drawable.folder_eye),
+                                                tint = colorScheme.tertiary,
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            Icon(
-                                painter = painterResource(Res.drawable.ic_arrow_right),
-                                tint = colorScheme.tertiary,
-                                contentDescription = null
-                            )
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_arrow_right),
+                                    tint = colorScheme.outline,
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
                 }
+
                 ExpensesState.Error -> Unit
             }
         }
@@ -441,8 +445,8 @@ fun DeputadoExpenseDetails(
 ) {
     val dimensions = LocalDimensions.current
     val uriHandler = LocalUriHandler.current
-    val style = MaterialTheme.typography
-    val colors = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
@@ -452,49 +456,138 @@ fun DeputadoExpenseDetails(
             .padding(bottom = dimensions.grid24),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
     ) {
+        // Header: tipo + fechar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                modifier = Modifier.weight(0.80f),
+                modifier = Modifier.weight(1f),
                 text = deputadoExpense.tipoDespesa,
-                style = style.titleSmall.copy(
-                    color = colors.primary,
+                style = typography.titleSmall.copy(
+                    color = colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             )
-
             IconButton(onClick = onCloseSheet) {
                 Icon(imageVector = Icons.Default.Close, contentDescription = null)
             }
         }
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+        // Valor em destaque
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = colorScheme.surfaceContainerLow,
+                    shape = MaterialTheme.shapes.medium
+                )
+                .padding(vertical = dimensions.grid20),
+            contentAlignment = Alignment.Center
         ) {
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_year), deputadoExpense.ano.toString())
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_month), deputadoExpense.mes.toString())
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_despesa_type), deputadoExpense.tipoDespesa)
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_document_date), deputadoExpense.dataDocumento)
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_document_number), deputadoExpense.numDocumento)
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_document_value), deputadoExpense.valorDocumento)
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_supplier_name), deputadoExpense.nomeFornecedor)
-            ExpenseRow(stringResource(Res.string.deputado_details_expense_supplier_cnpjcpf), deputadoExpense.cnpjCpfFornecedor)
+            Text(
+                text = deputadoExpense.valorDocumento,
+                style = typography.headlineLarge.copy(
+                    color = colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            )
         }
 
+        // Fornecedor
+        Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid4)) {
+            Text(
+                text = stringResource(Res.string.deputado_details_expense_supplier_name),
+                style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant)
+            )
+            Text(
+                text = deputadoExpense.nomeFornecedor,
+                style = typography.bodyMedium.copy(
+                    color = colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            Text(
+                text = deputadoExpense.cnpjCpfFornecedor,
+                style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant)
+            )
+        }
+
+        // Grid de metadados 2×2
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
+        ) {
+            MetadataCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(Res.string.deputado_details_expense_document_date),
+                value = deputadoExpense.dataDocumento
+            )
+            MetadataCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(Res.string.deputado_details_expense_document_number),
+                value = deputadoExpense.numDocumento
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
+        ) {
+            MetadataCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(Res.string.deputado_details_expense_month),
+                value = deputadoExpense.mes.toString()
+            )
+            MetadataCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(Res.string.deputado_details_expense_year),
+                value = deputadoExpense.ano.toString()
+            )
+        }
+
+        // Botão documento
         Button(
             modifier = Modifier.fillMaxWidth(),
             enabled = deputadoExpense.urlDocumento != null,
             onClick = { deputadoExpense.urlDocumento?.let { uriHandler.openUri(it) } },
-            content = {
-                Text(
-                    text = stringResource(Res.string.deputado_details_check_document)
-                )
-            }
+            content = { Text(text = stringResource(Res.string.deputado_details_check_document)) }
         )
+    }
+}
 
+@Composable
+private fun MetadataCell(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String
+) {
+    val dimensions = LocalDimensions.current
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
+
+    Column(
+        modifier = modifier
+            .background(
+                color = colorScheme.surfaceContainerLow,
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(dimensions.grid12),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+    ) {
+        Text(
+            text = label,
+            style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant)
+        )
+        Text(
+            text = value,
+            style = typography.bodyMedium.copy(
+                color = colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold
+            )
+        )
     }
 }
 
@@ -507,9 +600,7 @@ fun ExpenseRow(
     val style = MaterialTheme.typography
     val colors = MaterialTheme.colorScheme
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid4)) {
         Text(
             text = "$title:",
             style = style.bodyMedium.copy(
