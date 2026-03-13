@@ -21,6 +21,8 @@ import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
+import com.tick.magna.features.partidos.list.PartidosListArgs
+import com.tick.magna.features.partidos.list.PartidosListScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -67,6 +69,10 @@ fun App() {
                         viewModel = koinViewModel { parametersOf(args.comissaoPermanenteId) },
                         navController = navController
                     )
+                }
+
+                composable<PartidosListArgs> {
+                    PartidosListScreen(navController = navController)
                 }
             }
 

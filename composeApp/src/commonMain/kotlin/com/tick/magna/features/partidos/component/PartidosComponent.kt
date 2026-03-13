@@ -1,0 +1,168 @@
+package com.tick.magna.features.partidos.component
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tick.magna.data.domain.Partido
+import com.tick.magna.data.domain.partidosMock
+import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaTheme
+import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.partidos_members_suffix
+import magna.composeapp.generated.resources.partidos_section_title
+import magna.composeapp.generated.resources.partidos_see_all
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun PartidosComponent(
+    modifier: Modifier = Modifier,
+    viewModel: PartidosComponentViewModel = koinViewModel(),
+    onVerTodosClick: () -> Unit,
+) {
+    val partidos = viewModel.state.collectAsStateWithLifecycle()
+
+    PartidosComponentContent(
+        modifier = modifier,
+        partidos = partidos.value,
+        onVerTodosClick = onVerTodosClick,
+    )
+}
+
+@Composable
+private fun PartidosComponentContent(
+    modifier: Modifier = Modifier,
+    partidos: List<Partido>,
+    onVerTodosClick: () -> Unit = {},
+) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    Column(
+        modifier = modifier.fillMaxWidth().padding(bottom = dimensions.grid16),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimensions.grid16),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(Res.string.partidos_section_title),
+                style = typography.titleLarge.copy(
+                    color = colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            )
+
+            TextButton(onClick = onVerTodosClick) {
+                Text(
+                    text = stringResource(Res.string.partidos_see_all),
+                    style = typography.labelMedium.copy(
+                        color = colorScheme.primary,
+                    )
+                )
+            }
+        }
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
+            contentPadding = PaddingValues(horizontal = dimensions.grid16),
+        ) {
+            items(partidos) { partido ->
+                PartidoChip(partido = partido, onClick = onVerTodosClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PartidoChip(
+    partido: Partido,
+    onClick: () -> Unit,
+) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    Card(
+        modifier = Modifier.width(120.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = colorScheme.surfaceContainerLow,
+        ),
+        onClick = onClick,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = dimensions.grid12,
+                    vertical = dimensions.grid12,
+                ),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid2),
+        ) {
+            Text(
+                text = partido.sigla,
+                style = typography.titleMedium.copy(
+                    color = colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Text(
+                text = partido.nome,
+                style = typography.bodySmall.copy(
+                    color = colorScheme.onSurfaceVariant,
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            partido.totalMembros?.let { total ->
+                Text(
+                    text = "$total ${stringResource(Res.string.partidos_members_suffix)}",
+                    style = typography.labelSmall.copy(
+                        color = colorScheme.tertiary,
+                        fontWeight = FontWeight.Medium,
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewPartidosComponent() {
+    MagnaTheme {
+        PartidosComponentContent(
+            partidos = partidosMock.take(8),
+        )
+    }
+}

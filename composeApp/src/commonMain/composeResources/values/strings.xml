@@ -61,4 +61,9 @@
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
     <string name="comissoes_permanentes_votacoes_title">Votações recentes</string>
+
+    <string name="partidos_section_title">Partidos</string>
+    <string name="partidos_see_all">Ver todos</string>
+    <string name="partidos_list_title">Partidos na Legislatura 57</string>
+    <string name="partidos_members_suffix">membros</string>
 </resources>

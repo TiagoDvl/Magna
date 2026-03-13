@@ -12,6 +12,7 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
     override suspend fun getPartidos(idLegislatura: String): PartidosResponse {
         return httpClient.get("partidos") {
             parameter("idLegislatura", idLegislatura)
+            parameter("itens", 100)
         }.body()
     }
 

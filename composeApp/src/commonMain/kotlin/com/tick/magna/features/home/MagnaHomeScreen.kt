@@ -43,6 +43,8 @@ import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanen
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
+import com.tick.magna.features.partidos.component.PartidosComponent
+import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.proposicoes.component.RecentProposicoesComponent
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -282,6 +284,13 @@ private fun MagnaHomeContent(
                 ComissoesPermanentesComponent(
                     modifier = sectionsBaseModifier,
                     onComissaoClick = { navigateTo(ComissaoPermanenteDetailArgs(it)) }
+                )
+
+                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+
+                PartidosComponent(
+                    modifier = sectionsBaseModifier,
+                    onVerTodosClick = { navigateTo(PartidosListArgs) }
                 )
             }
         }
