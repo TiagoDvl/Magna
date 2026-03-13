@@ -23,6 +23,8 @@ import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
 import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.partidos.list.PartidosListScreen
+import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
+import com.tick.magna.features.proposicoes.details.ProposicaoDetailsScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -73,6 +75,10 @@ fun App() {
 
                 composable<PartidosListArgs> {
                     PartidosListScreen(navController = navController)
+                }
+
+                composable<ProposicaoDetailsArgs> {
+                    ProposicaoDetailsScreen(navController = navController)
                 }
             }
 

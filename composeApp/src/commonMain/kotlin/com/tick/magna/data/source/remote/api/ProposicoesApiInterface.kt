@@ -4,6 +4,7 @@ import com.tick.magna.data.source.remote.response.ProposicaoAutoresResponse
 import com.tick.magna.data.source.remote.response.ProposicaoDetailResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesSiglaTipoResponse
+import com.tick.magna.data.source.remote.response.VotacoesResponse
 
 interface ProposicoesApiInterface {
 
@@ -15,4 +16,5 @@ interface ProposicoesApiInterface {
 
     suspend fun getProposicaoAutores(idProposicao: String): ProposicaoAutoresResponse
 
+    suspend fun getProposicaoVotacoes(idProposicao: String): VotacoesResponse
 }

@@ -76,6 +76,7 @@ import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.partidos.component.PartidosComponentViewModel
 import com.tick.magna.features.partidos.list.PartidosListViewModel
 import com.tick.magna.features.proposicoes.component.RecentProposicoesViewModel
+import com.tick.magna.features.proposicoes.details.ProposicaoDetailsViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,7 +145,7 @@ val dataModule = module {
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get(), get()) }
-    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
+    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
     single<EventosRepositoryInterface> { EventosRepository(get(), get(), get()) }
     single<UserRepositoryInterface> { UserRepository(get(), get()) }
@@ -168,6 +169,7 @@ val viewModelModule = module {
     viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
     viewModel { PartidosComponentViewModel(get(), get(), get()) }
     viewModel { PartidosListViewModel(get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get()) }
 }
 
 val appModules = listOf(

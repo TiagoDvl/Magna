@@ -66,4 +66,14 @@
     <string name="partidos_see_all">Ver todos</string>
     <string name="partidos_list_title">Partidos na Legislatura 57</string>
     <string name="partidos_members_suffix">membros</string>
+
+    <string name="proposicao_details_ementa_title">Ementa</string>
+    <string name="proposicao_details_status_title">Situação</string>
+    <string name="proposicao_details_autores_title">Autores</string>
+    <string name="proposicao_details_votacoes_title">Votações</string>
+    <string name="proposicao_details_approved">Aprovado</string>
+    <string name="proposicao_details_rejected">Rejeitado</string>
+    <string name="proposicao_details_view_full_text">Ver texto completo</string>
+    <string name="proposicao_details_despacho_label">Despacho</string>
+    <string name="proposicao_details_orgao_label">Órgão</string>
 </resources>

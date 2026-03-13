@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,13 +57,15 @@ import org.koin.compose.viewmodel.koinViewModel
 fun RecentProposicoesComponent(
     modifier: Modifier = Modifier,
     viewModel: RecentProposicoesViewModel = koinViewModel(),
+    onProposicaoClick: (proposicaoId: String) -> Unit = {},
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle()
 
     RecentProposicoesComponentContent(
         modifier = modifier,
         state = state.value,
-        onAction = { viewModel.processAction(it) }
+        onAction = { viewModel.processAction(it) },
+        onProposicaoClick = onProposicaoClick,
     )
 }
 
@@ -72,12 +73,12 @@ fun RecentProposicoesComponent(
 private fun RecentProposicoesComponentContent(
     modifier: Modifier = Modifier,
     state: RecentProposicoesState,
-    onAction: (Action) -> Unit
+    onAction: (Action) -> Unit,
+    onProposicaoClick: (proposicaoId: String) -> Unit = {},
 ) {
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
     val dimensions = LocalDimensions.current
-    val uriHandler = LocalUriHandler.current
 
     val listState = rememberLazyListState()
 
@@ -160,7 +161,7 @@ private fun RecentProposicoesComponentContent(
                         colors = CardDefaults.cardColors(
                             containerColor = colorScheme.surfaceContainer
                         ),
-                        onClick = { item.url?.let { uriHandler.openUri(it) } }
+                        onClick = { onProposicaoClick(item.id) }
                     ) {
                         Row(
                             modifier = Modifier
