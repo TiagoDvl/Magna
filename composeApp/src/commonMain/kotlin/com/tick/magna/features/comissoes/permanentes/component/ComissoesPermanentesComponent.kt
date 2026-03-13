@@ -50,7 +50,7 @@ fun ComissoesPermanentesComponent(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
         Text(
-            modifier = Modifier.padding(horizontal = dimensions.grid16),
+            modifier = Modifier.padding(horizontal = dimensions.grid8),
             text = stringResource(Res.string.comissoes_permanentes_section_title),
             style = typography.titleLarge.copy(
                 color = colorScheme.primary,
@@ -61,7 +61,7 @@ fun ComissoesPermanentesComponent(
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-            contentPadding = PaddingValues(horizontal = dimensions.grid16),
+            contentPadding = PaddingValues(horizontal = dimensions.grid8),
         ) {
             items(comissoes.value) { item ->
                 Card(

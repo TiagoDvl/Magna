@@ -69,6 +69,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(compose.preview)
+            implementation(compose.uiTooling)
             implementation(libs.ktor.client.android)
             implementation(libs.android.driver)
         }

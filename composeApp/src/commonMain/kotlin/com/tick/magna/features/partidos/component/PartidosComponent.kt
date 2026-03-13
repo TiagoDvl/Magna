@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -44,6 +46,9 @@ fun PartidosComponent(
     PartidosComponentContent(
         modifier = modifier,
         partidos = partidos.value,
+        sectionTitle = stringResource(Res.string.partidos_section_title),
+        seeAllText = stringResource(Res.string.partidos_see_all),
+        membersSuffix = stringResource(Res.string.partidos_members_suffix),
         onVerTodosClick = onVerTodosClick,
     )
 }
@@ -52,6 +57,9 @@ fun PartidosComponent(
 private fun PartidosComponentContent(
     modifier: Modifier = Modifier,
     partidos: List<Partido>,
+    sectionTitle: String,
+    seeAllText: String,
+    membersSuffix: String,
     onVerTodosClick: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
@@ -70,7 +78,7 @@ private fun PartidosComponentContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(Res.string.partidos_section_title),
+                text = sectionTitle,
                 style = typography.titleLarge.copy(
                     color = colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
@@ -79,7 +87,7 @@ private fun PartidosComponentContent(
 
             TextButton(onClick = onVerTodosClick) {
                 Text(
-                    text = stringResource(Res.string.partidos_see_all),
+                    text = seeAllText,
                     style = typography.labelMedium.copy(
                         color = colorScheme.primary,
                     )
@@ -88,12 +96,17 @@ private fun PartidosComponentContent(
         }
 
         LazyRow(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(104.dp),
             horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
             contentPadding = PaddingValues(horizontal = dimensions.grid16),
         ) {
             items(partidos) { partido ->
-                PartidoChip(partido = partido, onClick = onVerTodosClick)
+                PartidoChip(
+                    modifier = Modifier.fillMaxHeight(),
+                    partido = partido,
+                    membersSuffix = membersSuffix,
+                    onClick = onVerTodosClick,
+                )
             }
         }
     }
@@ -102,6 +115,8 @@ private fun PartidosComponentContent(
 @Composable
 private fun PartidoChip(
     partido: Partido,
+    membersSuffix: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val dimensions = LocalDimensions.current
@@ -109,7 +124,7 @@ private fun PartidoChip(
     val typography = MaterialTheme.typography
 
     Card(
-        modifier = Modifier.width(120.dp),
+        modifier = modifier.width(120.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = colorScheme.surfaceContainerLow,
@@ -146,7 +161,7 @@ private fun PartidoChip(
 
             partido.totalMembros?.let { total ->
                 Text(
-                    text = "$total ${stringResource(Res.string.partidos_members_suffix)}",
+                    text = "$total $membersSuffix",
                     style = typography.labelSmall.copy(
                         color = colorScheme.tertiary,
                         fontWeight = FontWeight.Medium,
@@ -163,6 +178,9 @@ private fun PreviewPartidosComponent() {
     MagnaTheme {
         PartidosComponentContent(
             partidos = partidosMock.take(8),
+            sectionTitle = "Partidos",
+            seeAllText = "Ver todos",
+            membersSuffix = "membros",
         )
     }
 }
