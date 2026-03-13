@@ -1,16 +1,20 @@
 package com.tick.magna.features.comissoes.permanentes.detail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -66,68 +70,125 @@ private fun ComissaoPermanenteVotacoes(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(dimensions.grid16),
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
-        ) {
-            Text(
-                text = stringResource(Res.string.comissoes_permanentes_votacoes_title),
-                style = typography.titleLarge.copy(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            )
+        if (state.votacoes.isEmpty()) {
+            LoadingComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
+        } else {
+            val aprovadas = state.votacoes.count { it.aprovacao }
+            val rejeitadas = state.votacoes.size - aprovadas
 
-            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+            LazyVerticalStaggeredGrid(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                columns = StaggeredGridCells.Fixed(2),
+                verticalItemSpacing = dimensions.grid8,
+                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
+                contentPadding = PaddingValues(dimensions.grid16),
+            ) {
+                // Header full-width: título + summary
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = dimensions.grid8),
+                        verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.comissoes_permanentes_votacoes_title),
+                            style = typography.titleLarge.copy(
+                                color = colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        )
+                        Text(
+                            text = "${state.votacoes.size} total · $aprovadas aprovadas · $rejeitadas rejeitadas",
+                            style = typography.bodySmall.copy(
+                                color = colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                }
 
-            if (state.votacoes.isEmpty()) {
-                LoadingComponent()
-            } else {
-                LazyVerticalStaggeredGrid(
-                    modifier = Modifier.fillMaxSize(),
-                    columns = StaggeredGridCells.Fixed(2),
-                    verticalItemSpacing = dimensions.grid4,
-                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-                    content = {
-                        items(state.votacoes) { votacao ->
-                            Card(
-                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (votacao.aprovacao) {
-                                        colorScheme.surfaceContainerLowest
-                                    } else {
-                                        colorScheme.surfaceContainer
-                                    }
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(dimensions.grid8),
-                                    verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
-                                ) {
-                                    votacao.dataHoraRegistro?.let {
-                                        Text(
-                                            text = it,
-                                            style = typography.bodySmall.copy(
-                                                fontWeight = FontWeight.ExtraLight
-                                            )
-                                        )
-                                    }
-
-                                    Text(
-                                        text = votacao.descricao,
-                                        style = typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Medium
-                                        )
+                items(state.votacoes) { votacao ->
+                    Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorScheme.surfaceContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(dimensions.grid12),
+                            verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
+                        ) {
+                            // Badge: Aprovada / Rejeitada
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = if (votacao.aprovacao) {
+                                            colorScheme.primaryContainer
+                                        } else {
+                                            colorScheme.errorContainer
+                                        },
+                                        shape = MaterialTheme.shapes.extraSmall
                                     )
+                                    .padding(
+                                        horizontal = dimensions.grid8,
+                                        vertical = dimensions.grid2
+                                    )
+                            ) {
+                                Text(
+                                    text = if (votacao.aprovacao) "✓ Aprovada" else "✗ Rejeitada",
+                                    style = typography.labelSmall.copy(
+                                        color = if (votacao.aprovacao) {
+                                            colorScheme.onPrimaryContainer
+                                        } else {
+                                            colorScheme.onErrorContainer
+                                        },
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                            }
 
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(dimensions.grid2)
-                                    ) {
-                                        votacao.proposicoesAfetadas.forEach {
+                            // Data
+                            votacao.dataHoraRegistro?.let {
+                                Text(
+                                    text = it,
+                                    style = typography.labelSmall.copy(
+                                        color = colorScheme.onSurfaceVariant
+                                    )
+                                )
+                            }
+
+                            // Descrição
+                            Text(
+                                text = votacao.descricao,
+                                style = typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+
+                            // Proposições afetadas como pills
+                            if (votacao.proposicoesAfetadas.isNotEmpty()) {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+                                    verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
+                                ) {
+                                    votacao.proposicoesAfetadas.forEach { proposicao ->
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    color = colorScheme.surfaceContainerHigh,
+                                                    shape = MaterialTheme.shapes.extraSmall
+                                                )
+                                                .padding(
+                                                    horizontal = dimensions.grid8,
+                                                    vertical = dimensions.grid2
+                                                )
+                                        ) {
                                             Text(
-                                                text = it,
-                                                style = typography.bodyMedium.copy(
-                                                    color = colorScheme.secondary,
+                                                text = proposicao,
+                                                style = typography.labelSmall.copy(
+                                                    color = colorScheme.onSurfaceVariant,
                                                     fontWeight = FontWeight.Medium
                                                 )
                                             )
@@ -137,7 +198,7 @@ private fun ComissaoPermanenteVotacoes(
                             }
                         }
                     }
-                )
+                }
             }
         }
     }
