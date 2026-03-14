@@ -42,126 +42,20 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.toRoute
-import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.DeputadoVotacao
 import com.tick.magna.data.domain.ProposicaoVotada
 import com.tick.magna.data.domain.deputadoVotacoesMock
-import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Serializable
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_left
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
-
-// ─── Navigation Args ────────────────────────────────────────────────────────
-
-@Serializable
-data class DeputadoVotacoesArgs(
-    val deputadoId: String,
-    val deputadoName: String,
-)
-
-// ─── State ───────────────────────────────────────────────────────────────────
-
-data class DeputadoVotacoesState(
-    val votacoesState: VotacoesListState = VotacoesListState.Loading,
-    val selectedFilter: VotoFilter = VotoFilter.All,
-)
-
-sealed interface VotacoesListState {
-    data object Loading : VotacoesListState
-    data object Error : VotacoesListState
-    data class Content(
-        val allVotacoes: List<DeputadoVotacao>,
-        val filteredVotacoes: List<DeputadoVotacao> = allVotacoes,
-    ) : VotacoesListState
-}
-
-enum class VotoFilter(val label: String, val emoji: String) {
-    All("Todos", "🗳️"),
-    Sim("Sim", "✅"),
-    Nao("Não", "❌"),
-    Abstencao("Abstenção", "⚪"),
-}
-
-// ─── ViewModel ───────────────────────────────────────────────────────────────
-
-class DeputadoVotacoesViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val dispatcherInterface: DispatcherInterface,
-    private val deputadosRepository: DeputadosRepositoryInterface,
-    private val logger: AppLoggerInterface,
-) : ViewModel() {
-
-    private val args = savedStateHandle.toRoute<DeputadoVotacoesArgs>()
-    val deputadoName: String = args.deputadoName
-
-    private val _state = MutableStateFlow(DeputadoVotacoesState())
-    val state: StateFlow<DeputadoVotacoesState> = _state.asStateFlow()
-
-    init {
-        loadVotacoes()
-    }
-
-    fun loadVotacoes() {
-        viewModelScope.launch(dispatcherInterface.io) {
-            _state.update { it.copy(votacoesState = VotacoesListState.Loading, selectedFilter = VotoFilter.All) }
-            deputadosRepository.getDeputadoVotacoes(args.deputadoId).fold(
-                onSuccess = { votacoes ->
-                    _state.update { it.copy(votacoesState = VotacoesListState.Content(votacoes)) }
-                },
-                onFailure = { e ->
-                    logger.e("loadVotacoes failed for ${args.deputadoId}", e as Exception, TAG)
-                    _state.update { it.copy(votacoesState = VotacoesListState.Error) }
-                },
-            )
-        }
-    }
-
-    fun setFilter(filter: VotoFilter) {
-        val content = _state.value.votacoesState as? VotacoesListState.Content ?: return
-        val filtered = when (filter) {
-            VotoFilter.All -> content.allVotacoes
-            VotoFilter.Sim -> content.allVotacoes.filter { it.tipoVoto.equals("Sim", ignoreCase = true) }
-            VotoFilter.Nao -> content.allVotacoes.filter {
-                it.tipoVoto.equals("Não", ignoreCase = true) || it.tipoVoto.equals("Nao", ignoreCase = true)
-            }
-            VotoFilter.Abstencao -> content.allVotacoes.filter {
-                it.tipoVoto.contains("Abstenção", ignoreCase = true) ||
-                    it.tipoVoto.contains("Abstencao", ignoreCase = true)
-            }
-        }
-        _state.update {
-            it.copy(
-                selectedFilter = filter,
-                votacoesState = content.copy(filteredVotacoes = filtered),
-            )
-        }
-    }
-
-    companion object {
-        private const val TAG = "DeputadoVotacoesViewModel"
-    }
-}
-
-// ─── Entry point ─────────────────────────────────────────────────────────────
 
 @Composable
 fun DeputadoVotacoesScreen(
@@ -177,8 +71,6 @@ fun DeputadoVotacoesScreen(
         navigateBack = { navController.popBackStack() },
     )
 }
-
-// ─── Screen Composable ───────────────────────────────────────────────────────
 
 @Composable
 private fun DeputadoVotacoesContent(
@@ -204,7 +96,6 @@ private fun DeputadoVotacoesContent(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            // ── Filter chips ──────────────────────────────────────────────
             AnimatedVisibility(
                 visible = state.votacoesState is VotacoesListState.Content,
                 enter = fadeIn(),
@@ -230,7 +121,6 @@ private fun DeputadoVotacoesContent(
                 }
             }
 
-            // ── Content ───────────────────────────────────────────────────
             AnimatedContent(
                 targetState = state.votacoesState,
                 modifier = Modifier.fillMaxSize(),
@@ -248,8 +138,6 @@ private fun DeputadoVotacoesContent(
         }
     }
 }
-
-// ─── Loading ─────────────────────────────────────────────────────────────────
 
 @Composable
 private fun VotacoesLoading() {
@@ -271,8 +159,6 @@ private fun VotacoesLoading() {
         }
     }
 }
-
-// ─── Error ────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun VotacoesError(onRetry: () -> Unit) {
@@ -313,8 +199,6 @@ private fun VotacoesError(onRetry: () -> Unit) {
         }
     }
 }
-
-// ─── List ─────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun VotacoesList(
@@ -376,8 +260,6 @@ private fun VotacoesList(
     }
 }
 
-// ─── Vote Card ────────────────────────────────────────────────────────────────
-
 @Composable
 private fun VotacaoCard(votacao: DeputadoVotacao) {
     val dimensions = LocalDimensions.current
@@ -399,7 +281,6 @@ private fun VotacaoCard(votacao: DeputadoVotacao) {
                 .padding(dimensions.grid16),
             verticalArrangement = Arrangement.spacedBy(dimensions.grid12),
         ) {
-            // ── Top row: badge + orgão + date ─────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -434,7 +315,6 @@ private fun VotacaoCard(votacao: DeputadoVotacao) {
                 }
             }
 
-            // ── Description ───────────────────────────────────────────────
             if (votacao.descricao.isNotEmpty()) {
                 Text(
                     text = votacao.descricao,
@@ -444,7 +324,6 @@ private fun VotacaoCard(votacao: DeputadoVotacao) {
                 )
             }
 
-            // ── Proposições ────────────────────────────────────────────────
             if (votacao.proposicoes.isNotEmpty()) {
                 HorizontalDivider(color = colorScheme.surfaceDim)
                 FlowRow(
@@ -457,7 +336,6 @@ private fun VotacaoCard(votacao: DeputadoVotacao) {
                 }
             }
 
-            // ── View button ────────────────────────────────────────────────
             votacao.uriVotacao?.let { uri ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -492,8 +370,6 @@ private fun VotacaoCard(votacao: DeputadoVotacao) {
         }
     }
 }
-
-// ─── Proposição chip ─────────────────────────────────────────────────────────
 
 @Composable
 private fun ProposicaoChip(prop: ProposicaoVotada) {
@@ -533,8 +409,6 @@ private fun ProposicaoChip(prop: ProposicaoVotada) {
     }
 }
 
-// ─── Vote type badge ─────────────────────────────────────────────────────────
-
 @Composable
 private fun VotoBadge(
     tipoVoto: String,
@@ -556,8 +430,6 @@ private fun VotoBadge(
         )
     }
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 @Composable
 private fun votoColors(tipoVoto: String): Pair<Color, Color> {
@@ -587,8 +459,6 @@ private fun formatVotacaoDate(dateHour: String?): String {
         dateHour.take(10)
     }
 }
-
-// ─── Preview ─────────────────────────────────────────────────────────────────
 
 @Preview
 @Composable
