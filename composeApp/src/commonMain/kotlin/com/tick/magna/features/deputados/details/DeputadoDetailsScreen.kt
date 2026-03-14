@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +54,7 @@ import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
+import com.tick.magna.features.deputados.votacoes.DeputadoVotacoesArgs
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
@@ -72,6 +74,7 @@ import magna.composeapp.generated.resources.deputado_details_loading_details
 import magna.composeapp.generated.resources.deputado_details_loading_expenses
 import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_arrow_right
+import magna.composeapp.generated.resources.ic_ballot
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.painterResource
@@ -84,19 +87,28 @@ fun DeputadoDetailScreen(
     viewModel: DeputadoDetailsViewModel = koinViewModel(),
     navController: NavController
 ) {
-    val state = viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     DeputadoDetails(
-        state = state.value,
-        navigateBack = { navController.popBackStack() }
+        state = state,
+        navigateBack = { navController.popBackStack() },
+        navigateToVotacoes = {
+            state.deputado?.let { dep ->
+                navController.navigate(DeputadoVotacoesArgs(dep.id, dep.name))
+            }
+        },
     )
 }
 
 @Composable
 private fun DeputadoDetails(
     state: DeputadoDetailsState,
-    navigateBack: () -> Unit = {}
+    navigateBack: () -> Unit = {},
+    navigateToVotacoes: () -> Unit = {},
 ) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+
     val bottomSheetState: SheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
         skipHiddenState = false,
@@ -121,7 +133,7 @@ private fun DeputadoDetails(
 
     BottomSheetScaffold(
         modifier = Modifier.fillMaxSize(),
-        sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        sheetContainerColor = colorScheme.surfaceContainerHigh,
         topBar = {
             MagnaMediumTopBar(
                 titleText = state.deputado?.name.orEmpty(),
@@ -130,8 +142,8 @@ private fun DeputadoDetails(
             )
         },
         scaffoldState = bottomSheetScaffoldState,
-        sheetTonalElevation = LocalDimensions.current.grid4,
-        sheetShadowElevation = LocalDimensions.current.grid12,
+        sheetTonalElevation = dimensions.grid4,
+        sheetShadowElevation = dimensions.grid12,
         sheetSwipeEnabled = true,
         sheetContent = {
             when (val sheetState = localSheetState) {
@@ -145,21 +157,37 @@ private fun DeputadoDetails(
             }
         },
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            DetailHeader(
-                modifier = Modifier.padding(LocalDimensions.current.grid16),
-                deputado = state.deputado,
-                detailsState = state.detailsState
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                DetailHeader(
+                    modifier = Modifier.padding(dimensions.grid16),
+                    deputado = state.deputado,
+                    detailsState = state.detailsState
+                )
 
-            DeputadoExpenses(
-                state = state.expensesState,
-                onExpenseClick = { showSheet(DeputadoDetailsSheetState.Expense(it)) },
-            )
+                DeputadoExpenses(
+                    state = state.expensesState,
+                    onExpenseClick = { showSheet(DeputadoDetailsSheetState.Expense(it)) },
+                )
+            }
+
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(dimensions.grid16),
+                onClick = navigateToVotacoes,
+                containerColor = colorScheme.secondary,
+                contentColor = colorScheme.onSecondary,
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_ballot),
+                    contentDescription = "Ver votações",
+                )
+            }
         }
     }
 }
@@ -456,7 +484,6 @@ fun DeputadoExpenseDetails(
             .padding(bottom = dimensions.grid24),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
     ) {
-        // Header: tipo + fechar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -548,7 +575,6 @@ fun DeputadoExpenseDetails(
             )
         }
 
-        // Botão documento
         Button(
             modifier = Modifier.fillMaxWidth(),
             enabled = deputadoExpense.urlDocumento != null,

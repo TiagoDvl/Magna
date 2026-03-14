@@ -1,6 +1,7 @@
 package com.tick.magna.data.source.remote.api
 
 import com.tick.magna.data.source.remote.response.VotacaoDetailResponse
+import com.tick.magna.data.source.remote.response.VotacaoVotosResponse
 import com.tick.magna.data.source.remote.response.VotacoesResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -19,5 +20,17 @@ class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
 
     override suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse {
         return httpClient.get("votacoes/$idVotacao").body()
+    }
+
+    override suspend fun getRecentVotacoes(itens: Int): VotacoesResponse {
+        return httpClient.get("votacoes") {
+            parameter("ordenarPor", "dataHoraRegistro")
+            parameter("ordem", "DESC")
+            parameter("itens", itens.toString())
+        }.body()
+    }
+
+    override suspend fun getVotacaoVotos(idVotacao: String): VotacaoVotosResponse {
+        return httpClient.get("votacoes/$idVotacao/votos").body()
     }
 }

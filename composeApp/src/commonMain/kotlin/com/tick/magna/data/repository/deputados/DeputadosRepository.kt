@@ -2,6 +2,7 @@ package com.tick.magna.data.repository.deputados
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoExpense
+import com.tick.magna.data.domain.DeputadoVotacao
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
@@ -11,10 +12,14 @@ import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
+import com.tick.magna.data.source.remote.api.VotacoesApiInterface
+import com.tick.magna.data.source.remote.dto.toDeputadoVotacao
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.util.currentYear
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -33,7 +38,8 @@ internal class DeputadosRepository(
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
     private val deputadoExpenseDao: DeputadoExpenseDaoInterface,
     private val loggerInterface: AppLoggerInterface,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    private val votacoesApi: VotacoesApiInterface,
 ) : DeputadosRepositoryInterface {
 
     companion object Companion {
@@ -178,6 +184,43 @@ internal class DeputadosRepository(
                     loggerInterface.e("getDeputadoExpenses: API call failed for deputadoId=$deputadoId", e, TAG)
                 }
             }
+        }
+    }
+
+    override suspend fun getDeputadoVotacoes(deputadoId: String): Result<List<DeputadoVotacao>> {
+        loggerInterface.d("getDeputadoVotacoes: deputadoId=$deputadoId", TAG)
+        return try {
+            // Step 1: get 20 most recent votações
+            val votacoesResponse = votacoesApi.getRecentVotacoes(itens = 20)
+            val votacoes = votacoesResponse.dados
+
+            // Step 2: for each votação, fetch individual votes in parallel and find this deputado's vote
+            val deferreds = votacoes.map { votacao ->
+                coroutineScope.async {
+                    try {
+                        val votosResponse = votacoesApi.getVotacaoVotos(votacao.id)
+                        val voto = votosResponse.dados.firstOrNull { it.deputado.id.toString() == deputadoId }
+                        if (voto != null) {
+                            votacao.toDeputadoVotacao(
+                                tipoVoto = voto.tipoVoto,
+                                dataRegistroVoto = voto.dataRegistroVoto,
+                            )
+                        } else {
+                            null
+                        }
+                    } catch (e: Exception) {
+                        loggerInterface.w("getDeputadoVotacoes: failed to fetch votos for votacaoId=${votacao.id}", TAG)
+                        null
+                    }
+                }
+            }
+
+            val results = deferreds.awaitAll().filterNotNull()
+            loggerInterface.d("getDeputadoVotacoes: found ${results.size}/${votacoes.size} for deputadoId=$deputadoId", TAG)
+            Result.success(results)
+        } catch (e: Exception) {
+            loggerInterface.e("getDeputadoVotacoes: failed for deputadoId=$deputadoId", e, TAG)
+            Result.failure(e)
         }
     }
 }

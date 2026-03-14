@@ -19,6 +19,8 @@ import com.tick.magna.features.deputados.details.DeputadoDetailScreen
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
+import com.tick.magna.features.deputados.votacoes.DeputadoVotacoesArgs
+import com.tick.magna.features.deputados.votacoes.DeputadoVotacoesScreen
 import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
 import com.tick.magna.features.partidos.details.PartidoDetailsArgs
@@ -88,6 +90,10 @@ fun App() {
 
                 composable<ProposicaoDetailsArgs> {
                     ProposicaoDetailsScreen(navController = navController)
+                }
+
+                composable<DeputadoVotacoesArgs> {
+                    DeputadoVotacoesScreen(navController = navController)
                 }
             }
 

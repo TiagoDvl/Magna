@@ -5,5 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProposicoesAfetadasDto(
     val id: String,
-    val ementa: String,
+    val uri: String? = null,
+    val siglaTipo: String? = null,
+    val numero: Int? = null,
+    val ano: Int? = null,
+    val ementa: String = "",
 )

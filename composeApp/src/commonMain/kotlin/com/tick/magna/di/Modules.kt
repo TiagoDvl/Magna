@@ -72,6 +72,7 @@ import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDe
 import com.tick.magna.features.deputados.details.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
+import com.tick.magna.features.deputados.votacoes.DeputadoVotacoesViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.partidos.component.PartidosComponentViewModel
 import com.tick.magna.features.partidos.details.PartidoDetailsViewModel
@@ -141,6 +142,7 @@ val dataModule = module {
             get(),
             get(),
             get(),
+            get(),
             get()
         )
     }
@@ -172,6 +174,7 @@ val viewModelModule = module {
     viewModel { PartidosListViewModel(get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> PartidoDetailsViewModel(handle, get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> DeputadoVotacoesViewModel(handle, get(), get(), get()) }
 }
 
 val appModules = listOf(
