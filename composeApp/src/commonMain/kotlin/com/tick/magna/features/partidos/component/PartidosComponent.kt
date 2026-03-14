@@ -40,6 +40,7 @@ fun PartidosComponent(
     modifier: Modifier = Modifier,
     viewModel: PartidosComponentViewModel = koinViewModel(),
     onVerTodosClick: () -> Unit,
+    onPartidoClick: (partidoId: String) -> Unit = {},
 ) {
     val partidos = viewModel.state.collectAsStateWithLifecycle()
 
@@ -50,6 +51,7 @@ fun PartidosComponent(
         seeAllText = stringResource(Res.string.partidos_see_all),
         membersSuffix = stringResource(Res.string.partidos_members_suffix),
         onVerTodosClick = onVerTodosClick,
+        onPartidoClick = onPartidoClick,
     )
 }
 
@@ -61,6 +63,7 @@ private fun PartidosComponentContent(
     seeAllText: String,
     membersSuffix: String,
     onVerTodosClick: () -> Unit = {},
+    onPartidoClick: (partidoId: String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -105,7 +108,7 @@ private fun PartidosComponentContent(
                     modifier = Modifier.fillMaxHeight(),
                     partido = partido,
                     membersSuffix = membersSuffix,
-                    onClick = onVerTodosClick,
+                    onClick = { onPartidoClick(partido.id.toString()) },
                 )
             }
         }

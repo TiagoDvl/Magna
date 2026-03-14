@@ -1,5 +1,6 @@
 package com.tick.magna.data.source.remote.api
 
+import com.tick.magna.data.source.remote.response.DeputadosResponse
 import com.tick.magna.data.source.remote.response.PartidoDetalheResponse
 import com.tick.magna.data.source.remote.response.PartidosResponse
 import io.ktor.client.HttpClient
@@ -18,5 +19,12 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
 
     override suspend fun getPartidoById(id: String): PartidoDetalheResponse {
         return httpClient.get("partidos/$id").body()
+    }
+
+    override suspend fun getPartidoMembros(id: String, legislaturaId: String): DeputadosResponse {
+        return httpClient.get("partidos/$id/membros") {
+            parameter("idLegislatura", legislaturaId)
+            parameter("itens", 100)
+        }.body()
     }
 }

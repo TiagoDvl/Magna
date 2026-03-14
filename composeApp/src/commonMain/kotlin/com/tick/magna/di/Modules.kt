@@ -74,6 +74,7 @@ import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.partidos.component.PartidosComponentViewModel
+import com.tick.magna.features.partidos.details.PartidoDetailsViewModel
 import com.tick.magna.features.partidos.list.PartidosListViewModel
 import com.tick.magna.features.proposicoes.component.RecentProposicoesViewModel
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsViewModel
@@ -143,7 +144,7 @@ val dataModule = module {
             get()
         )
     }
-    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
+    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
     single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
@@ -169,6 +170,7 @@ val viewModelModule = module {
     viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
     viewModel { PartidosComponentViewModel(get(), get(), get()) }
     viewModel { PartidosListViewModel(get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> PartidoDetailsViewModel(handle, get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get()) }
 }
 

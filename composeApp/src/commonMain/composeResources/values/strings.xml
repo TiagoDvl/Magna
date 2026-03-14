@@ -67,6 +67,20 @@
     <string name="partidos_list_title">Partidos na Legislatura 57</string>
     <string name="partidos_members_suffix">membros</string>
 
+    <string name="partido_details_gender">Gênero</string>
+    <string name="partido_details_age">Idade</string>
+    <string name="partido_details_birth_state">Nascimento</string>
+    <string name="partido_details_members">Deputados</string>
+    <string name="partido_details_by_state">por estado</string>
+    <string name="partido_details_male">Masculino</string>
+    <string name="partido_details_female">Feminino</string>
+    <string name="partido_details_website">Site</string>
+    <string name="partido_details_facebook">Facebook</string>
+    <string name="partido_details_leader">Líder do partido</string>
+    <string name="partido_details_situacao">Situação</string>
+    <string name="partido_details_loading">Carregando dados dos deputados…</string>
+    <string name="partido_details_no_members">Nenhum deputado encontrado</string>
+
     <string name="proposicao_details_ementa_title">Ementa</string>
     <string name="proposicao_details_status_title">Situação</string>
     <string name="proposicao_details_autores_title">Autores</string>

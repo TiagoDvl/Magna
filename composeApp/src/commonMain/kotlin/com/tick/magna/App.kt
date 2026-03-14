@@ -21,6 +21,8 @@ import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchScreen
 import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
+import com.tick.magna.features.partidos.details.PartidoDetailsArgs
+import com.tick.magna.features.partidos.details.PartidoDetailsScreen
 import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.partidos.list.PartidosListScreen
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
@@ -74,7 +76,14 @@ fun App() {
                 }
 
                 composable<PartidosListArgs> {
-                    PartidosListScreen(navController = navController)
+                    PartidosListScreen(
+                        navController = navController,
+                        onPartidoClick = { navController.navigate(PartidoDetailsArgs(it)) },
+                    )
+                }
+
+                composable<PartidoDetailsArgs> {
+                    PartidoDetailsScreen(navController = navController)
                 }
 
                 composable<ProposicaoDetailsArgs> {

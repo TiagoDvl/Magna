@@ -40,12 +40,14 @@ import org.koin.compose.viewmodel.koinViewModel
 fun PartidosListScreen(
     viewModel: PartidosListViewModel = koinViewModel(),
     navController: NavController,
+    onPartidoClick: (partidoId: String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     PartidosListContent(
         state = state,
         navigateBack = { navController.popBackStack() },
+        onPartidoClick = onPartidoClick,
     )
 }
 
@@ -54,6 +56,7 @@ private fun PartidosListContent(
     modifier: Modifier = Modifier,
     state: PartidosListState,
     navigateBack: () -> Unit = {},
+    onPartidoClick: (partidoId: String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -92,7 +95,7 @@ private fun PartidosListContent(
                 }
 
                 items(state.partidos) { partido ->
-                    PartidoCard(partido = partido)
+                    PartidoCard(partido = partido, onClick = { onPartidoClick(partido.id.toString()) })
                 }
             }
         }
@@ -103,6 +106,7 @@ private fun PartidosListContent(
 private fun PartidoCard(
     modifier: Modifier = Modifier,
     partido: Partido,
+    onClick: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -113,7 +117,8 @@ private fun PartidoCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = colorScheme.surfaceContainer,
-        )
+        ),
+        onClick = onClick,
     ) {
         Column(
             modifier = Modifier
