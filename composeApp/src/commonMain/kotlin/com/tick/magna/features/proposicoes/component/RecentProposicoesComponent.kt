@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -97,9 +96,8 @@ private fun RecentProposicoesComponentContent(
             modifier = Modifier.align(Alignment.Start),
             text = stringResource(state.selectedProposicao.getProposicaoLabel()),
             style = MaterialTheme.typography.titleLarge.copy(
-                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
             )
         )
 

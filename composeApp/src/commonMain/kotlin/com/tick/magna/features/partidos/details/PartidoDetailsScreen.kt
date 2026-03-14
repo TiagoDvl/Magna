@@ -2,6 +2,7 @@ package com.tick.magna.features.partidos.details
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import androidx.navigation.NavController
 import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.domain.PartidoDetail
 import com.tick.magna.data.domain.partidosMock
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -54,7 +56,6 @@ import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
 import magna.composeapp.generated.resources.partido_details_age
 import magna.composeapp.generated.resources.partido_details_birth_state
-import magna.composeapp.generated.resources.partido_details_by_state
 import magna.composeapp.generated.resources.partido_details_facebook
 import magna.composeapp.generated.resources.partido_details_female
 import magna.composeapp.generated.resources.partido_details_gender
@@ -82,11 +83,11 @@ fun PartidoDetailsScreen(
         state = state,
         onAction = { viewModel.processAction(it) },
         onBack = { navController.popBackStack() },
+        onMemberClick = { navController.navigate(DeputadoDetailsArgs(it)) },
         labelGender = stringResource(Res.string.partido_details_gender),
         labelAge = stringResource(Res.string.partido_details_age),
         labelBirthState = stringResource(Res.string.partido_details_birth_state),
         labelMembers = stringResource(Res.string.partido_details_members),
-        labelByState = stringResource(Res.string.partido_details_by_state),
         labelMale = stringResource(Res.string.partido_details_male),
         labelFemale = stringResource(Res.string.partido_details_female),
         labelWebsite = stringResource(Res.string.partido_details_website),
@@ -105,11 +106,11 @@ private fun PartidoDetailsContent(
     state: PartidoDetailsState,
     onAction: (PartidoDetailsAction) -> Unit = {},
     onBack: () -> Unit = {},
+    onMemberClick: (String) -> Unit = {},
     labelGender: String,
     labelAge: String,
     labelBirthState: String,
     labelMembers: String,
-    labelByState: String,
     labelMale: String,
     labelFemale: String,
     labelWebsite: String,
@@ -288,25 +289,16 @@ private fun PartidoDetailsContent(
 
                     // Deputados grouped by representing state
                     item("by_state_title") {
-                        Row(
+                        Text(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = dimensions.grid16, vertical = dimensions.grid12),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = labelMembers,
-                                style = typography.titleLarge.copy(
-                                    color = colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
+                            text = labelMembers,
+                            style = typography.titleLarge.copy(
+                                color = colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
                             )
-                            Text(
-                                text = labelByState,
-                                style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
-                            )
-                        }
+                        )
                     }
 
                     m.stats.membersByRepresentingUf.forEach { (uf, ufMembers) ->
@@ -336,6 +328,7 @@ private fun PartidoDetailsContent(
                         items(ufMembers, contentType = { "member" }) { member ->
                             MemberRow(
                                 member = member,
+                                onMemberClick = { onMemberClick(member.id) },
                                 modifier = Modifier.padding(
                                     horizontal = dimensions.grid16,
                                     vertical = dimensions.grid8,
@@ -652,6 +645,7 @@ private fun HorizontalBarChart(
 @Composable
 private fun MemberRow(
     member: DeputadoMembro,
+    onMemberClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -659,7 +653,9 @@ private fun MemberRow(
     val dimensions = LocalDimensions.current
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onMemberClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.grid12),
     ) {
@@ -675,25 +671,15 @@ private fun MemberRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-            ) {
-                member.siglaUf?.let {
-                    Text(
-                        text = it,
-                        style = typography.labelSmall.copy(color = colorScheme.tertiary),
-                    )
-                }
-                member.municipioNascimento?.let { city ->
-                    member.ufNascimento?.let { uf ->
-                        Text(
-                            text = "nasceu em $city/$uf",
-                            style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
+            member.municipioNascimento?.let { city ->
+                val bornLabel = if (member.sexo == "F") "Nascida em" else "Nascido em"
+                val location = if (member.ufNascimento != null) "$city - ${member.ufNascimento}" else city
+                Text(
+                    text = "$bornLabel $location",
+                    style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
 
@@ -730,7 +716,6 @@ private fun PartidoDetailsLoadingPreview() {
             labelAge = "Idade",
             labelBirthState = "Nascimento",
             labelMembers = "Deputados",
-            labelByState = "por estado",
             labelMale = "Masculino",
             labelFemale = "Feminino",
             labelWebsite = "Site",
@@ -793,7 +778,6 @@ private fun PartidoDetailsContentPreview() {
             labelAge = "Idade",
             labelBirthState = "Nascimento",
             labelMembers = "Deputados",
-            labelByState = "por estado",
             labelMale = "Masculino",
             labelFemale = "Feminino",
             labelWebsite = "Site",

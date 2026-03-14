@@ -1,8 +1,6 @@
 package com.tick.magna.features.comissoes.permanentes.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -46,22 +44,21 @@ fun ComissoesPermanentesComponent(
     val typography = MaterialTheme.typography
 
     Column(
-        modifier = modifier.fillMaxWidth().padding(bottom = dimensions.grid16),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
         Text(
-            modifier = Modifier.padding(horizontal = dimensions.grid8),
             text = stringResource(Res.string.comissoes_permanentes_section_title),
             style = typography.titleLarge.copy(
                 color = colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
             )
         )
 
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-            contentPadding = PaddingValues(horizontal = dimensions.grid8),
+            contentPadding = PaddingValues(horizontal = 0.dp),
         ) {
             items(comissoes.value) { item ->
                 Card(
@@ -73,13 +70,6 @@ fun ComissoesPermanentesComponent(
                     onClick = { onComissaoClick(item.comissaoPermanenteId) }
                 ) {
                     Row(modifier = Modifier.fillMaxSize()) {
-                        Box(
-                            modifier = Modifier
-                                .width(dimensions.grid4)
-                                .fillMaxHeight()
-                                .background(colorScheme.primary)
-                        )
-
                         Column(
                             modifier = Modifier
                                 .weight(1f)

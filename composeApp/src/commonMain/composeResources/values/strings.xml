@@ -64,14 +64,13 @@
 
     <string name="partidos_section_title">Partidos</string>
     <string name="partidos_see_all">Ver todos</string>
-    <string name="partidos_list_title">Partidos na Legislatura 57</string>
+    <string name="partidos_list_title">Partidos</string>
     <string name="partidos_members_suffix">membros</string>
 
     <string name="partido_details_gender">Gênero</string>
     <string name="partido_details_age">Idade</string>
     <string name="partido_details_birth_state">Nascimento</string>
     <string name="partido_details_members">Deputados</string>
-    <string name="partido_details_by_state">por estado</string>
     <string name="partido_details_male">Masculino</string>
     <string name="partido_details_female">Feminino</string>
     <string name="partido_details_website">Site</string>

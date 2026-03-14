@@ -70,13 +70,11 @@ private fun PartidosComponentContent(
     val typography = MaterialTheme.typography
 
     Column(
-        modifier = modifier.fillMaxWidth().padding(bottom = dimensions.grid16),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = dimensions.grid16),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -84,7 +82,7 @@ private fun PartidosComponentContent(
                 text = sectionTitle,
                 style = typography.titleLarge.copy(
                     color = colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                 )
             )
 
@@ -101,7 +99,7 @@ private fun PartidosComponentContent(
         LazyRow(
             modifier = Modifier.fillMaxWidth().height(104.dp),
             horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-            contentPadding = PaddingValues(horizontal = dimensions.grid16),
+            contentPadding = PaddingValues(horizontal = 0.dp),
         ) {
             items(partidos) { partido ->
                 PartidoChip(
