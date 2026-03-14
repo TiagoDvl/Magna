@@ -1,6 +1,9 @@
 package com.tick.magna.features.proposicoes.details
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,14 +23,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -384,42 +393,99 @@ private fun AutoresSection(
     }
 }
 
+private const val AUTORES_INITIAL_COUNT = 10
+
 @Composable
 private fun AutoresList(autores: List<Deputado>) {
     val dimensions = LocalDimensions.current
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
 
+    val hasMore = autores.size > AUTORES_INITIAL_COUNT
+    var expanded by remember { mutableStateOf(false) }
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 90f else 270f,
+        label = "autores_chevron",
+    )
+
     Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid8)) {
-        autores.take(5).forEachIndexed { index, deputado ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Avatar(
-                    modifier = Modifier
-                        .shadow(elevation = 2.dp, CircleShape)
-                        .zIndex(5 - index.toFloat()),
-                    photoUrl = deputado.profilePicture,
-                )
-                Column {
-                    Text(
-                        text = deputado.name,
-                        style = typography.bodyMedium.copy(
-                            color = colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    val meta = listOfNotNull(deputado.partido, deputado.uf).joinToString(" · ")
-                    if (meta.isNotEmpty()) {
-                        Text(
-                            text = meta,
-                            style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
-                        )
+        autores.take(AUTORES_INITIAL_COUNT).forEachIndexed { index, deputado ->
+            AutorRow(index = index, deputado = deputado)
+        }
+
+        if (hasMore) {
+            AnimatedVisibility(visible = expanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid8)) {
+                    autores.drop(AUTORES_INITIAL_COUNT).forEachIndexed { index, deputado ->
+                        AutorRow(index = AUTORES_INITIAL_COUNT + index, deputado = deputado)
                     }
                 }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .background(
+                        color = colorScheme.surfaceContainerLow,
+                        shape = MaterialTheme.shapes.small,
+                    )
+                    .padding(horizontal = dimensions.grid12, vertical = dimensions.grid8),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = if (expanded) "Mostrar menos" else "+ ${autores.size - AUTORES_INITIAL_COUNT} autores",
+                    style = typography.labelMedium.copy(
+                        color = colorScheme.secondary,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                )
+                Icon(
+                    painter = painterResource(Res.drawable.ic_chevron_left),
+                    contentDescription = null,
+                    tint = colorScheme.secondary,
+                    modifier = Modifier
+                        .size(dimensions.grid16)
+                        .rotate(chevronRotation),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AutorRow(index: Int, deputado: Deputado) {
+    val dimensions = LocalDimensions.current
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Avatar(
+            modifier = Modifier
+                .shadow(elevation = 2.dp, CircleShape)
+                .zIndex(5 - index.toFloat()),
+            photoUrl = deputado.profilePicture,
+        )
+        Column {
+            Text(
+                text = deputado.name,
+                style = typography.bodyMedium.copy(
+                    color = colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            val meta = listOfNotNull(deputado.partido, deputado.uf).joinToString(" · ")
+            if (meta.isNotEmpty()) {
+                Text(
+                    text = meta,
+                    style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
+                )
             }
         }
     }
