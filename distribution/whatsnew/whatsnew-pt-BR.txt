@@ -1,0 +1,11 @@
+Bem-vindo ao Magna!
+
+Acompanhe de perto o trabalho dos deputados federais brasileiros com dados oficiais e atualizados diretamente da Câmara dos Deputados.
+
+Esta é a versão 1.0.0, com tudo que você precisa para se manter informado sobre o Legislativo Federal:
+
+• Perfil completo dos deputados, com partido, estado e informações de contato
+• Histórico de votações de cada deputado, com filtros por tipo de voto
+• Gastos e despesas do mandato com transparência total
+• Proposições legislativas com detalhes, autores e votações
+• Navegação por partidos e suas bancadas na legislatura atual
