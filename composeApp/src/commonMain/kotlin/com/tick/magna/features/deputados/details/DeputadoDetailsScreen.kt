@@ -23,7 +23,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,7 +73,6 @@ import magna.composeapp.generated.resources.deputado_details_loading_details
 import magna.composeapp.generated.resources.deputado_details_loading_expenses
 import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_arrow_right
-import magna.composeapp.generated.resources.ic_ballot
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.painterResource
@@ -175,19 +173,19 @@ private fun DeputadoDetails(
                 )
             }
 
-            FloatingActionButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(dimensions.grid16),
-                onClick = navigateToVotacoes,
-                containerColor = colorScheme.secondary,
-                contentColor = colorScheme.onSecondary,
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_ballot),
-                    contentDescription = "Ver votações",
-                )
-            }
+//            FloatingActionButton(
+//                modifier = Modifier
+//                    .align(Alignment.BottomEnd)
+//                    .padding(dimensions.grid16),
+//                onClick = navigateToVotacoes,
+//                containerColor = colorScheme.secondary,
+//                contentColor = colorScheme.onSecondary,
+//            ) {
+//                Icon(
+//                    painter = painterResource(Res.drawable.ic_ballot),
+//                    contentDescription = "Ver votações",
+//                )
+//            }
         }
     }
 }

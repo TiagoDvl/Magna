@@ -2,7 +2,6 @@ package com.tick.magna.data.repository.proposicoes
 
 import com.tick.magna.SiglaTipo
 import com.tick.magna.data.domain.ProposicaoDetail
-import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.proposicoes.result.ProposicaoDetailsResult
 import com.tick.magna.data.repository.proposicoes.result.RecentProposicoesResult
@@ -125,7 +124,6 @@ class ProposicoesRepository(
     override fun getProposicaoDetails(id: String): Flow<ProposicaoDetailsResult> {
         val detailsSignal = MutableStateFlow<ProposicaoDetail?>(null)
         val autoresSignal = MutableStateFlow<List<com.tick.magna.data.domain.Deputado>?>(null)
-        val votacoesSignal = MutableStateFlow<List<Votacao>?>(null)
         val errorSignal = MutableStateFlow(false)
 
         coroutineScope.launch {
@@ -163,44 +161,15 @@ class ProposicoesRepository(
                         autoresSignal.value = emptyList()
                     }
                 }
-
-                launch {
-                    try {
-                        val votacaoIds = proposicoesApi.getProposicaoVotacoes(id).dados.take(8).map { it.id }
-                        val votacoes = supervisorScope {
-                            votacaoIds.map { vid ->
-                                async {
-                                    runCatching {
-                                        val dto = votacoesApi.getVotacaoDetail(vid).dados
-                                        Votacao(
-                                            id = dto.id,
-                                            dataHoraRegistro = dto.dataHoraRegistro,
-                                            descricao = dto.descricao,
-                                            aprovacao = dto.aprovacao == 1,
-                                            proposicoesAfetadas = dto.proposicoesAfetadas.map { it.ementa },
-                                            idEvento = dto.idEvento,
-                                        )
-                                    }.getOrNull()
-                                }
-                            }.awaitAll().filterNotNull()
-                        }
-                        votacoesSignal.value = votacoes
-                    } catch (e: Exception) {
-                        loggerInterface.e("getProposicaoDetails: votacoes failed", e, TAG)
-                        votacoesSignal.value = emptyList()
-                    }
-                }
             }
         }
 
-        return combine(detailsSignal, autoresSignal, votacoesSignal, errorSignal) { details, autores, votacoes, isError ->
+        return combine(detailsSignal, autoresSignal, errorSignal) { details, autores, isError ->
             ProposicaoDetailsResult(
                 isLoadingDetails = details == null && !isError,
                 isLoadingAutores = autores == null,
-                isLoadingVotacoes = votacoes == null,
                 details = details,
                 autores = autores ?: emptyList(),
-                votacoes = votacoes ?: emptyList(),
                 hasError = isError,
             )
         }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,7 +48,6 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.domain.proposicoesMock
-import com.tick.magna.data.domain.votacoesMock
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
@@ -173,34 +171,6 @@ private fun ProposicaoDetailsContent(
 
             item {
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceDim)
-            }
-
-            // Votações title
-            item {
-                Text(
-                    text = votacoesTitle,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                )
-            }
-
-            // Votações content
-            when (val v = state.votacoesState) {
-                ProposicaoVotacoesState.Loading -> item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.tertiary)
-                    }
-                }
-                ProposicaoVotacoesState.Empty -> Unit
-                is ProposicaoVotacoesState.Content -> items(v.votacoes) { votacao ->
-                    VotacaoCard(
-                        votacao = votacao,
-                        approvedLabel = approvedLabel,
-                        rejectedLabel = rejectedLabel,
-                    )
-                }
             }
 
             // Full text button
@@ -609,7 +579,6 @@ private fun PreviewProposicaoDetailsContent() {
                     )
                 ),
                 autoresState = ProposicaoAutoresState.Empty,
-                votacoesState = ProposicaoVotacoesState.Content(votacoesMock.take(3)),
             ),
             titleText = "PEC 6/2019",
             approvedLabel = "Aprovado",

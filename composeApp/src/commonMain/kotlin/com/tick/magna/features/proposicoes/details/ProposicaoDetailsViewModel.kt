@@ -34,8 +34,7 @@ class ProposicaoDetailsViewModel(
             proposicoesRepository.getProposicaoDetails(proposicaoId).collect { result ->
                 logger.d(
                     "result → isLoadingDetails=${result.isLoadingDetails}, " +
-                        "isLoadingAutores=${result.isLoadingAutores}, " +
-                        "isLoadingVotacoes=${result.isLoadingVotacoes}",
+                        "isLoadingAutores=${result.isLoadingAutores}, ",
                     TAG
                 )
                 _state.value = ProposicaoDetailsState(
@@ -49,11 +48,6 @@ class ProposicaoDetailsViewModel(
                         result.isLoadingAutores -> ProposicaoAutoresState.Loading
                         result.autores.isEmpty() -> ProposicaoAutoresState.Empty
                         else -> ProposicaoAutoresState.Content(result.autores)
-                    },
-                    votacoesState = when {
-                        result.isLoadingVotacoes -> ProposicaoVotacoesState.Loading
-                        result.votacoes.isEmpty() -> ProposicaoVotacoesState.Empty
-                        else -> ProposicaoVotacoesState.Content(result.votacoes)
                     },
                 )
             }

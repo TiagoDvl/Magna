@@ -7,7 +7,6 @@ import com.tick.magna.data.domain.Votacao
 data class ProposicaoDetailsState(
     val headerState: ProposicaoHeaderState = ProposicaoHeaderState.Loading,
     val autoresState: ProposicaoAutoresState = ProposicaoAutoresState.Loading,
-    val votacoesState: ProposicaoVotacoesState = ProposicaoVotacoesState.Loading,
 )
 
 sealed interface ProposicaoHeaderState {
