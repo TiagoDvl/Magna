@@ -4,6 +4,8 @@ Magna é um app open source para acompanhar a atividade dos deputados federais b
 
 A estrutura está pensada para **Android**, **iOS** e **Desktop (JVM)**, construído com Kotlin Multiplatform e Compose Multiplatform. Mas está somente disponível em produção em Android.
 
+**[📱 Disponível no Google Play](https://play.google.com/store/apps/details?id=com.tick.magna)**
+
 ---
 
 ## Funcionalidades
@@ -38,7 +40,7 @@ Todas as informações são provenientes da [API de Dados Abertos da Câmara dos
 
 ## Contribuindo
 
-Contribuições são bem-vindas toda a intenção do projeto é que seja colaborativa. Para mudanças maiores, abra uma issue primeiro para discutir o que você gostaria de mudar.
+Contribuições são bem-vindas — toda a intenção do projeto é que seja colaborativo. Para mudanças maiores, abra uma issue primeiro para discutir o que você gostaria de mudar.
 
 1. Fork o repositório
 2. Crie uma branch (`git checkout -b feature/minha-feature`)
