@@ -62,6 +62,7 @@ import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import com.tick.magna.util.toBrlString
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.action_close
 import magna.composeapp.generated.resources.deputado_details_check_document
 import magna.composeapp.generated.resources.deputado_details_expense_document_date
 import magna.composeapp.generated.resources.deputado_details_expense_document_number
@@ -502,7 +503,10 @@ fun DeputadoExpenseDetails(
                 )
             )
             IconButton(onClick = onCloseSheet) {
-                Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(Res.string.action_close),
+                )
             }
         }
 

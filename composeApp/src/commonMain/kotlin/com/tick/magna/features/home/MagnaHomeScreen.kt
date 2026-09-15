@@ -11,17 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
@@ -35,7 +35,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.usecases.SyncUserInformationState
@@ -51,6 +50,9 @@ import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.action_back
+import magna.composeapp.generated.resources.action_clear_search
+import magna.composeapp.generated.resources.action_search
 import magna.composeapp.generated.resources.home_search_deputados_placeholder
 import magna.composeapp.generated.resources.home_search_no_deputados
 import magna.composeapp.generated.resources.home_sync_dialog_done
@@ -172,14 +174,12 @@ private fun MagnaHomeContent(
         )
     }
 
-    BottomSheetScaffold(
+    Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
-        sheetContainerColor = MaterialTheme.colorScheme.onBackground,
-        sheetPeekHeight = 0.dp,
         topBar = {
             var expanded by rememberSaveable { mutableStateOf(false) }
-            val textFieldState by remember { mutableStateOf(TextFieldState()) }
+            val textFieldState = rememberTextFieldState()
             val searchResults = homeState.filteredDeputados
 
             Box(
@@ -206,13 +206,14 @@ private fun MagnaHomeContent(
                                     Icon(
                                         modifier = Modifier.clickable { expanded = false },
                                         painter = painterResource(Res.drawable.ic_arrow_back),
-                                        contentDescription = null
+                                        contentDescription = stringResource(Res.string.action_back)
                                     )
                                 } else {
                                     Icon(
-                                        modifier = Modifier.clickable { textFieldState.edit { append("") } },
+                                        // Used to append an empty string, which did nothing at all.
+                                        modifier = Modifier.clickable { expanded = true },
                                         painter = painterResource(Res.drawable.ic_search),
-                                        contentDescription = null
+                                        contentDescription = stringResource(Res.string.action_search)
                                     )
                                 }
                             },
@@ -222,7 +223,7 @@ private fun MagnaHomeContent(
                                     Icon(
                                         modifier = Modifier.clickable { textFieldState.clearText() },
                                         painter = painterResource(Res.drawable.ic_close),
-                                        contentDescription = null
+                                        contentDescription = stringResource(Res.string.action_clear_search)
                                     )
                                 }
                             }
@@ -259,9 +260,17 @@ private fun MagnaHomeContent(
                 }
             }
         },
-        sheetContent = {}
     ) { paddingValues ->
-        if (homeState.syncState is SyncUserInformationState.Done) {
+        // Before the sync finishes the screen used to render nothing at all, so a cold
+        // start showed a blank page until the dialog appeared.
+        if (homeState.syncState !is SyncUserInformationState.Done) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = colorScheme.tertiary)
+            }
+        } else {
             Column(
                 modifier = Modifier.fillMaxSize()
                     .padding(paddingValues)

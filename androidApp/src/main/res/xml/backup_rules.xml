@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Used by android:fullBackupContent, which Android 11 and below read.
+    Android 12 and above read android:dataExtractionRules instead, which needs the
+    other schema and lives in data_extraction_rules.xml.
+-->
 <full-backup-content>
-    <exclude domain="database"/>
+    <exclude domain="database" />
 </full-backup-content>

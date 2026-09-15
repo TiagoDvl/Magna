@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12 and above. The manifest used to point android:dataExtractionRules at the
+    <full-backup-content> file, which this schema does not accept, so the database was
+    almost certainly being backed up on newer devices despite the exclusion.
+
+    Nothing here is worth restoring: the database is a cache of a public API that
+    re-downloads on first launch, and a stale copy restored onto a new device would just
+    show outdated data until the next sync.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" />
+    </device-transfer>
+</data-extraction-rules>

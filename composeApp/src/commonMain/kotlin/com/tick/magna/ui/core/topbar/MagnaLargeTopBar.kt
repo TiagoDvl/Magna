@@ -11,8 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.action_back
 import magna.composeapp.generated.resources.ic_arrow_back
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,6 +23,8 @@ fun MagnaLargeTopBar(
     titleText: String,
     leftIcon: Painter? = null,
     leftIconClick: () -> Unit = {},
+    /** Every screen uses this icon to go back; override it if one ever does not. */
+    leftIconContentDescription: String = stringResource(Res.string.action_back),
 ) {
     LargeTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors().copy(
@@ -35,7 +39,7 @@ fun MagnaLargeTopBar(
                 ) {
                     Icon(
                         painter = it,
-                        contentDescription = null
+                        contentDescription = leftIconContentDescription
                     )
                 }
             }

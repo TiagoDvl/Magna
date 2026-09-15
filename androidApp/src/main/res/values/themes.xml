@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        The launch window is drawn by the system before Compose runs, using
+        android:windowBackground. The app used to inherit the platform light theme, so a
+        cold start in dark mode flashed white before MagnaTheme took over.
+
+        These values mirror backgroundLight and backgroundDark in Colors.kt; keep them in
+        step if the palette changes.
+    -->
+    <color name="window_background">#FFFCF4</color>
+
+    <style name="Theme.Magna" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

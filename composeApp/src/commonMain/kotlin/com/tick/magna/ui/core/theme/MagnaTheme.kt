@@ -5,7 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -90,13 +89,11 @@ fun MagnaTheme(
 ) {
     val colorScheme = if (darkTheme) darkScheme else lightScheme
 
-    CompositionLocalProvider(
-        LocalDimensions provides LocalDimensions.current,
-    ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = magnaTypography(),
-            content = content
-        )
-    }
+    // The CompositionLocalProvider that used to wrap this provided LocalDimensions with
+    // LocalDimensions.current, which is what the local already was: a no-op.
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = magnaTypography(),
+        content = content
+    )
 }

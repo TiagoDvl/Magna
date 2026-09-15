@@ -55,6 +55,8 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.proposicao_details_autores_show_less
+import magna.composeapp.generated.resources.proposicao_details_autores_show_more
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.proposicao_details_approved
 import magna.composeapp.generated.resources.proposicao_details_autores_title
@@ -417,7 +419,14 @@ private fun AutoresList(autores: List<Deputado>, onAutorClick: (String) -> Unit 
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = if (expanded) "Mostrar menos" else "+ ${autores.size - AUTORES_INITIAL_COUNT} autores",
+                    text = if (expanded) {
+                        stringResource(Res.string.proposicao_details_autores_show_less)
+                    } else {
+                        stringResource(
+                            Res.string.proposicao_details_autores_show_more,
+                            autores.size - AUTORES_INITIAL_COUNT,
+                        )
+                    },
                     style = typography.labelMedium.copy(
                         color = colorScheme.secondary,
                         fontWeight = FontWeight.SemiBold,

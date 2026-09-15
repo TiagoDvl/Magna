@@ -48,6 +48,7 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
+import magna.composeapp.generated.resources.action_clear_search
 import magna.composeapp.generated.resources.cancel
 import magna.composeapp.generated.resources.deputados_search_dialog_title
 import magna.composeapp.generated.resources.deputados_search_partido_label
@@ -193,7 +194,10 @@ private fun DeputadosSearchContent(
                                         onFilter(Filter.Text(""))
                                     }
                                 ) {
-                                    Icon(Icons.Default.Close, contentDescription = "Clear")
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(Res.string.action_clear_search),
+                                    )
                                 }
                             }
                         },
