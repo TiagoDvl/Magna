@@ -59,7 +59,8 @@ A partir daqui, cada mudança de schema precisa de um `migrations/N.sqm` (`ALTER
 ### 2.5 [BAIXO] Chaves estrangeiras são decorativas
 
 - Todas as tabelas declaram `FOREIGN KEY`, mas nenhum driver liga `PRAGMA foreign_keys = ON`. SQLite ignora FKs por padrão.
-- Hoje isso até ajuda: `DeputadoDetails.legislaturaId` referencia `Legislatura`, que nunca é populada (a `LegislaturaRepository` não é usada em lugar nenhum). Ligar o pragma agora quebraria inserts.
+- Hoje isso até ajuda: `DeputadoDetails.legislaturaId` referencia `Legislatura`, que nunca é populada. Ligar o pragma agora quebraria inserts.
+- Depois do bloco 5 não existe mais nem o código que *poderia* popular a tabela: `LegislaturaRepository` e `LegislaturaDao` foram removidos. A tabela ficou de propósito, para não exigir migração, mas agora é comprovadamente órfã.
 
 Decisão a tomar: remover as FKs (honesto) ou popular `Legislatura` no sync e ligar o pragma. Recomendação: remover.
 
@@ -152,17 +153,17 @@ O retry fica antes do `HttpResponseValidator`, então o `api_error` é reportado
 
 ### 4.5 [MÉDIO] Código morto ou meio-vivo
 
-Depois do commit `6b21146` (remoção de Votações), sobrou:
+**Status: removido.** Saíram 38 arquivos e cerca de 1.100 linhas. Tudo foi conferido por varredura antes: as únicas referências que existiam eram auto-referência — registro no Koin ou o próprio código morto se citando.
 
-- `features/deputados/votacoes/*` (tela, state, ViewModel, rota registrada em `App.kt`, FAB comentado em `DeputadoDetailsScreen.kt:526-538`).
-- `DeputadosRepository.getDeputadoVotacoes` — 21 requests para achar o voto de um deputado nas 20 últimas votações da Casa inteira; só acha votos nominais.
-- `EventosApi`, `EventosRepository`, `EventosRepositoryInterface` e seus DTOs — registrados no Koin, nunca injetados em ninguém.
-- `LegislaturaApi`, `LegislaturaRepository`, `LegislaturaDao` — nunca chamados. As strings `welcome_*` em `strings.xml` sugerem uma tela de escolha de legislatura que não existe.
-- `DespesaDto.toDomain()` em `DeputadoExpenseMapper.kt` — sem uso.
-- `ExpenseRow` em `DeputadoDetailsScreen.kt:969` — sem uso.
-- `User.kt` (domínio) — sem uso.
+**Votações do deputado.** A tela ficou órfã quando a feature saiu em `6b21146`: a rota continuava registrada, o ViewModel no Koin, mas o único caminho até ela era um `FloatingActionButton` comentado. Saíram tela, state, ViewModel, rota, o FAB, e em cascata `getDeputadoVotacoes` (que fazia 21 requisições para achar o voto de um deputado nas 20 votações mais recentes da Casa), `getRecentVotacoes`, `getVotacaoVotos`, `VotoItemDto`, `DeputadoVotacao` e seus DTOs. A `VotacoesApi` continua, com as duas chamadas que as comissões usam.
 
-Decidir por item: apagar ou terminar. Manter meio-vivo custa em cada refactor.
+**Eventos.** `EventosApi`, `EventosRepository`, três DTOs, três respostas e o domínio `Pauta`. Estava registrado no Koin e nunca foi injetado em ninguém.
+
+**Legislatura.** API, repositório, DAO, mapper, DTOs, respostas e as strings `welcome_*`. O usuário segue fixo na legislatura 57, que é o que já acontecia — `UserDao.setupInitialUser()` sempre gravou `"57"` na mão.
+
+A **tabela `Legislatura` continua no banco**, de propósito: removê-la exigiria migração e mexer nas chaves estrangeiras de cinco tabelas, que é a decisão em aberto do item 2.5. Como nunca foi populada, mantê-la não custa nada.
+
+**Miudezas:** `ExpenseRow` (composable sem uso), `domain/User.kt`, `orgaosMock`, `mockedLegislaturas`, seis drawables órfãos e quatro strings que ninguém resolvia.
 
 ### 4.6 [BAIXO] Miudezas
 
@@ -388,7 +389,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 2 | ~~Despesas: schema, `1.sqm`, upsert, `Error` state, formatação pt-BR, parâmetro `ano`~~ **FEITO** | `DeputadoExpense.sq`, `1.sqm`, `2.db`, mapper, DAO, repositório, `DeputadosApi.kt`, tela | 0 |
 | 3 | ~~`HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura`~~ **FEITO** | `HttpClientFactory.kt`, `ApiJson.kt`, `dto/*.kt`, `response/*.kt`, `PartidosApi.kt` | 0 |
 | 4 | Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado. Fazer um repositório por PR, começando por `Deputados` | `Modules.kt`, `repository/**` | 2, 3 |
-| 5 | Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura) | ver 4.5 | nenhum |
+| 5 | ~~Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura)~~ **FEITO** | ver 4.5 | nenhum |
 | 6 | Split de telas, `contentDescription`, strings, splash/dark window, `whatsnew`, `dataExtractionRules` | `features/**/*Screen.kt`, `strings.xml`, manifest | nenhum |
 | 7 | Feature nova da 1.1 | — | 0, 1, 2 |
 | 8 | **Último bloco, já com tudo pronto para publicar:** Data Safety, política de privacidade, `whatsnew`, bump de versão. Ver seção 10 | Play Console, `distribution/whatsnew/`, `androidApp/build.gradle.kts` | todos |

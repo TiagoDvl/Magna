@@ -6,7 +6,6 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
 import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
-import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
 import com.tick.magna.OrgaoQueries
 import com.tick.magna.PartidoQueries
@@ -20,14 +19,10 @@ import com.tick.magna.data.dispatcher.AppDispatcher
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.logger.NapierLogger
-import com.tick.magna.data.repository.LegislaturaRepository
-import com.tick.magna.data.repository.LegislaturaRepositoryInterface
 import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepository
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
-import com.tick.magna.data.repository.eventos.EventosRepository
-import com.tick.magna.data.repository.eventos.EventosRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepository
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepository
@@ -41,8 +36,6 @@ import com.tick.magna.data.source.local.dao.DeputadoDetailsDao
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDao
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
-import com.tick.magna.data.source.local.dao.LegislaturaDao
-import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDao
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDao
@@ -57,10 +50,6 @@ import com.tick.magna.data.source.local.platformModule
 import com.tick.magna.data.source.remote.HttpClientFactory
 import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
-import com.tick.magna.data.source.remote.api.EventosApi
-import com.tick.magna.data.source.remote.api.EventosApiInterface
-import com.tick.magna.data.source.remote.api.LegislaturaApi
-import com.tick.magna.data.source.remote.api.LegislaturaApiInterface
 import com.tick.magna.data.source.remote.api.OrgaosApi
 import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.PartidosApi
@@ -75,7 +64,6 @@ import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDe
 import com.tick.magna.features.deputados.details.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
 import com.tick.magna.features.deputados.search.DeputadosSearchViewModel
-import com.tick.magna.features.deputados.votacoes.DeputadoVotacoesViewModel
 import com.tick.magna.features.home.HomeViewModel
 import com.tick.magna.features.partidos.component.PartidosComponentViewModel
 import com.tick.magna.features.partidos.details.PartidoDetailsViewModel
@@ -98,7 +86,6 @@ val databaseModule = module {
     single<MagnaDatabase> { MagnaDatabase(get()) }
 
     single<UserQueries> { get<MagnaDatabase>().userQueries }
-    single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
     single<DeputadoQueries> { get<MagnaDatabase>().deputadoQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
@@ -107,7 +94,6 @@ val databaseModule = module {
     single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
-    single<LegislaturaDaoInterface> { LegislaturaDao(get(), get(), get()) }
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
@@ -130,30 +116,17 @@ val dataModule = module {
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
     single<PartidosApiInterface> { PartidosApi(get()) }
-    single<LegislaturaApiInterface> { LegislaturaApi(get()) }
     single<ProposicoesApiInterface> { ProposicoesApi(get()) }
     single<OrgaosApiInterface> { OrgaosApi(get()) }
     single<VotacoesApiInterface> { VotacoesApi(get()) }
-    single<EventosApiInterface> { EventosApi(get(), get()) }
 
     // Repositories
     single<DeputadosRepositoryInterface> {
-        DeputadosRepository(
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get()
-        )
+        DeputadosRepository(get(), get(), get(), get(), get(), get(), get())
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
-    single<LegislaturaRepositoryInterface> { LegislaturaRepository(get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
-    single<EventosRepositoryInterface> { EventosRepository(get(), get(), get()) }
     single<UserRepositoryInterface> { UserRepository(get(), get()) }
 }
 
@@ -180,7 +153,6 @@ val viewModelModule = module {
     viewModel { PartidosListViewModel(get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> PartidoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> DeputadoVotacoesViewModel(handle, get(), get(), get()) }
 }
 
 val appModules = listOf(

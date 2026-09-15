@@ -22,9 +22,11 @@ class ScreenNameTest {
 
     @Test
     fun strips_multiple_argument_placeholders() {
-        val route = "com.tick.magna.features.deputados.votacoes.DeputadoVotacoesArgs/{deputadoId}/{deputadoName}"
+        // No route takes two arguments today, but the helper has to keep handling the
+        // shape: adding a second argument to a destination must not change its name.
+        val route = "com.tick.magna.features.exemplo.ExemploArgs/{primeiroId}/{segundoId}"
 
-        assertEquals("DeputadoVotacoes", route.toScreenName())
+        assertEquals("Exemplo", route.toScreenName())
     }
 
     @Test

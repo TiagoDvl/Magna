@@ -53,7 +53,6 @@ import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
-import com.tick.magna.features.deputados.votacoes.DeputadoVotacoesArgs
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
@@ -93,11 +92,6 @@ fun DeputadoDetailScreen(
     DeputadoDetails(
         state = state,
         navigateBack = { navController.popBackStack() },
-        navigateToVotacoes = {
-            state.deputado?.let { dep ->
-                navController.navigate(DeputadoVotacoesArgs(dep.id, dep.name))
-            }
-        },
     )
 }
 
@@ -105,7 +99,6 @@ fun DeputadoDetailScreen(
 private fun DeputadoDetails(
     state: DeputadoDetailsState,
     navigateBack: () -> Unit = {},
-    navigateToVotacoes: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -175,20 +168,6 @@ private fun DeputadoDetails(
                     onExpenseClick = { showSheet(DeputadoDetailsSheetState.Expense(it)) },
                 )
             }
-
-//            FloatingActionButton(
-//                modifier = Modifier
-//                    .align(Alignment.BottomEnd)
-//                    .padding(dimensions.grid16),
-//                onClick = navigateToVotacoes,
-//                containerColor = colorScheme.secondary,
-//                contentColor = colorScheme.onSecondary,
-//            ) {
-//                Icon(
-//                    painter = painterResource(Res.drawable.ic_ballot),
-//                    contentDescription = "Ver votações",
-//                )
-//            }
         }
     }
 }
@@ -638,30 +617,6 @@ private fun MetadataCell(
                 color = colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
-        )
-    }
-}
-
-@Composable
-fun ExpenseRow(
-    title: String,
-    value: String
-) {
-    val dimensions = LocalDimensions.current
-    val style = MaterialTheme.typography
-    val colors = MaterialTheme.colorScheme
-
-    Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid4)) {
-        Text(
-            text = "$title:",
-            style = style.bodyMedium.copy(
-                color = colors.onSurface,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Text(
-            text = value,
-            style = style.bodyMedium.copy(color = colors.onSurface)
         )
     }
 }

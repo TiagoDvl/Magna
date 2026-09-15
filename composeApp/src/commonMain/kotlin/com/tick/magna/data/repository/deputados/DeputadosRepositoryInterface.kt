@@ -1,7 +1,6 @@
 package com.tick.magna.data.repository.deputados
 
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.domain.DeputadoVotacao
 import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
 import com.tick.magna.data.repository.deputados.result.DeputadoExpensesResult
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +20,5 @@ interface DeputadosRepositoryInterface {
     suspend fun getDeputadoDetails(deputadoId: String): Flow<DeputadoDetailsResult>
 
     fun getDeputadoExpenses(deputadoId: String): Flow<DeputadoExpensesResult>
-
-    suspend fun getDeputadoVotacoes(deputadoId: String): Result<List<DeputadoVotacao>>
 
 }
