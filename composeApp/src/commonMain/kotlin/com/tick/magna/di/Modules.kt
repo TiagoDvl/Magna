@@ -122,7 +122,7 @@ val dataModule = module {
 
     // Repositories
     single<DeputadosRepositoryInterface> {
-        DeputadosRepository(get(), get(), get(), get(), get(), get(), get())
+        DeputadosRepository(get(), get(), get(), get(), get(), get())
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }

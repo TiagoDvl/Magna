@@ -1,9 +1,12 @@
 package com.tick.magna.data.repository.deputados
 
 import com.tick.magna.data.domain.Deputado
+import com.tick.magna.data.domain.DeputadoDetails
+import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
-import com.tick.magna.data.repository.deputados.result.DeputadoExpensesResult
+import com.tick.magna.data.repository.Resource
+import com.tick.magna.data.repository.cachedList
+import com.tick.magna.data.repository.cachedRecord
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
@@ -13,18 +16,22 @@ import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.util.currentYear
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+/**
+ * Every flow here builds its own network work inside itself, so leaving the screen
+ * cancels it. Nothing is launched into a scope that outlives the caller.
+ */
 @ExperimentalCoroutinesApi
 internal class DeputadosRepository(
     private val userDao: UserDaoInterface,
@@ -33,67 +40,56 @@ internal class DeputadosRepository(
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
     private val deputadoExpenseDao: DeputadoExpenseDaoInterface,
     private val loggerInterface: AppLoggerInterface,
-    private val coroutineScope: CoroutineScope,
 ) : DeputadosRepositoryInterface {
 
-    companion object Companion {
-        private const val TAG = "DeputadosRepository"
-    }
-
-    override suspend fun getRecentDeputados(): Flow<List<Deputado>> {
-        loggerInterface.d("getRecentDeputados", TAG)
-
+    override fun getRecentDeputados(): Flow<List<Deputado>> {
         return deputadoDao.getRecentDeputados().map { recentDeputados ->
             recentDeputados.mapNotNull { it.toDomain() }
         }
     }
 
-    override suspend fun getDeputados(): Flow<List<Deputado>> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
+    override fun getDeputados(): Flow<List<Deputado>> = channelFlow {
+        val legislaturaId = legislaturaId()
             ?: run {
                 loggerInterface.w("getDeputados: no legislaturaId, returning empty", TAG)
-                return flowOf(emptyList())
+                send(emptyList())
+                return@channelFlow
             }
 
-        return deputadoDao.getDeputados(legislaturaId).map { deputados ->
-            deputados.mapNotNull { it.toDomain() }
-        }.also {
-            coroutineScope.launch {
-                try {
-                    val response = deputadosApi.getDeputados(legislaturaId = legislaturaId)
-                    deputadoDao.insertDeputados(response.dados.map { it.toLocal(legislaturaId) })
-                    loggerInterface.d("getDeputados: saved ${response.dados.size} deputados", TAG)
-                } catch (e: Exception) {
-                    loggerInterface.e("getDeputados: API call failed", e, TAG)
-                }
+        launch {
+            try {
+                refreshDeputados(legislaturaId)
+            } catch (e: Exception) {
+                loggerInterface.e("getDeputados: refresh failed, serving cache", e, TAG)
             }
         }
+
+        deputadoDao.getDeputados(legislaturaId)
+            .map { deputados -> deputados.mapNotNull { it.toDomain() } }
+            .collect { deputados -> send(deputados) }
     }
 
-    override suspend fun getDeputados(query: String): Flow<List<Deputado>> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
-            ?: run {
-                loggerInterface.w("getDeputados(query='$query'): no legislaturaId, returning empty", TAG)
-                return flowOf(emptyList())
-            }
-
+    override fun getDeputados(query: String): Flow<List<Deputado>> {
         loggerInterface.d("getDeputados: query='$query'", TAG)
-        return deputadoDao.getDeputados(legislaturaId, query).map { deputados ->
-            deputados.mapNotNull { it.toDomain() }
+
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest flowOf(emptyList())
+
+            deputadoDao.getDeputados(legislaturaId, query).map { deputados ->
+                deputados.mapNotNull { it.toDomain() }
+            }
         }
     }
 
     override suspend fun syncDeputados(): Boolean {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
+        val legislaturaId = legislaturaId()
             ?: run {
                 loggerInterface.w("syncDeputados: no legislaturaId, skipping", TAG)
                 return false
             }
 
         return try {
-            val response = deputadosApi.getDeputados(legislaturaId = legislaturaId)
-            deputadoDao.insertDeputados(response.dados.map { it.toLocal(legislaturaId) })
-            loggerInterface.i("syncDeputados: synced ${response.dados.size} deputados", TAG)
+            refreshDeputados(legislaturaId)
             true
         } catch (e: Exception) {
             loggerInterface.e("syncDeputados: failed", e, TAG)
@@ -101,100 +97,65 @@ internal class DeputadosRepository(
         }
     }
 
-    override suspend fun getDeputado(deputadoId: String): Flow<Deputado> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
-            ?: run {
-                loggerInterface.w("getDeputado($deputadoId): no legislaturaId, returning empty", TAG)
-                return flowOf()
-            }
+    override fun getDeputado(deputadoId: String): Flow<Deputado> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest emptyFlow()
 
-        loggerInterface.d("getDeputado: deputadoId=$deputadoId", TAG)
-        return deputadoDao.getDeputado(legislaturaId, deputadoId).mapNotNull {
-            it.toDomain()
+            deputadoDao.getDeputado(legislaturaId, deputadoId).mapNotNull { it.toDomain() }
         }
     }
 
-    override suspend fun getDeputadoDetails(deputadoId: String): Flow<DeputadoDetailsResult> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
-            ?: run {
-                loggerInterface.w("getDeputadoDetails($deputadoId): no legislaturaId, returning empty", TAG)
-                return flowOf()
-            }
+    override fun getDeputadoDetails(deputadoId: String): Flow<Resource<DeputadoDetails>> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId
+                ?: return@flatMapLatest flowOf(Resource.Error())
 
-        loggerInterface.d("getDeputadoDetails: deputadoId=$deputadoId", TAG)
-        deputadoDao.updateLastSeen(deputadoId)
-
-        val apiFailed = MutableStateFlow(false)
-
-        coroutineScope.launch {
-            try {
-                val response = deputadosApi.getDeputadoById(deputadoId)
-                deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
-                loggerInterface.d("getDeputadoDetails: details saved for deputadoId=$deputadoId", TAG)
-            } catch (e: Exception) {
-                loggerInterface.e("getDeputadoDetails: API call failed for deputadoId=$deputadoId", e, TAG)
-                apiFailed.value = true
-            }
-        }
-
-        return combine(
-            deputadoDetailsDao.getDeputadoDetails(legislaturaId, deputadoId),
-            apiFailed
-        ) { entity, failed ->
-            when {
-                entity != null -> DeputadoDetailsResult.Success(entity.toDomain())
-                failed -> DeputadoDetailsResult.Error
-                else -> DeputadoDetailsResult.Fetching
-            }
+            cachedRecord(
+                cache = deputadoDetailsDao.getDeputadoDetails(legislaturaId, deputadoId)
+                    .map { entity -> entity?.toDomain() },
+                refresh = {
+                    deputadoDao.updateLastSeen(deputadoId)
+                    val response = deputadosApi.getDeputadoById(deputadoId)
+                    deputadoDetailsDao.insertDeputadosDetails(listOf(response.dados.toLocal(legislaturaId)))
+                },
+            ).logFailures("getDeputadoDetails(deputadoId=$deputadoId)")
         }
     }
 
-    override fun getDeputadoExpenses(deputadoId: String): Flow<DeputadoExpensesResult> {
-        loggerInterface.d("getDeputadoExpenses: deputadoId=$deputadoId", TAG)
+    override fun getDeputadoExpenses(deputadoId: String): Flow<Resource<List<DeputadoExpense>>> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId
+                ?: return@flatMapLatest flowOf(Resource.Error())
 
-        val fetchStatus = MutableStateFlow(FetchStatus.InFlight)
-
-        coroutineScope.launch {
-            val legislaturaId = userDao.getUser().first()?.legislaturaId
-                ?: run {
-                    loggerInterface.w("getDeputadoExpenses: no legislaturaId, skipping API call", TAG)
-                    fetchStatus.value = FetchStatus.Failed
-                    return@launch
-                }
-
-            try {
-                val currentYear = currentYear()
-                val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, currentYear.toString())
-                val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
-                deputadoExpenseDao.insertDeputadoExpenses(expenses)
-                loggerInterface.d("getDeputadoExpenses: saved ${expenses.size} expenses for year=$currentYear", TAG)
-                fetchStatus.value = FetchStatus.Done
-            } catch (e: Exception) {
-                loggerInterface.e("getDeputadoExpenses: API call failed for deputadoId=$deputadoId", e, TAG)
-                fetchStatus.value = FetchStatus.Failed
-            }
-        }
-
-        val cachedExpenses = userDao.getUser().flatMapLatest { user ->
-            if (user != null && user.legislaturaId != null) {
-                deputadoExpenseDao.getDeputadoExpense(deputadoId, user.legislaturaId)
-            } else {
-                flowOf(emptyList())
-            }
-        }
-
-        // Cached rows win over a failed request: showing last week's expenses beats showing
-        // an error because the Camara API happens to be down right now.
-        return combine(cachedExpenses, fetchStatus) { expenses, status ->
-            when {
-                expenses.isNotEmpty() -> DeputadoExpensesResult.Success(expenses.map { it.toDomain() })
-                status == FetchStatus.Failed -> DeputadoExpensesResult.Error
-                status == FetchStatus.Done -> DeputadoExpensesResult.Success(emptyList())
-                else -> DeputadoExpensesResult.Fetching
-            }
+            cachedList(
+                cache = deputadoExpenseDao.getDeputadoExpense(deputadoId, legislaturaId)
+                    .map { expenses -> expenses.map { it.toDomain() } },
+                refresh = {
+                    val year = currentYear().toString()
+                    val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, year)
+                    deputadoExpenseDao.insertDeputadoExpenses(
+                        response.dados.map { it.toLocal(deputadoId, legislaturaId) }
+                    )
+                },
+            ).logFailures("getDeputadoExpenses(deputadoId=$deputadoId)")
         }
     }
 
+    private suspend fun legislaturaId(): String? = userDao.getUser().first()?.legislaturaId
+
+    private suspend fun refreshDeputados(legislaturaId: String) {
+        val response = deputadosApi.getDeputados(legislaturaId = legislaturaId)
+        deputadoDao.insertDeputados(response.dados.map { it.toLocal(legislaturaId) })
+        loggerInterface.i("refreshDeputados: saved ${response.dados.size} deputados", TAG)
+    }
+
+    private fun <T> Flow<Resource<T>>.logFailures(what: String): Flow<Resource<T>> = onEach { resource ->
+        if (resource is Resource.Error) {
+            loggerInterface.e("$what failed", resource.cause, TAG)
+        }
+    }
+
+    private companion object {
+        const val TAG = "DeputadosRepository"
+    }
 }
-
-private enum class FetchStatus { InFlight, Done, Failed }

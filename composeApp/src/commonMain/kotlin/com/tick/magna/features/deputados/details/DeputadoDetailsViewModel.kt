@@ -8,9 +8,8 @@ import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
-import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
-import com.tick.magna.data.repository.deputados.result.DeputadoExpensesResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,19 +46,19 @@ class DeputadoDetailsViewModel(
                 DeputadoDetailsState(
                     deputado = deputadoData,
                     detailsState = when (detailsResult) {
-                        DeputadoDetailsResult.Fetching -> DetailsState.Loading
-                        DeputadoDetailsResult.Error -> DetailsState.Error
-                        is DeputadoDetailsResult.Success -> DetailsState.Content(detailsResult.details)
+                        Resource.Loading -> DetailsState.Loading
+                        is Resource.Error -> DetailsState.Error
+                        is Resource.Content -> DetailsState.Content(detailsResult.data)
                     },
                     expensesState = when (expensesResult) {
-                        DeputadoExpensesResult.Fetching -> ExpensesState.Loading
-                        DeputadoExpensesResult.Error -> ExpensesState.Error
-                        is DeputadoExpensesResult.Success -> {
-                            if (expensesResult.expenses.isEmpty()) {
+                        Resource.Loading -> ExpensesState.Loading
+                        is Resource.Error -> ExpensesState.Error
+                        is Resource.Content -> {
+                            if (expensesResult.data.isEmpty()) {
                                 trackEmptyExpensesOnce()
                                 ExpensesState.Empty
                             } else {
-                                ExpensesState.Content(expensesResult.expenses)
+                                ExpensesState.Content(expensesResult.data)
                             }
                         }
                     }

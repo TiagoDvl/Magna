@@ -22,7 +22,7 @@ internal class DeputadoDetailsDao(
         }
     }
 
-    override suspend fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetails?> {
+    override fun getDeputadoDetails(legislaturaId: String, deputadoId: String): Flow<DeputadoDetails?> {
         return deputadoDetailsQueries
             .getDeputadoDetails(deputadoId, legislaturaId)
             .asFlow()

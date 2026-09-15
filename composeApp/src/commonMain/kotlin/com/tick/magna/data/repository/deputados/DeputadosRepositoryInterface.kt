@@ -1,24 +1,25 @@
 package com.tick.magna.data.repository.deputados
 
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
-import com.tick.magna.data.repository.deputados.result.DeputadoExpensesResult
+import com.tick.magna.data.domain.DeputadoDetails
+import com.tick.magna.data.domain.DeputadoExpense
+import com.tick.magna.data.repository.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface DeputadosRepositoryInterface {
 
-    suspend fun getRecentDeputados(): Flow<List<Deputado>>
+    fun getRecentDeputados(): Flow<List<Deputado>>
 
-    suspend fun getDeputados(): Flow<List<Deputado>>
+    fun getDeputados(): Flow<List<Deputado>>
 
-    suspend fun getDeputados(query: String): Flow<List<Deputado>>
+    fun getDeputados(query: String): Flow<List<Deputado>>
 
+    /** One-shot, used by the first-run sync. Everything else observes. */
     suspend fun syncDeputados(): Boolean
 
-    suspend fun getDeputado(deputadoId: String): Flow<Deputado>
+    fun getDeputado(deputadoId: String): Flow<Deputado>
 
-    suspend fun getDeputadoDetails(deputadoId: String): Flow<DeputadoDetailsResult>
+    fun getDeputadoDetails(deputadoId: String): Flow<Resource<DeputadoDetails>>
 
-    fun getDeputadoExpenses(deputadoId: String): Flow<DeputadoExpensesResult>
-
+    fun getDeputadoExpenses(deputadoId: String): Flow<Resource<List<DeputadoExpense>>>
 }
