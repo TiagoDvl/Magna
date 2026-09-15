@@ -65,6 +65,14 @@ class ProposicaoDetailsViewModel(
         }
     }
 
+    fun onAutorOpened() {
+        analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.AUTORES))
+    }
+
+    fun onFullTextOpened() {
+        analytics.track(AnalyticsEvent.ExternalLinkOpened(AnalyticsEvent.LinkKind.PROPOSICAO_FULL_TEXT))
+    }
+
     /** The result flow emits repeatedly; the empty outcome is worth reporting only once. */
     private fun trackEmptyAutoresOnce() {
         if (trackedEmptyAutores) return

@@ -64,7 +64,10 @@ fun RecentProposicoesComponent(
         modifier = modifier,
         state = state.value,
         onAction = { viewModel.processAction(it) },
-        onProposicaoClick = onProposicaoClick,
+        onProposicaoClick = { proposicaoId ->
+            viewModel.onProposicaoOpened()
+            onProposicaoClick(proposicaoId)
+        },
     )
 }
 

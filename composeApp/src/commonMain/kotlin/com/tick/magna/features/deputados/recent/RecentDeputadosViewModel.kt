@@ -2,6 +2,8 @@ package com.tick.magna.features.deputados.recent
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
@@ -14,6 +16,7 @@ class RecentDeputadosViewModel(
     private val deputadosRepository: DeputadosRepositoryInterface,
     dispatcherInterface: DispatcherInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ): ViewModel() {
 
     companion object {
@@ -35,5 +38,9 @@ class RecentDeputadosViewModel(
                 _recentDeputadosState.value = state
             }
         }
+    }
+
+    fun onDeputadoOpened() {
+        analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.RECENT))
     }
 }

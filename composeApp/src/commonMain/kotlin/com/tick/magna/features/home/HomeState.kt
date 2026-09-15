@@ -11,4 +11,7 @@ data class HomeState(
 sealed interface HomeAction {
     data object RetrySync : HomeAction
     data class SearchDeputado(val query: String) : HomeAction
+
+    /** Reported only; opening the deputado is the navigation controller's job. */
+    data object SearchResultOpened : HomeAction
 }

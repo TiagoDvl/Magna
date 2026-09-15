@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
@@ -68,6 +69,22 @@ class DeputadoDetailsViewModel(
                 _state.value = state
             }
         }
+    }
+
+    /**
+     * Whether the record carries a document decides how useful the sheet is: an expense
+     * nobody can verify is the one worth knowing about.
+     */
+    fun onExpenseOpened(expense: DeputadoExpense) {
+        analytics.track(AnalyticsEvent.ExpenseOpened(hasDocument = expense.urlDocumento != null))
+    }
+
+    fun onExpenseDocumentOpened() {
+        analytics.track(AnalyticsEvent.ExternalLinkOpened(AnalyticsEvent.LinkKind.EXPENSE_DOCUMENT))
+    }
+
+    fun onSocialOpened() {
+        analytics.track(AnalyticsEvent.ExternalLinkOpened(AnalyticsEvent.LinkKind.DEPUTADO_SOCIAL))
     }
 
     /** The combined flow emits repeatedly; the empty outcome is worth reporting only once. */

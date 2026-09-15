@@ -31,6 +31,10 @@ class DeputadosSearchViewModel(
     private val _state = MutableStateFlow(DeputadosSearchState())
     val state = _state.asStateFlow()
 
+    fun onDeputadoOpened() {
+        analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.SEARCH))
+    }
+
     fun processAction(action: DeputadosSearchAction) {
         logger.d("processAction: $action", TAG)
         when (action) {

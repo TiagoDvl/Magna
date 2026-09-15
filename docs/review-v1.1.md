@@ -391,12 +391,34 @@ A busca usa debounce de 1s só para o evento; a busca em si continua rodando a c
 
 **Testes: 53 passando.**
 
-### 8.5 O que falta (terceira fatia)
+### 8.5 Eventos de navegação (terceira fatia) — FEITO
 
-- **Eventos de navegação com `source`**: `deputado_opened`, `proposicao_opened`, `partido_opened`. Ficaram de fora de propósito: só valem se as quatro fontes de `deputado_opened` entrarem juntas. Se só uma reportasse, o relatório diria que todo mundo chega por ali. Dado parcial de `source` engana mais que ausência de dado.
-- `expense_opened` e `external_link_opened` — o enum `LinkKind` já existe, falta chamar nas telas.
-- `setUserProperty(legislatura_id)` no fim do sync.
-- Um teste de grafo do Koin (`checkModules`) em `jvmTest`.
+As cinco fontes de `deputado_opened` entraram no mesmo commit, que era a condição combinada: `source` parcial engana mais que ausência de dado.
+
+| Evento | Origem | Onde dispara |
+| --- | --- | --- |
+| `deputado_opened(home_search)` | resultado da busca da Home | `HomeViewModel`, via `HomeAction.SearchResultOpened` |
+| `deputado_opened(recent)` | carrossel de recentes | `RecentDeputadosViewModel.onDeputadoOpened` |
+| `deputado_opened(search)` | tela de busca com filtros | `DeputadosSearchViewModel.onDeputadoOpened` |
+| `deputado_opened(autores)` | lista de autores da proposição | `ProposicaoDetailsViewModel.onAutorOpened` |
+| `deputado_opened(membros)` | membros do partido | `PartidoDetailsViewModel.onMemberOpened` |
+| `partido_opened(home_section)` | seção de partidos da Home | `PartidosComponentViewModel.onPartidoOpened` |
+| `partido_opened(list)` | lista completa de partidos | `PartidosListViewModel.onPartidoOpened` |
+| `proposicao_opened` | seção de proposições da Home | `RecentProposicoesViewModel.onProposicaoOpened` |
+| `expense_opened(has_document)` | abertura da sheet de despesa | `DeputadoDetailsViewModel.onExpenseOpened` |
+| `external_link_opened(kind)` | 4 destinos externos | ver abaixo |
+
+Decisões:
+
+- **O evento sai do ViewModel, não do composable.** Todos os pontos de origem já tinham um ViewModel; o `koinInject<AnalyticsInterface>()` dentro da árvore de composição quebraria os `@Preview`, que renderizam justamente os composables privados de conteúdo. As telas passam a lambda para baixo como já faziam com navegação.
+- **`source` não virou argumento de rota.** Seria mais robusto (sobrevive a morte de processo), mas põe uma preocupação de analytics dentro do modelo de navegação e faz a mesma tela com duas origens virar duas entradas distintas na back stack.
+- **`RecentDeputadosComponent` trocou `onNavigate: (Any) -> Unit` por `onDeputadoClick` e `onSearchClick`.** A assinatura pública não mudou; o que sumiu foi precisar de um `is DeputadoDetailsArgs` dentro de uma lambda para saber o que tinha sido clicado.
+- **`LinkKind.DEPUTADO_WEBSITE` foi removido do catálogo.** `DeputadoDetails.urlWebsite` existe no domínio e no mapper, mas nenhuma tela renderiza. Um valor de dimensão que nada consegue emitir é pior que valor nenhum: o relatório parece completo. Sobraram `expense_document`, `proposicao_full_text`, `deputado_social` e `partido_website`, e um teste fixa esse conjunto — igual ao que já existia para `Source`.
+- **`legislatura_id` sai no fim do sync**, em `SyncUserInformationUseCase.reportLegislatura()`, depois do passo de configuração para que a primeira execução reporte a linha que acabou de escrever. `UserRepositoryInterface` ganhou `getLegislaturaId()`. É user property, não parâmetro: particiona todo o relatório pela legislatura a que o dado local pertence, que é o que vai distinguir sessão em dado fresco de sessão presa na legislatura velha quando a próxima começar.
+
+**Bug encontrado no caminho:** `ProposicaoAutores.kt` tinha `private const val AUTORES_INITIAL_COUNT` declarado duas vezes no mesmo arquivo — redeclaração, erro de compilação. Entrou na extração do bloco 6 e só apareceu agora porque nada compilou desde então.
+
+**Teste de grafo do Koin: não feito, de propósito.** Exigiria `koin-test`, um source set `jvmTest` novo e `Module.verify()` com `extraTypes` para os ViewModels injetados por parâmetro — tudo isso sem poder rodar nada para conferir. E o risco que ele cobre é pequeno aqui: no DSL `module { X(get(), get()) }` a aridade errada é erro de compilação, não de runtime; sobra só o caso de tipo não registrado, e `AnalyticsInterface` já está no `loggingModule`. Fica para a passada de verificação em lote.
 
 ### 8.6 Configuração do Firebase, fora do código
 
@@ -416,7 +438,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | Bloco | Escopo | Arquivos principais | Pré-requisito |
 |---|---|---|---|
 | 0 | ~~Baseline de migração (`1.db`), CI rodando `:composeApp:jvmTest`, primeiro teste real~~ **FEITO** | `migrations/1.db`, `android-release.yml`, `commonTest` | nenhum |
-| 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release — **base pronta**, faltam os eventos de navegação (8.5) | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
+| 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release + eventos de navegação com `source` (8.5) — **FEITO** | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
 | 2 | ~~Despesas: schema, `1.sqm`, upsert, `Error` state, formatação pt-BR, parâmetro `ano`~~ **FEITO** | `DeputadoExpense.sq`, `1.sqm`, `2.db`, mapper, DAO, repositório, `DeputadosApi.kt`, tela | 0 |
 | 3 | ~~`HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura`~~ **FEITO** | `HttpClientFactory.kt`, `ApiJson.kt`, `dto/*.kt`, `response/*.kt`, `PartidosApi.kt` | 0 |
 | 4 | ~~Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado~~ **FEITO** | `Resource.kt`, `Modules.kt`, `repository/**` | 2, 3 |

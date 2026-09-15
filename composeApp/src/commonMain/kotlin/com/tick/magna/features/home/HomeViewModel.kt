@@ -53,6 +53,8 @@ class HomeViewModel(
         when (action) {
             HomeAction.RetrySync -> trySync()
             is HomeAction.SearchDeputado -> handleSearchQuery(action.query)
+            HomeAction.SearchResultOpened ->
+                analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.HOME_SEARCH))
         }
     }
 

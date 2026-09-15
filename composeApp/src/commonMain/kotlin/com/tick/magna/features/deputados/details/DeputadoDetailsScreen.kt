@@ -80,6 +80,9 @@ fun DeputadoDetailScreen(
     DeputadoDetails(
         state = state,
         navigateBack = { navController.popBackStack() },
+        onExpenseOpened = viewModel::onExpenseOpened,
+        onExpenseDocumentOpened = viewModel::onExpenseDocumentOpened,
+        onSocialOpened = viewModel::onSocialOpened,
     )
 }
 
@@ -87,6 +90,9 @@ fun DeputadoDetailScreen(
 private fun DeputadoDetails(
     state: DeputadoDetailsState,
     navigateBack: () -> Unit = {},
+    onExpenseOpened: (DeputadoExpense) -> Unit = {},
+    onExpenseDocumentOpened: () -> Unit = {},
+    onSocialOpened: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -132,7 +138,8 @@ private fun DeputadoDetails(
                 is DeputadoDetailsSheetState.Expense -> {
                     DeputadoExpenseDetails(
                         deputadoExpense = sheetState.deputadoExpense,
-                        onCloseSheet = { hideSheet() }
+                        onCloseSheet = { hideSheet() },
+                        onDocumentOpened = onExpenseDocumentOpened,
                     )
                 }
                 null -> Unit
@@ -148,12 +155,16 @@ private fun DeputadoDetails(
                 DetailHeader(
                     modifier = Modifier.padding(dimensions.grid16),
                     deputado = state.deputado,
-                    detailsState = state.detailsState
+                    detailsState = state.detailsState,
+                    onSocialOpened = onSocialOpened,
                 )
 
                 DeputadoExpenses(
                     state = state.expensesState,
-                    onExpenseClick = { showSheet(DeputadoDetailsSheetState.Expense(it)) },
+                    onExpenseClick = { expense ->
+                        onExpenseOpened(expense)
+                        showSheet(DeputadoDetailsSheetState.Expense(expense))
+                    },
                 )
             }
         }
@@ -165,6 +176,7 @@ private fun DetailHeader(
     modifier: Modifier = Modifier,
     deputado: Deputado?,
     detailsState: DetailsState,
+    onSocialOpened: () -> Unit = {},
 ) {
     Row(
         modifier = modifier,
@@ -172,7 +184,7 @@ private fun DetailHeader(
         verticalAlignment = Alignment.Top
     ) {
         DetailAvatar(deputado = deputado)
-        DetailContent(detailsState = detailsState)
+        DetailContent(detailsState = detailsState, onSocialOpened = onSocialOpened)
     }
 }
 
@@ -218,7 +230,8 @@ private fun DetailAvatar(
 @Composable
 private fun DetailContent(
     modifier: Modifier = Modifier,
-    detailsState: DetailsState
+    detailsState: DetailsState,
+    onSocialOpened: () -> Unit = {},
 ) {
     Column(modifier = modifier) {
         when (detailsState) {
@@ -235,7 +248,10 @@ private fun DetailContent(
             }
             is DetailsState.Content -> {
                 GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
-                SocialsDetails(socials = detailsState.deputadoDetails.socials)
+                SocialsDetails(
+                    socials = detailsState.deputadoDetails.socials,
+                    onSocialOpened = onSocialOpened,
+                )
             }
             DetailsState.Error -> Unit
         }
@@ -273,7 +289,8 @@ private fun GabineteDetails(
 @Composable
 private fun SocialsDetails(
     modifier: Modifier = Modifier,
-    socials: Map<String, String>
+    socials: Map<String, String>,
+    onSocialOpened: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val chipsStyle = MaterialTheme.typography.labelMedium.copy(
@@ -288,7 +305,10 @@ private fun SocialsDetails(
         socials.entries.forEach { entry ->
             AssistChip(
                 label = { Text(text = entry.key, style = chipsStyle) },
-                onClick = { uriHandler.openUri(entry.value) }
+                onClick = {
+                    onSocialOpened()
+                    uriHandler.openUri(entry.value)
+                }
             )
         }
     }

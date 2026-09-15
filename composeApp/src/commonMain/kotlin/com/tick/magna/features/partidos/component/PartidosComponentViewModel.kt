@@ -2,6 +2,8 @@ package com.tick.magna.features.partidos.component
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.logger.AppLoggerInterface
@@ -15,6 +17,7 @@ class PartidosComponentViewModel(
     private val partidosRepository: PartidosRepositoryInterface,
     private val dispatcher: DispatcherInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
@@ -37,5 +40,9 @@ class PartidosComponentViewModel(
                 logger.e("state: failed to load partidos for component", e, TAG)
             }
         }
+    }
+
+    fun onPartidoOpened() {
+        analytics.track(AnalyticsEvent.PartidoOpened(AnalyticsEvent.Source.HOME_SECTION))
     }
 }

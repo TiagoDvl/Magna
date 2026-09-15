@@ -241,6 +241,7 @@ private fun MagnaHomeContent(
                                         .clickable {
                                             textFieldState.edit { replace(0, length, it.name) }
                                             expanded = false
+                                            sendAction(HomeAction.SearchResultOpened)
                                             navigateTo(DeputadoDetailsArgs(it.id))
                                         }
                                         .fillMaxWidth()

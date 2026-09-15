@@ -140,7 +140,6 @@ sealed class AnalyticsEvent(
         EXPENSE_DOCUMENT("expense_document"),
         PROPOSICAO_FULL_TEXT("proposicao_full_text"),
         DEPUTADO_SOCIAL("deputado_social"),
-        DEPUTADO_WEBSITE("deputado_website"),
         PARTIDO_WEBSITE("partido_website"),
     }
 

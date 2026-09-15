@@ -47,7 +47,10 @@ fun PartidosListScreen(
     PartidosListContent(
         state = state,
         navigateBack = { navController.popBackStack() },
-        onPartidoClick = onPartidoClick,
+        onPartidoClick = { partidoId ->
+            viewModel.onPartidoOpened()
+            onPartidoClick(partidoId)
+        },
     )
 }
 

@@ -2,6 +2,8 @@ package com.tick.magna.features.partidos.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
@@ -15,6 +17,7 @@ class PartidosListViewModel(
     private val partidosRepository: PartidosRepositoryInterface,
     private val dispatcher: DispatcherInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
@@ -40,5 +43,9 @@ class PartidosListViewModel(
                 _state.update { it.copy(isLoading = false) }
             }
         }
+    }
+
+    fun onPartidoOpened() {
+        analytics.track(AnalyticsEvent.PartidoOpened(AnalyticsEvent.Source.LIST))
     }
 }

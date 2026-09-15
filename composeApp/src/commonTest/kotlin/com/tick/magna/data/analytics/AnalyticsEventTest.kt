@@ -135,6 +135,20 @@ class AnalyticsEventTest {
     }
 
     @Test
+    fun every_link_kind_in_the_catalogue_has_something_that_opens_it() {
+        // DEPUTADO_WEBSITE was listed here while no screen ever rendered urlWebsite, which
+        // would have shown up as a link kind that never appears in the report.
+        val wiredKinds = setOf(
+            AnalyticsEvent.LinkKind.EXPENSE_DOCUMENT,
+            AnalyticsEvent.LinkKind.PROPOSICAO_FULL_TEXT,
+            AnalyticsEvent.LinkKind.DEPUTADO_SOCIAL,
+            AnalyticsEvent.LinkKind.PARTIDO_WEBSITE,
+        )
+
+        assertEquals(wiredKinds, AnalyticsEvent.LinkKind.entries.toSet())
+    }
+
+    @Test
     fun enum_backed_values_are_snake_case() {
         val values = AnalyticsEvent.Source.entries.map { it.value } +
             AnalyticsEvent.SyncStep.entries.map { it.value } +

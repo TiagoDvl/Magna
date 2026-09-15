@@ -50,6 +50,10 @@ class RecentProposicoesViewModel(
             RecentProposicoesState()
         )
 
+    fun onProposicaoOpened() {
+        analytics.track(AnalyticsEvent.ProposicaoOpened)
+    }
+
     fun processAction(action: Action) {
         logger.d("processAction: $action", TAG)
         when (action) {

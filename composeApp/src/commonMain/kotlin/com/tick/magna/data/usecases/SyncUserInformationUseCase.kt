@@ -55,11 +55,25 @@ class SyncUserInformationUseCase(
                         syncInitialDependencies()
                     }
                 }
+
+                reportLegislatura()
             } catch (exception: Exception) {
                 logger.e("invoke: unexpected error", exception, TAG)
                 emit(SyncUserInformationState.Retry)
             }
         }
+    }
+
+    /**
+     * A user property rather than an event parameter: it partitions every report by the
+     * legislature the local data belongs to. When the next one starts, this is what tells a
+     * session on fresh data from a session still holding the old one.
+     *
+     * Read after the configuration step, so the first run reports the row it just wrote.
+     */
+    private suspend fun reportLegislatura() {
+        val legislaturaId = userRepository.getLegislaturaId() ?: return
+        analytics.setUserProperty(AnalyticsEvent.USER_PROPERTY_LEGISLATURA, legislaturaId)
     }
 
     private suspend fun FlowCollector<SyncUserInformationState>.syncInitialDependencies() {

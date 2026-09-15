@@ -60,7 +60,11 @@ fun RecentDeputadosComponent(
     RecentDeputadosComponentContent(
         modifier = modifier,
         state = state.value,
-        onNavigate = onNavigate
+        onDeputadoClick = { deputadoId ->
+            viewModel.onDeputadoOpened()
+            onNavigate(DeputadoDetailsArgs(deputadoId))
+        },
+        onSearchClick = { onNavigate(DeputadosSearchArgs) }
     )
 }
 
@@ -68,14 +72,19 @@ fun RecentDeputadosComponent(
 private fun RecentDeputadosComponentContent(
     modifier: Modifier = Modifier,
     state: RecentDeputadosState,
-    onNavigate: (Any) -> Unit = {},
+    onDeputadoClick: (deputadoId: String) -> Unit = {},
+    onSearchClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxWidth().height(200.dp)
     ) {
         when (state) {
             RecentDeputadosState.Empty -> FeatureDiscovery()
-            is RecentDeputadosState.Peak -> RecentDeputados(state.deputados, onNavigate)
+            is RecentDeputadosState.Peak -> RecentDeputados(
+                deputados = state.deputados,
+                onDeputadoClick = onDeputadoClick,
+                onSearchClick = onSearchClick,
+            )
         }
     }
 }
@@ -121,7 +130,8 @@ private fun FeatureDiscovery() {
 @Composable
 private fun RecentDeputados(
     deputados: List<Deputado>,
-    onNavigate: (Any) -> Unit
+    onDeputadoClick: (deputadoId: String) -> Unit,
+    onSearchClick: () -> Unit,
 ) {
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
@@ -144,7 +154,7 @@ private fun RecentDeputados(
                 )
             )
             Text(
-                modifier = Modifier.clickable(null, null, onClick = { onNavigate(DeputadosSearchArgs) }),
+                modifier = Modifier.clickable(null, null, onClick = onSearchClick),
                 text = stringResource(Res.string.recent_deputados_more),
                 style = typography.titleSmall.copy(color = colorScheme.tertiary)
             )
@@ -162,7 +172,7 @@ private fun RecentDeputados(
                         containerColor = colorScheme.surfaceContainer,
                         contentColor = colorScheme.onSurface
                     ),
-                    onClick = { onNavigate(DeputadoDetailsArgs(deputado.id)) }
+                    onClick = { onDeputadoClick(deputado.id) }
                 ) {
                     Column(
                         modifier = Modifier
@@ -203,7 +213,7 @@ private fun RecentDeputados(
                         containerColor = colorScheme.surfaceContainerLow,
                         contentColor = colorScheme.onSurface
                     ),
-                    onClick = { onNavigate(DeputadosSearchArgs) }
+                    onClick = onSearchClick
                 ) {
                     Column(
                         modifier = Modifier

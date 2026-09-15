@@ -80,7 +80,11 @@ fun PartidoDetailsScreen(
         state = state,
         onAction = { viewModel.processAction(it) },
         onBack = { navController.popBackStack() },
-        onMemberClick = { navController.navigate(DeputadoDetailsArgs(it)) },
+        onMemberClick = { deputadoId ->
+            viewModel.onMemberOpened()
+            navController.navigate(DeputadoDetailsArgs(deputadoId))
+        },
+        onWebsiteOpened = viewModel::onWebsiteOpened,
         labelGender = stringResource(Res.string.partido_details_gender),
         labelAge = stringResource(Res.string.partido_details_age),
         labelBirthState = stringResource(Res.string.partido_details_birth_state),
@@ -104,6 +108,7 @@ private fun PartidoDetailsContent(
     onAction: (PartidoDetailsAction) -> Unit = {},
     onBack: () -> Unit = {},
     onMemberClick: (String) -> Unit = {},
+    onWebsiteOpened: () -> Unit = {},
     labelGender: String,
     labelAge: String,
     labelBirthState: String,
@@ -164,7 +169,10 @@ private fun PartidoDetailsContent(
                             labelLeader = labelLeader,
                             labelSituacao = labelSituacao,
                             labelMembros = labelMembros,
-                            onUrlClick = { url -> uriHandler.openUri(url) },
+                            onUrlClick = { url ->
+                                onWebsiteOpened()
+                                uriHandler.openUri(url)
+                            },
                         )
                     }
                 }

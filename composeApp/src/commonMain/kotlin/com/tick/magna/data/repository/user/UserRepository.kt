@@ -33,6 +33,8 @@ class UserRepository(
         }
     }
 
+    override suspend fun getLegislaturaId(): String? = userDao.getUser().first()?.legislaturaId
+
     override fun setupInitialConfiguration() {
         logger.i("setupInitialConfiguration: inserting initial user", TAG)
         userDao.setupInitialUser()

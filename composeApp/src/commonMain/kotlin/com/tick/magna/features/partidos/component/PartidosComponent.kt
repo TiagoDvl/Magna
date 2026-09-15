@@ -51,7 +51,10 @@ fun PartidosComponent(
         seeAllText = stringResource(Res.string.partidos_see_all),
         membersSuffix = stringResource(Res.string.partidos_members_suffix),
         onVerTodosClick = onVerTodosClick,
-        onPartidoClick = onPartidoClick,
+        onPartidoClick = { partidoId ->
+            viewModel.onPartidoOpened()
+            onPartidoClick(partidoId)
+        },
     )
 }
 

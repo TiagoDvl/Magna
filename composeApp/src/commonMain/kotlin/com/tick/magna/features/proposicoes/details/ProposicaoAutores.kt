@@ -80,8 +80,6 @@ internal fun AutoresSection(
     }
 }
 
-private const val AUTORES_INITIAL_COUNT = 10
-
 @Composable
 private fun AutoresList(autores: List<Deputado>, onAutorClick: (String) -> Unit = {}) {
     val dimensions = LocalDimensions.current

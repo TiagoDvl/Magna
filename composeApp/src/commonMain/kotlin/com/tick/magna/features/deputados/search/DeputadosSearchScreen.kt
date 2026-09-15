@@ -71,7 +71,10 @@ fun DeputadosSearchScreen(
 
     DeputadosSearchContent(
         state = state.value,
-        onDeputadoClick = { navController.navigate(DeputadoDetailsArgs(it)) },
+        onDeputadoClick = { deputadoId ->
+            viewModel.onDeputadoOpened()
+            navController.navigate(DeputadoDetailsArgs(deputadoId))
+        },
         navigateBack = { navController.popBackStack() },
         onFilter = { viewModel.processAction(DeputadosSearchAction.OnFilter(it)) }
     )

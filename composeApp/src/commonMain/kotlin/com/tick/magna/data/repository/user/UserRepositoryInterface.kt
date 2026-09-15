@@ -6,4 +6,7 @@ interface UserRepositoryInterface {
 
     suspend fun getUserConfiguration(): UserConfiguration
     fun setupInitialConfiguration()
+
+    /** Null until the first run finishes writing the user row. */
+    suspend fun getLegislaturaId(): String?
 }

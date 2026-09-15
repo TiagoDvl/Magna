@@ -40,7 +40,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DeputadoExpenseDetails(
     deputadoExpense: DeputadoExpense,
-    onCloseSheet: () -> Unit = {}
+    onCloseSheet: () -> Unit = {},
+    onDocumentOpened: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val uriHandler = LocalUriHandler.current
@@ -152,7 +153,12 @@ fun DeputadoExpenseDetails(
         Button(
             modifier = Modifier.fillMaxWidth(),
             enabled = deputadoExpense.urlDocumento != null,
-            onClick = { deputadoExpense.urlDocumento?.let { uriHandler.openUri(it) } },
+            onClick = {
+                deputadoExpense.urlDocumento?.let { url ->
+                    onDocumentOpened()
+                    uriHandler.openUri(url)
+                }
+            },
             content = { Text(text = stringResource(Res.string.deputado_details_check_document)) }
         )
     }

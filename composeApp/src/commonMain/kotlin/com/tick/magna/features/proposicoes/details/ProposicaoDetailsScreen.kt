@@ -74,7 +74,11 @@ fun ProposicaoDetailsScreen(
         orgaoLabel = stringResource(Res.string.proposicao_details_orgao_label),
         viewFullTextLabel = stringResource(Res.string.proposicao_details_view_full_text),
         navigateBack = { navController.popBackStack() },
-        onAutorClick = { deputadoId -> navController.navigate(DeputadoDetailsArgs(deputadoId)) },
+        onAutorClick = { deputadoId ->
+            viewModel.onAutorOpened()
+            navController.navigate(DeputadoDetailsArgs(deputadoId))
+        },
+        onFullTextOpened = viewModel::onFullTextOpened,
     )
 }
 
@@ -92,6 +96,7 @@ private fun ProposicaoDetailsContent(
     viewFullTextLabel: String,
     navigateBack: () -> Unit = {},
     onAutorClick: (String) -> Unit = {},
+    onFullTextOpened: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
 
@@ -165,7 +170,12 @@ private fun ProposicaoDetailsContent(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                     ),
-                    onClick = { url?.let { uriHandler.openUri(it) } },
+                    onClick = {
+                        url?.let {
+                            onFullTextOpened()
+                            uriHandler.openUri(it)
+                        }
+                    },
                 ) {
                     Text(text = viewFullTextLabel)
                 }
