@@ -32,6 +32,8 @@ class PartidoDetailsViewModel(
 
     private val partidoId: String = savedStateHandle.toRoute<PartidoDetailsArgs>().partidoId
 
+    private var trackedEmptyMembers = false
+
     private val _state = MutableStateFlow(PartidoDetailsState())
     val state: StateFlow<PartidoDetailsState> = _state.asStateFlow()
 
@@ -48,7 +50,10 @@ class PartidoDetailsViewModel(
                         },
                         membersState = when {
                             result.isLoadingMembers -> PartidoMembersState.Loading
-                            result.members.isEmpty() -> PartidoMembersState.Empty
+                            result.members.isEmpty() -> {
+                                trackEmptyOnce(AnalyticsEvent.EmptyContent.PARTIDO_MEMBROS)
+                                PartidoMembersState.Empty
+                            }
                             else -> PartidoMembersState.Content(
                                 members = result.members,
                                 isLoadingDetails = result.isLoadingMemberDetails,
@@ -59,6 +64,13 @@ class PartidoDetailsViewModel(
                 }
             }
         }
+    }
+
+    /** The result flow emits repeatedly; the empty outcome is worth reporting only once. */
+    private fun trackEmptyOnce(content: AnalyticsEvent.EmptyContent) {
+        if (trackedEmptyMembers) return
+        trackedEmptyMembers = true
+        analytics.track(AnalyticsEvent.ContentEmpty(content))
     }
 
     fun processAction(action: PartidoDetailsAction) {

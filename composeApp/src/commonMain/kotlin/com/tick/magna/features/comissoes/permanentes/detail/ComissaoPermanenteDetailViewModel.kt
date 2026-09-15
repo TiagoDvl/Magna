@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.logger.AppLoggerInterface
@@ -22,6 +24,7 @@ class ComissaoPermanenteDetailViewModel(
     dispatcher: DispatcherInterface,
     private val orgaosRepository: OrgaosRepositoryInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
@@ -45,10 +48,16 @@ class ComissaoPermanenteDetailViewModel(
 
             logger.d("init: loading votacoes for orgao=${orgao.nomeResumido}", TAG)
             _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
+            analytics.track(AnalyticsEvent.ComissaoOpened(sigla = orgao.sigla.orEmpty()))
 
             orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
                 .onSuccess { votacoes ->
                     logger.d("init: ${votacoes.size} votacoes loaded for orgao=${orgao.nomeResumido}", TAG)
+                    if (votacoes.isEmpty()) {
+                        analytics.track(
+                            AnalyticsEvent.ContentEmpty(AnalyticsEvent.EmptyContent.COMISSAO_VOTACOES)
+                        )
+                    }
                     _state.update { it.copy(votacoes = votacoes) }
                 }
                 .onFailure { e ->

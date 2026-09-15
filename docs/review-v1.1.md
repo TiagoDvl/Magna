@@ -336,20 +336,34 @@ Android, em `androidApp`:
 
 Gating de log (resolve o item 3.7): `AppBuildConfig(isDebug)` vem do `platformModule` de cada plataforma. Em release o Ktor `Logging` não é instalado, o `prettyPrint` do JSON sai, e o logger do Koin fica fora.
 
-Eventos ligados nesta primeira fatia: `screen_view` (automático, via back stack), `sync_started`, `sync_finished(success, duration_ms)`, `proposicao_filter_changed` e `partido_chart_selected`.
+Eventos ligados: `screen_view` (automático, via back stack), `sync_started`, `sync_finished(success, duration_ms)`, `sync_step_failed(step)`, `api_error(endpoint, status)`, `content_empty(content)`, `search_performed`, `proposicao_filter_changed`, `comissao_opened(sigla)` e `partido_chart_selected`.
 
-**Testes: 40 passando.** Entre eles, `AnalyticsOverrideTest` fixa a premissa de que o Koin deixa um módulo posterior substituir um binding anterior. Se não deixasse, o `MagnaApplication` explodiria no launch para todo usuário. Verificado, não assumido.
+Três decisões que valem registro:
 
-Validado: `:composeApp:jvmTest`, `:androidApp:assembleDebug` e `:androidApp:minifyReleaseWithR8` passam. **iOS não foi compilado** — os targets `iosArm64`/`iosSimulatorArm64` exigem macOS. O único ponto de risco lá é `kotlin.native.Platform.isDebugBinary` no `Platform.ios.kt`.
+- **`api_error` sai do cliente Ktor, não dos repositórios.** Um `HttpResponseValidator` no `HttpClientFactory` cobre tudo de uma vez, inclusive as falhas que nunca produzem resposta (timeout, sem conexão) — justamente o caso que mais importa num app usado offline. A alternativa seria instrumentar quinze blocos `catch`.
+- **`toEndpointName()` mascara id.** A URL crua (`/api/v2/deputados/204528/despesas`) diz qual político a pessoa estava lendo, e cada id viraria uma linha no relatório. Qualquer segmento com dígito vira `{id}`. Nenhum nome de endpoint da API da Câmara tem dígito, então a regra é segura e pega também id não-numérico como o `2358471-1` das votações. `EndpointNameTest` garante que nenhum dígito escapa.
+- **`sync_step_failed` mudou comportamento de propósito.** O `if` antigo usava `&&`, que curto-circuita: se partidos falhasse, o use case emitia `Retry` sem esperar os outros três, deixando coroutines órfãs rodando. Agora os quatro são aguardados e o passo que falhou é nomeado.
 
-### 8.5 O que falta (segunda fatia)
+A busca usa debounce de 1s só para o evento; a busca em si continua rodando a cada tecla. Digitar "tabata" reportava seis buscas, cinco das quais ninguém fez.
 
-- Eventos de navegação com `source`: `deputado_opened`, `proposicao_opened`, `partido_opened`, `comissao_opened`. O `source` é o dado mais valioso do catálogo e exige um método por ViewModel de componente, chamado no clique.
-- `search_performed`: precisa de debounce. Hoje `HomeViewModel.handleSearchQuery` roda a cada tecla; instrumentar direto geraria um evento por caractere.
-- `expense_opened` e `external_link_opened`.
-- `api_error`: melhor ligar junto com o `HttpTimeout` do bloco 3, para que timeout vire `status = null` de forma consistente.
+**Testes: 53 passando.**
+
+### 8.5 O que falta (terceira fatia)
+
+- **Eventos de navegação com `source`**: `deputado_opened`, `proposicao_opened`, `partido_opened`. Ficaram de fora de propósito: só valem se as quatro fontes de `deputado_opened` entrarem juntas. Se só uma reportasse, o relatório diria que todo mundo chega por ali. Dado parcial de `source` engana mais que ausência de dado.
+- `expense_opened` e `external_link_opened` — o enum `LinkKind` já existe, falta chamar nas telas.
+- `content_empty` para despesas de deputado: bloqueado no bloco 2. Hoje lista vazia e erro produzem o mesmo estado (`ExpensesState.Loading`, item 5.1), então não dá para distinguir "não tem despesa" de "a API caiu".
 - `setUserProperty(legislatura_id)` no fim do sync.
-- Um teste de grafo do Koin (`checkModules`) em `jvmTest` para pegar binding faltando em tempo de teste. As três mudanças de construtor desta fatia foram conferidas na mão.
+- Um teste de grafo do Koin (`checkModules`) em `jvmTest`.
+
+### 8.6 Configuração do Firebase, fora do código
+
+Dois ajustes que **não são retroativos** e por isso valem antes de a 1.1 sair:
+
+- **Retenção de dados**: o padrão do Analytics é 2 meses. Subir para 14.
+- **Export para o BigQuery**: grátis, diário, e entrega o evento cru sem os limiares que o painel aplica a audiência pequena. Com poucos usuários, é a diferença entre ver os dados e olhar para um relatório vazio.
+
+Com essa base de usuários, contagem de evento não vai ter significado estatístico. O que rende é sinal de presença: "alguém já abriu despesas?", "o sync falha, e em qual passo?". O catálogo foi desenhado para isso.
 
 ---
 

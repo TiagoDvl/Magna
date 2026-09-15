@@ -1,5 +1,7 @@
 package com.tick.magna.data.usecases
 
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
@@ -22,6 +24,7 @@ class SyncUserInformationUseCase(
     private val orgaosRepository: OrgaosRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val coroutineScope: CoroutineScope,
+    private val analytics: AnalyticsInterface,
 ) {
 
     companion object {
@@ -68,11 +71,26 @@ class SyncUserInformationUseCase(
         val deputadosSuccess = coroutineScope.async { deputadosRepository.syncDeputados().also { logger.d("deputadosSuccess > $it", TAG) } }
         val orgaosSuccess = coroutineScope.async { orgaosRepository.syncComissoesPermanentes().also { logger.d("orgaosSuccess > $it", TAG) } }
 
-        if (syncPartidosSuccess.await() && siglaTiposSuccess.await() && deputadosSuccess.await() && orgaosSuccess.await()) {
+        // Awaited into named results so a failure can be attributed to a step. Knowing
+        // that "the sync failed" is not actionable; knowing that orgaos is the one that
+        // keeps failing is.
+        val results = mapOf(
+            AnalyticsEvent.SyncStep.PARTIDOS to syncPartidosSuccess.await(),
+            AnalyticsEvent.SyncStep.SIGLA_TIPOS to siglaTiposSuccess.await(),
+            AnalyticsEvent.SyncStep.DEPUTADOS to deputadosSuccess.await(),
+            AnalyticsEvent.SyncStep.ORGAOS to orgaosSuccess.await(),
+        )
+
+        results.filterValues { succeeded -> !succeeded }.keys.forEach { step ->
+            analytics.track(AnalyticsEvent.SyncStepFailed(step))
+        }
+
+        if (results.values.all { succeeded -> succeeded }) {
             logger.i("syncInitialDependencies: all syncs completed successfully", TAG)
             emit(SyncUserInformationState.Done)
         } else {
-            logger.w("syncInitialDependencies: one or more syncs failed", TAG)
+            val failed = results.filterValues { succeeded -> !succeeded }.keys.joinToString { it.value }
+            logger.w("syncInitialDependencies: failed steps: $failed", TAG)
             emit(SyncUserInformationState.Retry)
         }
     }

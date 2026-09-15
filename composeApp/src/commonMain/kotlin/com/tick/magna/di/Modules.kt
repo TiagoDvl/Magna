@@ -122,7 +122,7 @@ val dataModule = module {
     single<DispatcherInterface> { AppDispatcher() }
 
     // Http
-    single<HttpClient> { HttpClientFactory.create(isDebug = get<AppBuildConfig>().isDebug) }
+    single<HttpClient> { HttpClientFactory.create(isDebug = get<AppBuildConfig>().isDebug, analytics = get()) }
 
     // Coroutine Scope
     factory<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
@@ -171,15 +171,15 @@ val loggingModule = module {
 val viewModelModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get(), get()) }
-    viewModel { DeputadosSearchViewModel(get(), get(), get()) }
+    viewModel { DeputadosSearchViewModel(get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get(), get()) }
     viewModel { PartidosComponentViewModel(get(), get(), get()) }
     viewModel { PartidosListViewModel(get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> PartidoDetailsViewModel(handle, get(), get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoVotacoesViewModel(handle, get(), get(), get()) }
 }
 

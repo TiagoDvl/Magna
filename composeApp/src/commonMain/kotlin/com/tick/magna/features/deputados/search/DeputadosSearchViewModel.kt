@@ -2,10 +2,16 @@ package com.tick.magna.features.deputados.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -14,10 +20,12 @@ class DeputadosSearchViewModel(
     private val dispatcher: DispatcherInterface,
     private val deputadosRepository: DeputadosRepositoryInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "DeputadosSearchViewModel"
+        private const val SEARCH_TRACKING_DEBOUNCE_MS = 1_000L
     }
 
     private val _state = MutableStateFlow(DeputadosSearchState())
@@ -31,6 +39,7 @@ class DeputadosSearchViewModel(
     }
 
     init {
+        trackSearchesAfterTypingStops()
         viewModelScope.launch(dispatcher.io) {
             deputadosRepository.getDeputados().collect { deputados ->
                 val deputadosUfs = deputados.mapNotNull { it.uf }.sorted().toSet()
@@ -46,6 +55,30 @@ class DeputadosSearchViewModel(
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * One event once the filters settle, not one per keystroke. Reports the number of
+     * results, so a search that found nothing is visible.
+     */
+    @OptIn(FlowPreview::class)
+    private fun trackSearchesAfterTypingStops() {
+        viewModelScope.launch(dispatcher.io) {
+            state
+                .debounce(SEARCH_TRACKING_DEBOUNCE_MS)
+                .filter { current -> current.filters.isNotEmpty() }
+                .distinctUntilChanged { old, new -> old.filters == new.filters }
+                .collect { current ->
+                    val textFilter = current.filters[FilterKey.TEXT] as? Filter.Text
+                    analytics.track(
+                        AnalyticsEvent.SearchPerformed(
+                            queryLength = textFilter?.query?.length ?: 0,
+                            resultCount = current.deputadosSearch?.size ?: 0,
+                            activeFilters = current.filters.size,
+                        )
+                    )
+                }
         }
     }
 

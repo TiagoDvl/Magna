@@ -31,6 +31,22 @@ sealed class AnalyticsEvent(
         params = mapOf(PARAM_SUCCESS to success, PARAM_DURATION_MS to durationMs),
     )
 
+    /**
+     * Which of the four parallel first-run syncs failed. SyncFinished only says that the
+     * whole thing failed, which is not actionable for an app whose first run depends on a
+     * government API that goes down.
+     */
+    data class SyncStepFailed(val step: SyncStep) : AnalyticsEvent(
+        name = "sync_step_failed",
+        params = mapOf(PARAM_STEP to step.value),
+    )
+
+    /** A screen finished loading and had nothing to show. */
+    data class ContentEmpty(val content: EmptyContent) : AnalyticsEvent(
+        name = "content_empty",
+        params = mapOf(PARAM_CONTENT to content.value),
+    )
+
     data class DeputadoOpened(val source: Source) : AnalyticsEvent(
         name = "deputado_opened",
         params = mapOf(PARAM_SOURCE to source.value),
@@ -55,9 +71,9 @@ sealed class AnalyticsEvent(
         params = mapOf(PARAM_HAS_DOCUMENT to hasDocument),
     )
 
-    data class ExternalLinkOpened(val kind: String) : AnalyticsEvent(
+    data class ExternalLinkOpened(val kind: LinkKind) : AnalyticsEvent(
         name = "external_link_opened",
-        params = mapOf(PARAM_KIND to kind),
+        params = mapOf(PARAM_KIND to kind.value),
     )
 
     data class ProposicaoFilterChanged(val tipo: String) : AnalyticsEvent(
@@ -65,10 +81,8 @@ sealed class AnalyticsEvent(
         params = mapOf(PARAM_TIPO to tipo),
     )
 
-    data class ProposicaoOpened(val source: Source) : AnalyticsEvent(
-        name = "proposicao_opened",
-        params = mapOf(PARAM_SOURCE to source.value),
-    )
+    /** Only one entry point exists today, so reporting a source would be a constant. */
+    data object ProposicaoOpened : AnalyticsEvent("proposicao_opened")
 
     data class PartidoOpened(val source: Source) : AnalyticsEvent(
         name = "partido_opened",
@@ -80,7 +94,10 @@ sealed class AnalyticsEvent(
         params = mapOf(PARAM_CHART to chart),
     )
 
-    data object ComissaoOpened : AnalyticsEvent("comissao_opened")
+    data class ComissaoOpened(val sigla: String) : AnalyticsEvent(
+        name = "comissao_opened",
+        params = mapOf(PARAM_SIGLA to sigla),
+    )
 
     /** [status] is null when the request never got an answer, such as a timeout. */
     data class ApiError(val endpoint: String, val status: Int?) : AnalyticsEvent(
@@ -105,6 +122,27 @@ sealed class AnalyticsEvent(
         LIST("list"),
     }
 
+    enum class SyncStep(val value: String) {
+        PARTIDOS("partidos"),
+        SIGLA_TIPOS("sigla_tipos"),
+        DEPUTADOS("deputados"),
+        ORGAOS("orgaos"),
+    }
+
+    enum class EmptyContent(val value: String) {
+        PARTIDO_MEMBROS("partido_membros"),
+        PROPOSICAO_AUTORES("proposicao_autores"),
+        COMISSAO_VOTACOES("comissao_votacoes"),
+    }
+
+    enum class LinkKind(val value: String) {
+        EXPENSE_DOCUMENT("expense_document"),
+        PROPOSICAO_FULL_TEXT("proposicao_full_text"),
+        DEPUTADO_SOCIAL("deputado_social"),
+        DEPUTADO_WEBSITE("deputado_website"),
+        PARTIDO_WEBSITE("partido_website"),
+    }
+
     companion object {
         const val PARAM_SCREEN_NAME = "screen_name"
         const val PARAM_SCREEN_CLASS = "screen_class"
@@ -118,6 +156,9 @@ sealed class AnalyticsEvent(
         const val PARAM_KIND = "kind"
         const val PARAM_TIPO = "tipo"
         const val PARAM_CHART = "chart"
+        const val PARAM_SIGLA = "sigla"
+        const val PARAM_STEP = "step"
+        const val PARAM_CONTENT = "content"
         const val PARAM_ENDPOINT = "endpoint"
         const val PARAM_STATUS = "status"
 

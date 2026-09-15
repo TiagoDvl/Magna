@@ -12,15 +12,17 @@ class AnalyticsEventTest {
         AnalyticsEvent.ScreenView("Home"),
         AnalyticsEvent.SyncStarted,
         AnalyticsEvent.SyncFinished(success = true, durationMs = 1234L),
+        AnalyticsEvent.SyncStepFailed(AnalyticsEvent.SyncStep.ORGAOS),
+        AnalyticsEvent.ContentEmpty(AnalyticsEvent.EmptyContent.PARTIDO_MEMBROS),
         AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.RECENT),
         AnalyticsEvent.SearchPerformed(queryLength = 5, resultCount = 12, activeFilters = 2),
         AnalyticsEvent.ExpenseOpened(hasDocument = true),
-        AnalyticsEvent.ExternalLinkOpened(kind = "documento"),
+        AnalyticsEvent.ExternalLinkOpened(AnalyticsEvent.LinkKind.EXPENSE_DOCUMENT),
         AnalyticsEvent.ProposicaoFilterChanged(tipo = "PEC"),
-        AnalyticsEvent.ProposicaoOpened(AnalyticsEvent.Source.HOME_SECTION),
+        AnalyticsEvent.ProposicaoOpened,
         AnalyticsEvent.PartidoOpened(AnalyticsEvent.Source.LIST),
         AnalyticsEvent.PartidoChartSelected(chart = "GENDER"),
-        AnalyticsEvent.ComissaoOpened,
+        AnalyticsEvent.ComissaoOpened(sigla = "CCJC"),
         AnalyticsEvent.ApiError(endpoint = "deputados", status = 503),
     )
 
@@ -112,5 +114,42 @@ class AnalyticsEventTest {
 
         assertEquals(false, event.params[AnalyticsEvent.PARAM_SUCCESS])
         assertEquals(8_000L, event.params[AnalyticsEvent.PARAM_DURATION_MS])
+    }
+
+    @Test
+    fun every_enum_value_in_the_catalogue_is_reachable_from_the_app() {
+        // A dimension value nothing can ever emit is worse than no value: the report looks
+        // complete while silently missing a path. Source.AUTORES was exactly that until the
+        // autores list on the proposicao screen became clickable.
+        val wiredSources = setOf(
+            AnalyticsEvent.Source.HOME_SEARCH,
+            AnalyticsEvent.Source.RECENT,
+            AnalyticsEvent.Source.SEARCH,
+            AnalyticsEvent.Source.MEMBROS,
+            AnalyticsEvent.Source.AUTORES,
+            AnalyticsEvent.Source.HOME_SECTION,
+            AnalyticsEvent.Source.LIST,
+        )
+
+        assertEquals(wiredSources, AnalyticsEvent.Source.entries.toSet())
+    }
+
+    @Test
+    fun enum_backed_values_are_snake_case() {
+        val values = AnalyticsEvent.Source.entries.map { it.value } +
+            AnalyticsEvent.SyncStep.entries.map { it.value } +
+            AnalyticsEvent.EmptyContent.entries.map { it.value } +
+            AnalyticsEvent.LinkKind.entries.map { it.value }
+
+        values.forEach { value ->
+            assertTrue(firebaseNamePattern.matches(value), "enum value '$value' is not snake_case")
+        }
+    }
+
+    @Test
+    fun sync_step_failed_names_the_step() {
+        val event = AnalyticsEvent.SyncStepFailed(AnalyticsEvent.SyncStep.DEPUTADOS)
+
+        assertEquals("deputados", event.params[AnalyticsEvent.PARAM_STEP])
     }
 }

@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
@@ -17,6 +19,7 @@ class ProposicaoDetailsViewModel(
     private val dispatcherInterface: DispatcherInterface,
     private val proposicoesRepository: ProposicoesRepositoryInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
@@ -24,6 +27,8 @@ class ProposicaoDetailsViewModel(
     }
 
     private val proposicaoId: String = savedStateHandle.toRoute<ProposicaoDetailsArgs>().proposicaoId
+
+    private var trackedEmptyAutores = false
 
     private val _state = MutableStateFlow(ProposicaoDetailsState())
     val state: StateFlow<ProposicaoDetailsState> = _state.asStateFlow()
@@ -46,11 +51,21 @@ class ProposicaoDetailsViewModel(
                     },
                     autoresState = when {
                         result.isLoadingAutores -> ProposicaoAutoresState.Loading
-                        result.autores.isEmpty() -> ProposicaoAutoresState.Empty
+                        result.autores.isEmpty() -> {
+                            trackEmptyAutoresOnce()
+                            ProposicaoAutoresState.Empty
+                        }
                         else -> ProposicaoAutoresState.Content(result.autores)
                     },
                 )
             }
         }
+    }
+
+    /** The result flow emits repeatedly; the empty outcome is worth reporting only once. */
+    private fun trackEmptyAutoresOnce() {
+        if (trackedEmptyAutores) return
+        trackedEmptyAutores = true
+        analytics.track(AnalyticsEvent.ContentEmpty(AnalyticsEvent.EmptyContent.PROPOSICAO_AUTORES))
     }
 }

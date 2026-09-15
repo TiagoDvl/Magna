@@ -45,6 +45,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.domain.proposicoesMock
@@ -94,6 +95,7 @@ fun ProposicaoDetailsScreen(
         orgaoLabel = stringResource(Res.string.proposicao_details_orgao_label),
         viewFullTextLabel = stringResource(Res.string.proposicao_details_view_full_text),
         navigateBack = { navController.popBackStack() },
+        onAutorClick = { deputadoId -> navController.navigate(DeputadoDetailsArgs(deputadoId)) },
     )
 }
 
@@ -111,6 +113,7 @@ private fun ProposicaoDetailsContent(
     orgaoLabel: String,
     viewFullTextLabel: String,
     navigateBack: () -> Unit = {},
+    onAutorClick: (String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
 
@@ -166,6 +169,7 @@ private fun ProposicaoDetailsContent(
                 AutoresSection(
                     state = state.autoresState,
                     autoresTitle = autoresTitle,
+                    onAutorClick = onAutorClick,
                 )
             }
 
@@ -334,6 +338,7 @@ private fun AutoresSection(
     state: ProposicaoAutoresState,
     autoresTitle: String,
     modifier: Modifier = Modifier,
+    onAutorClick: (String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val typography = MaterialTheme.typography
@@ -358,7 +363,10 @@ private fun AutoresSection(
                 strokeWidth = 2.dp,
             )
             ProposicaoAutoresState.Empty -> Unit
-            is ProposicaoAutoresState.Content -> AutoresList(autores = state.autores)
+            is ProposicaoAutoresState.Content -> AutoresList(
+                autores = state.autores,
+                onAutorClick = onAutorClick,
+            )
         }
     }
 }
@@ -366,7 +374,7 @@ private fun AutoresSection(
 private const val AUTORES_INITIAL_COUNT = 10
 
 @Composable
-private fun AutoresList(autores: List<Deputado>) {
+private fun AutoresList(autores: List<Deputado>, onAutorClick: (String) -> Unit = {}) {
     val dimensions = LocalDimensions.current
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
@@ -380,14 +388,18 @@ private fun AutoresList(autores: List<Deputado>) {
 
     Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid8)) {
         autores.take(AUTORES_INITIAL_COUNT).forEachIndexed { index, deputado ->
-            AutorRow(index = index, deputado = deputado)
+            AutorRow(index = index, deputado = deputado, onClick = onAutorClick)
         }
 
         if (hasMore) {
             AnimatedVisibility(visible = expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid8)) {
                     autores.drop(AUTORES_INITIAL_COUNT).forEachIndexed { index, deputado ->
-                        AutorRow(index = AUTORES_INITIAL_COUNT + index, deputado = deputado)
+                        AutorRow(
+                            index = AUTORES_INITIAL_COUNT + index,
+                            deputado = deputado,
+                            onClick = onAutorClick,
+                        )
                     }
                 }
             }
@@ -425,12 +437,15 @@ private fun AutoresList(autores: List<Deputado>) {
 }
 
 @Composable
-private fun AutorRow(index: Int, deputado: Deputado) {
+private fun AutorRow(index: Int, deputado: Deputado, onClick: (String) -> Unit = {}) {
     val dimensions = LocalDimensions.current
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
 
     Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick(deputado.id) },
         horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
         verticalAlignment = Alignment.CenterVertically,
     ) {
