@@ -1,16 +1,19 @@
 package com.tick.magna.data.repository
 
+import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.domain.Partido
-import com.tick.magna.data.repository.partidos.result.PartidoDetailsResult
+import com.tick.magna.data.domain.PartidoDetail
 import kotlinx.coroutines.flow.Flow
 
 interface PartidosRepositoryInterface {
 
+    /** One-shot, used by the first-run sync. */
     suspend fun syncPartidos(): Boolean
 
-    suspend fun getPartidos(): Flow<List<Partido>>
+    fun getPartidos(): Flow<List<Partido>>
 
-    suspend fun getPartidoById(partidoId: String): Flow<Partido>
+    fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>>
 
-    fun getPartidoDetails(partidoId: String): Flow<PartidoDetailsResult>
+    /** Emits the roster first, then the same list with each member's record filled in. */
+    fun getPartidoMembros(partidoId: String): Flow<Resource<List<DeputadoMembro>>>
 }

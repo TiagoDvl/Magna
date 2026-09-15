@@ -10,6 +10,8 @@ import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
+import com.tick.magna.data.repository.Resource
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,29 +41,34 @@ class PartidoDetailsViewModel(
 
     init {
         viewModelScope.launch(dispatcher.io) {
-            partidosRepository.getPartidoDetails(partidoId).collect { result ->
-                _state.update { current ->
-                    current.copy(
-                        headerState = when {
-                            result.hasError -> PartidoHeaderState.Error
-                            result.isLoadingDetail -> PartidoHeaderState.Loading
-                            result.detail != null -> PartidoHeaderState.Content(result.detail)
-                            else -> PartidoHeaderState.Error
-                        },
-                        membersState = when {
-                            result.isLoadingMembers -> PartidoMembersState.Loading
-                            result.members.isEmpty() -> {
-                                trackEmptyOnce(AnalyticsEvent.EmptyContent.PARTIDO_MEMBROS)
-                                PartidoMembersState.Empty
-                            }
-                            else -> PartidoMembersState.Content(
-                                members = result.members,
-                                isLoadingDetails = result.isLoadingMemberDetails,
-                                stats = computeStats(result.members),
+            combine(
+                partidosRepository.getPartidoDetail(partidoId),
+                partidosRepository.getPartidoMembros(partidoId),
+            ) { detail, membros ->
+                PartidoDetailsState(
+                    headerState = when (detail) {
+                        Resource.Loading -> PartidoHeaderState.Loading
+                        is Resource.Error -> PartidoHeaderState.Error
+                        is Resource.Content -> PartidoHeaderState.Content(detail.data)
+                    },
+                    membersState = when (membros) {
+                        Resource.Loading -> PartidoMembersState.Loading
+                        is Resource.Error -> PartidoMembersState.Empty
+                        is Resource.Content -> if (membros.data.isEmpty()) {
+                            trackEmptyOnce(AnalyticsEvent.EmptyContent.PARTIDO_MEMBROS)
+                            PartidoMembersState.Empty
+                        } else {
+                            PartidoMembersState.Content(
+                                members = membros.data,
+                                isLoadingDetails = membros.isRefreshing,
+                                stats = computeStats(membros.data),
                             )
-                        },
-                    )
-                }
+                        }
+                    },
+                )
+            }.collect { next ->
+                // selectedChart is owned by the screen, not by the request.
+                _state.update { current -> next.copy(selectedChart = current.selectedChart) }
             }
         }
     }

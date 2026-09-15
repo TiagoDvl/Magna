@@ -5,51 +5,44 @@ import com.tick.magna.data.domain.Lider
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.PartidoDetail
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.partidos.result.PartidoDetailsResult
 import com.tick.magna.data.source.local.dao.PartidoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.PartidosApiInterface
-import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import com.tick.magna.Partido as PartidoEntity
 
+@ExperimentalCoroutinesApi
 internal class PartidosRepository(
     private val userDao: UserDaoInterface,
     private val partidosApi: PartidosApiInterface,
     private val partidoDao: PartidoDaoInterface,
     private val loggerInterface: AppLoggerInterface,
-    private val coroutineScope: CoroutineScope,
     private val deputadosApi: DeputadosApiInterface,
 ): PartidosRepositoryInterface {
 
-    companion object {
-        private const val TAG = "PartidosRepository"
-    }
-
     override suspend fun syncPartidos(): Boolean {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
+        val legislaturaId = legislaturaId()
             ?: run {
                 loggerInterface.w("syncPartidos: no legislaturaId, skipping", TAG)
                 return false
             }
 
         return try {
-            val partidosResponse = partidosApi.getPartidos(legislaturaId).dados
-
-            val partidos = partidosResponse.map { partido ->
+            val partidos = partidosApi.getPartidos(legislaturaId).dados.map { partido ->
                 PartidoEntity(
                     id = partido.id.toString(),
                     legislaturaId = legislaturaId,
@@ -63,6 +56,7 @@ internal class PartidosRepository(
                     website = null
                 )
             }
+
             partidoDao.insertPartidos(partidos)
             loggerInterface.i("syncPartidos: saved ${partidos.size} partidos", TAG)
             true
@@ -72,135 +66,105 @@ internal class PartidosRepository(
         }
     }
 
-    override suspend fun getPartidos(): Flow<List<Partido>> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
-            ?: run {
-                loggerInterface.w("getPartidos: no legislaturaId, returning empty", TAG)
-                return flowOf(emptyList())
-            }
+    override fun getPartidos(): Flow<List<Partido>> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest flowOf(emptyList())
 
-        loggerInterface.d("getPartidos: legislaturaId=$legislaturaId", TAG)
-        return partidoDao.getPartidos(legislaturaId).mapNotNull { partidos ->
-            partidos?.map { it.toDomain() }
-        }
-    }
-
-    override suspend fun getPartidoById(partidoId: String): Flow<Partido> {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId
-            ?: run {
-                loggerInterface.w("getPartidoById($partidoId): no legislaturaId, returning empty", TAG)
-                return flowOf()
-            }
-
-        loggerInterface.d("getPartidoById: partidoId=$partidoId", TAG)
-        return partidoDao.getPartido(legislaturaId, partidoId).map { partido ->
-            partido.toDomain()
-        }.also {
-            coroutineScope.launch {
-                try {
-                    val partidoDetail = partidosApi.getPartidoById(partidoId).dados
-
-                    val partidoEntity = PartidoEntity(
-                        id = partidoId,
-                        legislaturaId = legislaturaId,
-                        liderDeputadoId = null,
-                        sigla = partidoDetail.sigla,
-                        nome = partidoDetail.nome,
-                        situacao = partidoDetail.status?.situacao,
-                        totalPosse = partidoDetail.status?.totalPosse.toString(),
-                        totalMembros = partidoDetail.status?.totalMembros.toString(),
-                        logo = partidoDetail.urlLogo,
-                        website = partidoDetail.urlWebSite
-                    )
-
-                    partidoDao.insertPartidos(listOf(partidoEntity))
-                    loggerInterface.d("getPartidoById: details saved for partidoId=$partidoId", TAG)
-                } catch (e: Exception) {
-                    loggerInterface.e("getPartidoById: API call failed for partidoId=$partidoId", e, TAG)
-                }
+            partidoDao.getPartidos(legislaturaId).mapNotNull { partidos ->
+                partidos?.map { it.toDomain() }
             }
         }
     }
 
-    override fun getPartidoDetails(partidoId: String): Flow<PartidoDetailsResult> {
-        val resultFlow = MutableStateFlow(PartidoDetailsResult())
+    override fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>> = networkResource {
+        val dto = partidosApi.getPartidoById(partidoId).dados
 
-        coroutineScope.launch {
-            val legislaturaId = userDao.getUser().first()?.legislaturaId ?: "57"
+        PartidoDetail(
+            id = dto.id,
+            sigla = dto.sigla,
+            nome = dto.nome,
+            urlLogo = dto.urlLogo,
+            urlWebSite = dto.urlWebSite,
+            urlFacebook = dto.urlFacebook,
+            totalMembros = dto.status?.totalMembros,
+            situacao = dto.status?.situacao,
+            lider = dto.status?.lider?.let { Lider(it.nome, it.uf, it.urlFoto) },
+        )
+    }
 
-            supervisorScope {
-                launch {
+    /**
+     * Two phases on one flow: the roster arrives first and goes on screen, then each
+     * member's record is filled in. Content carries isRefreshing while the second phase
+     * runs, which is what the screen shows as a progress hint.
+     *
+     * The enrichment is one request per member, so it is capped by a semaphore. It is also
+     * structured inside the flow now: closing the screen cancels it, where before it kept
+     * fetching seventy deputados nobody was waiting for.
+     */
+    override fun getPartidoMembros(partidoId: String): Flow<Resource<List<DeputadoMembro>>> = flow {
+        emit(Resource.Loading)
+
+        val legislaturaId = legislaturaId()
+        if (legislaturaId == null) {
+            loggerInterface.w("getPartidoMembros: no legislaturaId", TAG)
+            emit(Resource.Error())
+            return@flow
+        }
+
+        val roster = try {
+            partidosApi.getPartidoMembros(partidoId, legislaturaId).dados.map { dto ->
+                DeputadoMembro(
+                    id = dto.id,
+                    nome = dto.nome,
+                    siglaPartido = dto.siglaPartido,
+                    siglaUf = dto.siglaUf,
+                    urlFoto = dto.urlFoto,
+                    email = dto.email,
+                    sexo = null,
+                    dataNascimento = null,
+                    ufNascimento = null,
+                    municipioNascimento = null,
+                )
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.e("getPartidoMembros: roster fetch failed", e, TAG)
+            emit(Resource.Error(e))
+            return@flow
+        }
+
+        emit(Resource.Content(roster, isRefreshing = true))
+        emit(Resource.Content(withMemberDetails(roster), isRefreshing = false))
+    }
+
+    private suspend fun withMemberDetails(members: List<DeputadoMembro>): List<DeputadoMembro> = coroutineScope {
+        val semaphore = Semaphore(MAX_PARALLEL_MEMBER_REQUESTS)
+
+        members.map { member ->
+            async {
+                semaphore.withPermit {
                     try {
-                        val dto = partidosApi.getPartidoById(partidoId).dados
-                        val detail = PartidoDetail(
-                            id = dto.id,
-                            sigla = dto.sigla,
-                            nome = dto.nome,
-                            urlLogo = dto.urlLogo,
-                            urlWebSite = dto.urlWebSite,
-                            urlFacebook = dto.urlFacebook,
-                            totalMembros = dto.status?.totalMembros,
-                            situacao = dto.status?.situacao,
-                            lider = dto.status?.lider?.let { Lider(it.nome, it.uf, it.urlFoto) },
+                        val detail = deputadosApi.getDeputadoById(member.id).dados
+                        member.copy(
+                            sexo = detail.sexo,
+                            dataNascimento = detail.dataNascimento,
+                            ufNascimento = detail.ufNascimento,
+                            municipioNascimento = detail.municipioNascimento,
                         )
-                        resultFlow.update { it.copy(isLoadingDetail = false, detail = detail) }
                     } catch (e: Exception) {
-                        loggerInterface.e("getPartidoDetails: detail fetch failed", e, TAG)
-                        resultFlow.update { it.copy(isLoadingDetail = false, hasError = true) }
-                    }
-                }
-
-                launch {
-                    try {
-                        val membrosDto = partidosApi.getPartidoMembros(partidoId, legislaturaId).dados
-                        val basicMembers = membrosDto.map { dto ->
-                            DeputadoMembro(
-                                id = dto.id,
-                                nome = dto.nome,
-                                siglaPartido = dto.siglaPartido,
-                                siglaUf = dto.siglaUf,
-                                urlFoto = dto.urlFoto,
-                                email = dto.email,
-                                sexo = null,
-                                dataNascimento = null,
-                                ufNascimento = null,
-                                municipioNascimento = null,
-                            )
-                        }
-                        resultFlow.update {
-                            it.copy(isLoadingMembers = false, members = basicMembers, isLoadingMemberDetails = true)
-                        }
-
-                        val semaphore = Semaphore(10)
-                        val detailedMembers = basicMembers.map { member ->
-                            async {
-                                semaphore.withPermit {
-                                    try {
-                                        val detail = deputadosApi.getDeputadoById(member.id).dados
-                                        member.copy(
-                                            sexo = detail.sexo,
-                                            dataNascimento = detail.dataNascimento,
-                                            ufNascimento = detail.ufNascimento,
-                                            municipioNascimento = detail.municipioNascimento,
-                                        )
-                                    } catch (e: Exception) {
-                                        member
-                                    }
-                                }
-                            }
-                        }.map { it.await() }
-
-                        resultFlow.update {
-                            it.copy(isLoadingMemberDetails = false, members = detailedMembers)
-                        }
-                    } catch (e: Exception) {
-                        loggerInterface.e("getPartidoDetails: members fetch failed", e, TAG)
-                        resultFlow.update { it.copy(isLoadingMembers = false, isLoadingMemberDetails = false) }
+                        // One missing record should not blank out the whole roster.
+                        member
                     }
                 }
             }
-        }
+        }.awaitAll()
+    }
 
-        return resultFlow
+    private suspend fun legislaturaId(): String? = userDao.getUser().first()?.legislaturaId
+
+    private companion object {
+        const val TAG = "PartidosRepository"
+        const val MAX_PARALLEL_MEMBER_REQUESTS = 10
     }
 }

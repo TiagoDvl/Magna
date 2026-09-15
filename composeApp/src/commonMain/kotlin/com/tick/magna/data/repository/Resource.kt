@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -61,6 +62,26 @@ internal fun <T> cachedList(
         refreshState is RefreshState.Done -> Resource.Content(items)
         else -> Resource.Loading
     }
+}
+
+/**
+ * Network-only resource, for the screens with nothing cached behind them.
+ *
+ * [fetch] runs inside the flow, so it is cancelled with the collector, and cancellation is
+ * rethrown rather than turned into an error state.
+ */
+internal fun <T> networkResource(fetch: suspend () -> T): Flow<Resource<T>> = flow {
+    emit(Resource.Loading)
+
+    val resource = try {
+        Resource.Content(fetch())
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (error: Throwable) {
+        Resource.Error(error)
+    }
+
+    emit(resource)
 }
 
 private fun <T, R> resourceFlow(
