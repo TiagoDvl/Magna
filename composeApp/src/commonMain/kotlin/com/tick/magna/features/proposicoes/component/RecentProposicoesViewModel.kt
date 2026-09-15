@@ -6,6 +6,7 @@ import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,11 +34,11 @@ class RecentProposicoesViewModel(
     val state: StateFlow<RecentProposicoesState> = _proposicaoFilter
         .flatMapLatest { param ->
             logger.d("filter → $param", TAG)
-            proposicoesRepository.observeRecentProposicoes(param.name).map { result ->
+            proposicoesRepository.observeRecentProposicoes(param.name).map { resource ->
                 RecentProposicoesState(
-                    isLoading = result.isLoading,
-                    isError = result.isError,
-                    proposicoes = result.proposicoes,
+                    isLoading = resource is Resource.Loading,
+                    isError = resource is Resource.Error,
+                    proposicoes = (resource as? Resource.Content)?.data.orEmpty(),
                     selectedProposicao = param
                 )
             }

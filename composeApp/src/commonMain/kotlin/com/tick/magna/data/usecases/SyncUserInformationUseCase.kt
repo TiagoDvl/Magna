@@ -9,8 +9,8 @@ import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.repository.user.result.UserConfiguration
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.first
@@ -23,7 +23,6 @@ class SyncUserInformationUseCase(
     private val deputadosRepository: DeputadosRepositoryInterface,
     private val orgaosRepository: OrgaosRepositoryInterface,
     private val logger: AppLoggerInterface,
-    private val coroutineScope: CoroutineScope,
     private val analytics: AnalyticsInterface,
 ) {
 
@@ -66,20 +65,27 @@ class SyncUserInformationUseCase(
     private suspend fun FlowCollector<SyncUserInformationState>.syncInitialDependencies() {
         emit(SyncUserInformationState.Downloading)
 
-        val syncPartidosSuccess = coroutineScope.async { partidosRepository.syncPartidos().also { logger.d("syncPartidosSuccess > $it", TAG) } }
-        val siglaTiposSuccess = coroutineScope.async { proposicoesRepository.syncSiglaTipos().also { logger.d("siglaTiposSuccess > $it", TAG) } }
-        val deputadosSuccess = coroutineScope.async { deputadosRepository.syncDeputados().also { logger.d("deputadosSuccess > $it", TAG) } }
-        val orgaosSuccess = coroutineScope.async { orgaosRepository.syncComissoesPermanentes().also { logger.d("orgaosSuccess > $it", TAG) } }
+        // Structured: the four run together but belong to whoever collects this flow, so
+        // abandoning the first-run screen stops them. They used to be launched into a
+        // scope that lived as long as the process.
+        //
+        // Named results so a failure can be attributed to a step. Knowing that "the sync
+        // failed" is not actionable; knowing that orgaos is the one that keeps failing is.
+        val results = coroutineScope {
+            val partidos = async { partidosRepository.syncPartidos() }
+            val siglaTipos = async { proposicoesRepository.syncSiglaTipos() }
+            val deputados = async { deputadosRepository.syncDeputados() }
+            val orgaos = async { orgaosRepository.syncComissoesPermanentes() }
 
-        // Awaited into named results so a failure can be attributed to a step. Knowing
-        // that "the sync failed" is not actionable; knowing that orgaos is the one that
-        // keeps failing is.
-        val results = mapOf(
-            AnalyticsEvent.SyncStep.PARTIDOS to syncPartidosSuccess.await(),
-            AnalyticsEvent.SyncStep.SIGLA_TIPOS to siglaTiposSuccess.await(),
-            AnalyticsEvent.SyncStep.DEPUTADOS to deputadosSuccess.await(),
-            AnalyticsEvent.SyncStep.ORGAOS to orgaosSuccess.await(),
-        )
+            mapOf(
+                AnalyticsEvent.SyncStep.PARTIDOS to partidos.await(),
+                AnalyticsEvent.SyncStep.SIGLA_TIPOS to siglaTipos.await(),
+                AnalyticsEvent.SyncStep.DEPUTADOS to deputados.await(),
+                AnalyticsEvent.SyncStep.ORGAOS to orgaos.await(),
+            )
+        }
+
+        results.forEach { (step, succeeded) -> logger.d("${step.value} > $succeeded", TAG) }
 
         results.filterValues { succeeded -> !succeeded }.keys.forEach { step ->
             analytics.track(AnalyticsEvent.SyncStepFailed(step))

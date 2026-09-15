@@ -8,7 +8,9 @@ import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,28 +38,29 @@ class ProposicaoDetailsViewModel(
     init {
         logger.d("init: proposicaoId=$proposicaoId", TAG)
         viewModelScope.launch(dispatcherInterface.io) {
-            proposicoesRepository.getProposicaoDetails(proposicaoId).collect { result ->
-                logger.d(
-                    "result → isLoadingDetails=${result.isLoadingDetails}, " +
-                        "isLoadingAutores=${result.isLoadingAutores}, ",
-                    TAG
-                )
-                _state.value = ProposicaoDetailsState(
-                    headerState = when {
-                        result.hasError -> ProposicaoHeaderState.Error
-                        result.isLoadingDetails -> ProposicaoHeaderState.Loading
-                        result.details != null -> ProposicaoHeaderState.Content(result.details)
-                        else -> ProposicaoHeaderState.Error
+            combine(
+                proposicoesRepository.getProposicaoDetail(proposicaoId),
+                proposicoesRepository.getProposicaoAutores(proposicaoId),
+            ) { detail, autores ->
+                ProposicaoDetailsState(
+                    headerState = when (detail) {
+                        Resource.Loading -> ProposicaoHeaderState.Loading
+                        is Resource.Error -> ProposicaoHeaderState.Error
+                        is Resource.Content -> ProposicaoHeaderState.Content(detail.data)
                     },
-                    autoresState = when {
-                        result.isLoadingAutores -> ProposicaoAutoresState.Loading
-                        result.autores.isEmpty() -> {
+                    autoresState = when (autores) {
+                        Resource.Loading -> ProposicaoAutoresState.Loading
+                        is Resource.Error -> ProposicaoAutoresState.Empty
+                        is Resource.Content -> if (autores.data.isEmpty()) {
                             trackEmptyAutoresOnce()
                             ProposicaoAutoresState.Empty
+                        } else {
+                            ProposicaoAutoresState.Content(autores.data)
                         }
-                        else -> ProposicaoAutoresState.Content(result.autores)
                     },
                 )
+            }.collect { state ->
+                _state.value = state
             }
         }
     }

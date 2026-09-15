@@ -117,7 +117,7 @@ O retry fica antes do `HttpResponseValidator`, então o `api_error` é reportado
 
 ### 3.5 [MÉDIO] Chamadas sequenciais onde deveriam ser paralelas
 
-- `OrgaosRepository.kt:58` — dentro de um `.map`, para cada uma das 20 votações faz `getVotacaoDetail` em série. São 21 requests em fila. Trocar por `async`/`awaitAll` com `Semaphore` como já é feito em `PartidosRepository`.
+**Status: corrigido** junto com o bloco 4. Os detalhes das votações saem em paralelo com `async`/`awaitAll`. A ordenação também mudou: antes formatava a data para `dd/MM/yyyy` e depois reparseava essa string para ordenar; agora ordena pelo timestamp ISO cru, que já é cronológico como texto.
 
 ### 3.6 [MÉDIO] Explosão de requests nas proposições
 
@@ -133,18 +133,31 @@ O retry fica antes do `HttpResponseValidator`, então o `api_error` é reportado
 
 ### 4.1 [ALTO] Escopos de coroutine que nunca cancelam
 
-- `Modules.kt:125` — `factory<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }`. Cada repositório (singleton) recebe seu próprio escopo eterno e faz `coroutineScope.launch { api... }` de dentro de funções que devolvem `Flow`.
-- Efeito: sair da tela não cancela nada. Abrir e fechar detalhes de partido dispara o fetch de ~70 deputados (semáforo de 10) que continua rodando. Trocar o chip de proposições três vezes rápido enfileira ~93 requests. Nenhum erro aparece, só bateria e dados.
-- Padrão recomendado: repositório não lança coroutines. Expõe `Flow` construído com `flow { }` / `channelFlow { }` onde o fetch acontece dentro do próprio flow (cancelável por quem coleta), ou expõe `suspend fun refresh()` separado de `fun observe(): Flow`. O `viewModelScope` passa a ser o único dono de ciclo de vida. Remover o `factory<CoroutineScope>` inteiro.
+**Status: resolvido.** O `factory<CoroutineScope>` saiu do `Modules.kt` e nenhum repositório recebe escopo. O único `CoroutineScope` que sobrou no projeto é o `rememberCoroutineScope()` do Compose, que é o certo.
+
+Cada flow agora constrói o próprio trabalho de rede dentro de si, então ele é filho de quem coleta e morre junto. Sair da tela cancela.
+
+Onde isso mais pesava: abrir um partido buscava a bancada e depois fazia uma requisição por membro, ~70 nos partidos grandes. Nada disso parava ao fechar a tela.
 
 ### 4.2 [MÉDIO] Quatro implementações do mesmo padrão "loading / erro / conteúdo"
 
-- `DeputadoDetailsResult` (sealed), `PartidoDetailsResult` (flags booleanas), `ProposicaoDetailsResult` (flags), `RecentProposicoesResult` (flags). Cada uma com um `MutableStateFlow` de sinal criado por chamada e combinado à mão.
-- Isso é o principal alvo de simplificação. Um `sealed interface Resource<T> { Loading; Error(cause); Content(data, isRefreshing) }` e um helper `networkBoundResource(query = dao.observe(), fetch = api.get(), save = dao.insert())` substituem ~150 linhas e ficam testáveis.
+**Status: unificado.** `data/repository/Resource.kt` tem um `Resource<T>` (`Loading` / `Error` / `Content(data, isRefreshing)`) e três construtores:
+
+- `cachedRecord` — registro único vindo do cache, com refresh.
+- `cachedList` — lista, onde vazio após refresh bem-sucedido é resposta válida, não falha.
+- `networkResource` — só rede, para as telas sem cache atrás.
+
+Os três cancelam junto com quem coleta e **relançam `CancellationException`** em vez de registrá-la como erro, que é o engano clássico de quem usa `runCatching` em coroutine.
+
+Saíram `DeputadoDetailsResult`, `DeputadoExpensesResult`, `PartidoDetailsResult`, `ProposicaoDetailsResult` e `RecentProposicoesResult`.
+
+Duas coisas ficaram de fora de propósito: `getComissaoPermanenteVotacoes` segue devolvendo `Result`, porque é uma leitura one-shot já governada por quem chama, e `getDeputados()` segue devolvendo `Flow<List<Deputado>>` porque nunca teve estado de erro para modelar.
+
+O `PartidoDetailsResult`, que era um data class com quatro flags, virou dois flows que o ViewModel combina. A carga em duas fases da bancada continua igual na tela: emite os nomes primeiro e depois a mesma lista preenchida, usando o `isRefreshing` que o `Resource` já carrega.
 
 ### 4.3 [MÉDIO] `suspend fun` devolvendo `Flow`
 
-- `DeputadosRepositoryInterface`, `PartidosRepositoryInterface` e `LegislaturaRepositoryInterface` têm métodos `suspend fun x(): Flow<T>`. O `suspend` existe só para ler `legislaturaId` antes de montar o flow. `getDeputadoExpenses` já mostra o jeito certo: `userDao.getUser().flatMapLatest { ... }`. Padronizar.
+**Status: corrigido.** Construir um `Flow` nunca suspende; o `suspend` só obrigava o chamador a estar numa coroutine à toa. Saiu dos repositórios e dos DAOs de deputado. Quem precisava do `legislaturaId` antes de montar o flow agora usa `flatMapLatest` sobre o usuário, que é o que o `getDeputadoExpenses` já fazia certo.
 
 ### 4.4 [MÉDIO] Sync inicial não tem TTL
 
@@ -167,9 +180,9 @@ A **tabela `Legislatura` continua no banco**, de propósito: removê-la exigiria
 
 ### 4.6 [BAIXO] Miudezas
 
-- `PartidosRepository.kt:129` — `?: "57"` hardcoded como fallback de legislatura.
+- ~~`PartidosRepository.kt:129` — `?: "57"` hardcoded como fallback de legislatura.~~ **Removido no bloco 4.**
 - `PartidoDetailsViewModel.kt:27` — `CURRENT_YEAR = 2026` fixo; `currentYear()` já existe em `util/DateUtils.kt`.
-- `ProposicoesRepository.kt:25,29` — `siglaTipoDao` e `siglatipoDao` são a mesma dependência injetada duas vezes.
+- ~~`ProposicoesRepository.kt:25,29` — `siglaTipoDao` e `siglatipoDao` são a mesma dependência injetada duas vezes.~~ **Removido no bloco 4**, junto com a `VotacoesApi` que o repositório recebia sem usar.
 - `UserRepository.userDao` é `val` público.
 - `EventosApi` recebe `AppLoggerInterface`; nenhuma outra API recebe.
 - `DeputadoDetailsMapper` classifica redes por `contains("twitter")`; links `x.com` são descartados.
@@ -388,7 +401,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release — **base pronta**, faltam os eventos de navegação (8.5) | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
 | 2 | ~~Despesas: schema, `1.sqm`, upsert, `Error` state, formatação pt-BR, parâmetro `ano`~~ **FEITO** | `DeputadoExpense.sq`, `1.sqm`, `2.db`, mapper, DAO, repositório, `DeputadosApi.kt`, tela | 0 |
 | 3 | ~~`HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura`~~ **FEITO** | `HttpClientFactory.kt`, `ApiJson.kt`, `dto/*.kt`, `response/*.kt`, `PartidosApi.kt` | 0 |
-| 4 | Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado. Fazer um repositório por PR, começando por `Deputados` | `Modules.kt`, `repository/**` | 2, 3 |
+| 4 | ~~Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado~~ **FEITO** | `Resource.kt`, `Modules.kt`, `repository/**` | 2, 3 |
 | 5 | ~~Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura)~~ **FEITO** | ver 4.5 | nenhum |
 | 6 | Split de telas, `contentDescription`, strings, splash/dark window, `whatsnew`, `dataExtractionRules` | `features/**/*Screen.kt`, `strings.xml`, manifest | nenhum |
 | 7 | Feature nova da 1.1 | — | 0, 1, 2 |

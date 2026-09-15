@@ -71,11 +71,7 @@ import com.tick.magna.features.partidos.list.PartidosListViewModel
 import com.tick.magna.features.proposicoes.component.RecentProposicoesViewModel
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsViewModel
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -110,9 +106,6 @@ val dataModule = module {
     // Http
     single<HttpClient> { HttpClientFactory.create(isDebug = get<AppBuildConfig>().isDebug, analytics = get()) }
 
-    // Coroutine Scope
-    factory<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
-
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
     single<PartidosApiInterface> { PartidosApi(get()) }
@@ -125,8 +118,8 @@ val dataModule = module {
         DeputadosRepository(get(), get(), get(), get(), get(), get())
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
-    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get(), get()) }
-    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get()) }
+    single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get()) }
+    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get()) }
     single<UserRepositoryInterface> { UserRepository(get(), get()) }
 }
 
