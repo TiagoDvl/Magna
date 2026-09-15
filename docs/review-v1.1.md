@@ -308,7 +308,7 @@ Regras: nomes `snake_case`, até 25 parâmetros, nunca texto livre (o termo de b
 
 **Validação:** `adb shell setprop debug.firebase.analytics.app com.tick.magna` e olhar o DebugView no console. Eventos custom aparecem em relatórios em até 24h.
 
-**Play Console:** ao publicar a 1.1, atualizar o formulário Data Safety para declarar "App interactions" e "Crash logs" como coletados. Sem PII, sem compartilhamento com terceiros além do Firebase.
+**Play Console:** ao publicar a 1.1, o formulário Data Safety precisa ser atualizado. Isso é o último bloco do plano — ver seção 10.
 
 ### 8.3 Perguntas que essa instrumentação responde
 
@@ -367,5 +367,60 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 5 | Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura) | ver 4.5 | nenhum |
 | 6 | Split de telas, `contentDescription`, strings, splash/dark window, `whatsnew`, `dataExtractionRules` | `features/**/*Screen.kt`, `strings.xml`, manifest | nenhum |
 | 7 | Feature nova da 1.1 | — | 0, 1, 2 |
+| 8 | **Último bloco, já com tudo pronto para publicar:** Data Safety, política de privacidade, `whatsnew`, bump de versão. Ver seção 10 | Play Console, `distribution/whatsnew/`, `androidApp/build.gradle.kts` | todos |
 
 Blocos 0, 1 e 2 são os únicos que eu não deixaria para depois da feature: 0 porque sem ele a 1.1 crasha na atualização, 1 porque sem ele a 1.1 sai sem dado nenhum, e 2 porque é o bug visível para quem usa hoje.
+
+O bloco 8 é o único que tem que ser literalmente o último: ele descreve o app como ele ficou, então só faz sentido quando o resto parou de mudar.
+
+---
+
+## 10. Bloco 8 — publicação da 1.1
+
+Este é o último bloco por construção: ele descreve o app como ele ficou, então qualquer item acima que ainda esteja em aberto invalida o que for preenchido aqui. Fazer só quando o código parar de mudar e a 1.1 estiver pronta para subir.
+
+### 10.1 [BLOQUEANTE] Política de privacidade
+
+`grep -ri "privac|lgpd"` no repositório inteiro: nenhuma ocorrência. A 1.0 quase certamente foi publicada declarando que não coleta dado nenhum, o que era verdade — o Firebase estava no Gradle mas nenhuma linha de código o usava.
+
+Isso mudou. A partir da 1.1 o app coleta dados, e o Google Play **exige uma URL de política de privacidade** para qualquer app que colete dados. Sem ela a submissão é rejeitada, e essa é a falha mais provável de travar a release em cima da hora.
+
+O que a política precisa cobrir, dado o que o app realmente faz:
+
+- quais dados são coletados (interações no app, dados de diagnóstico e identificador de instalação);
+- para que servem (entender uso e corrigir falhas — nada de publicidade);
+- quem processa (Google, via Firebase Analytics e Crashlytics);
+- que não há login, que nenhum dado pessoal é enviado, e que termos de busca não saem do aparelho;
+- contato para pedidos de exclusão, exigência prática da LGPD.
+
+O texto pode ficar no próprio repositório, publicado por GitHub Pages, e a URL entra na ficha da Play Store. É o caminho mais barato e mantém a política versionada junto do código que ela descreve.
+
+### 10.2 [BLOQUEANTE] Formulário Data Safety
+
+A declaração precisa refletir Firebase Analytics **e** Crashlytics. A lista abaixo é um rascunho de trabalho, não a palavra final: **confira contra a página oficial do Firebase sobre Data Safety antes de enviar**, porque o que cada SDK coleta muda entre versões e o formulário é auditável.
+
+| Tipo de dado | Categoria no formulário | Coletado | Compartilhado | Finalidade |
+|---|---|---|---|---|
+| Eventos e telas | App activity → App interactions | Sim | Não | Analytics |
+| Logs de erro | App info and performance → Crash logs | Sim | Não | Analytics, Diagnóstico |
+| Diagnóstico | App info and performance → Diagnostics | Sim | Não | Analytics, Diagnóstico |
+| ID de instalação | Device or other IDs | Sim | Não | Analytics |
+
+Pontos do formulário que costumam ser respondidos errado:
+
+- **"Device or other IDs" é o item mais esquecido.** O Firebase Analytics gera um App Instance ID e o Crashlytics um identificador de instalação. Não é o usuário, mas o formulário conta como identificador e precisa ser declarado.
+- **Coletado, não compartilhado.** O Google atua como processador em nome do desenvolvedor. "Shared" no vocabulário do Play significa repassar para um terceiro independente, o que não acontece aqui.
+- **Nenhum dado é obrigatório.** Todos entram como opcionais para o uso do app.
+- **Criptografado em trânsito:** sim, o Firebase usa HTTPS.
+- **Exclusão a pedido:** tem que existir um caminho, e o e-mail da política de privacidade serve.
+- Marcar que o app **não** coleta nome, e-mail, localização precisa, contatos, nem dado financeiro. É verdade e vale confirmar item a item, porque o padrão do formulário não é esse.
+
+O catálogo em `AnalyticsEvent.kt` é a fonte de verdade para preencher isso: cada evento está lá com seus parâmetros, e `AnalyticsEventTest` garante que nenhum texto livre é enviado. Reler os dois antes de responder o formulário é mais rápido do que tentar lembrar.
+
+### 10.3 Antes de subir
+
+- **`whatsnew`** (item 7.4): `distribution/whatsnew/whatsnew-pt-BR` ainda anuncia "Histórico de votações de cada deputado, com filtros por tipo de voto", removido em `6b21146`. Reescrever para a 1.1.
+- **Versão**: `androidApp/build.gradle.kts` está em `versionCode = 3`, `versionName = "1.0.1"`. Subir os dois.
+- **`dataExtractionRules`** (item 7.5): o arquivo apontado usa schema de `<full-backup-content>`, que o Android 12+ ignora nesse atributo. Corrigir antes de publicar, senão o banco continua indo para o backup em aparelhos novos.
+- **Validar os eventos em aparelho real** antes de confiar no relatório: `adb shell setprop debug.firebase.analytics.app com.tick.magna` e acompanhar o DebugView. Eventos custom levam até 24h para aparecer nos relatórios normais, então o DebugView é o único jeito de saber na hora se a instrumentação está certa.
+- **Conferir que o release não loga**: com `AppBuildConfig`, um build de release não deve imprimir requisição do Ktor nem log do Koin. Vale um `adb logcat` rápido no APK assinado.
