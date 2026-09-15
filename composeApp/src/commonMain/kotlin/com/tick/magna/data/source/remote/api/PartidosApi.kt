@@ -12,8 +12,8 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
 
     override suspend fun getPartidos(idLegislatura: String): PartidosResponse {
         return httpClient.get("partidos") {
-            parameter("dataInicio", "2025-01-01")
-            parameter("itens", 100)
+            parameter("idLegislatura", idLegislatura)
+            parameter("itens", ITEMS_PER_PAGE)
         }.body()
     }
 
@@ -25,5 +25,9 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
         return httpClient.get("partidos/$id/membros") {
             parameter("idLegislatura", legislaturaId)
         }.body()
+    }
+
+    private companion object {
+        const val ITEMS_PER_PAGE = 100
     }
 }

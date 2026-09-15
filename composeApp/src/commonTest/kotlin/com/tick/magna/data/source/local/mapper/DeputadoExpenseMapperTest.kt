@@ -21,18 +21,12 @@ class DeputadoExpenseMapperTest {
         mes = mes,
         tipoDespesa = "COMBUSTIVEIS E LUBRIFICANTES",
         codDocumento = codDocumento,
-        tipoDocumento = "Nota Fiscal",
-        codTipoDocumento = 0,
         dataDocumento = dataDocumento,
         numDocumento = "118216",
         valorDocumento = valorDocumento,
         urlDocumento = urlDocumento,
         nomeFornecedor = "POSTO IPIRANGA LTDA",
         cnpjCpfFornecedor = "12345678000190",
-        valorLiquido = valorDocumento,
-        valorGlosa = 0.0,
-        numRessarcimento = "",
-        codLote = 1L,
         parcela = parcela,
     )
 

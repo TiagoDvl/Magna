@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EventoDetailsPautaResponse(
     val dados: List<EventoDetailsPautaDto>,
-    val links: List<LinkDto>
+    val links: List<LinkDto> = emptyList()
 )

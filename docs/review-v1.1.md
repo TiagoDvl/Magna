@@ -91,16 +91,23 @@ Casos mais expostos:
 - `DespesaDto.kt:13,21,22` — `dataDocumento`, `numRessarcimento`, `codLote` não-nulos. Uma despesa sem data = nenhuma despesa aparece.
 - `DeputadoDto` — `urlFoto` e `siglaUf` não-nulos.
 
-Correção: tornar nulável com default tudo que o app não precisa obrigatoriamente, e configurar `explicitNulls = false` no `Json`. Vale um teste unitário por DTO com JSON real da API contendo nulls.
+**Status: corrigido.** Nos DTOs expostos só o `id` continua obrigatório; o resto ganhou default ou virou nulável. Campos que o app nunca lê foram removidos da declaração — `ignoreUnknownKeys` os descarta, e campo que não existe não quebra parse. Saíram 6 campos do `DespesaDto`, 5 do `DeputadoByIdDto` e o `UltimoStatusDto` ficou só com o gabinete. `links` ganhou default em todas as 17 respostas.
+
+**Correção do diagnóstico original:** eu tinha escrito `explicitNulls = false`, que está errado — essa opção afeta a *escrita* de JSON, não a leitura. A chave certa é `coerceInputValues = true`, que converte um `null` explícito no default do campo. Sem ela, um `null` falha mesmo em campo que tem default.
+
+A configuração do parser saiu para `ApiJson.kt` e é compartilhada com os testes de propósito: teste que monta o próprio parser tolerante não prova nada sobre o que o app faz com o payload real. `ApiParsingTest` usa payloads no formato da API com null, campo ausente e campo novo desconhecido.
 
 ### 3.2 [ALTO] Sem timeout nem retry
 
-- `HttpClientFactory.kt` não instala `HttpTimeout`. A API da Câmara é lenta e cai com regularidade; sem timeout a request pendura e o usuário fica olhando um spinner eterno (o diálogo de sync inicial, por exemplo, não tem saída).
-- Sugestão: `HttpTimeout` com `requestTimeoutMillis = 30_000`, `connectTimeoutMillis = 10_000`; `HttpRequestRetry` com `retryOnServerErrors(maxRetries = 2)` e backoff exponencial.
+**Status: corrigido.** `HttpTimeout` com 30s de request e socket, 10s de conexão. `HttpRequestRetry` com `retryOnServerErrors(maxRetries = 2)` e `exponentialDelay()`.
+
+Timeout **não** é retentado, de propósito: três tentativas de 30s deixariam a pessoa um minuto e meio no spinner antes de receber o erro. Erro de servidor retenta; request travada falha rápido.
+
+O retry fica antes do `HttpResponseValidator`, então o `api_error` é reportado uma vez por requisição lógica, não uma por tentativa.
 
 ### 3.3 [MÉDIO] `getPartidos` ignora a legislatura
 
-- `PartidosApi.kt:15` — recebe `idLegislatura` e não usa; manda `dataInicio=2025-01-01` fixo. O parâmetro certo é `idLegislatura`.
+**Status: corrigido.** `PartidosApi.getPartidos` passou a enviar o `idLegislatura` que já recebia, no lugar do `dataInicio=2025-01-01` hardcoded.
 
 ### 3.4 [MÉDIO] `getDeputadoExpenses` ignora o ano e só pega a primeira página
 
@@ -379,7 +386,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 0 | ~~Baseline de migração (`1.db`), CI rodando `:composeApp:jvmTest`, primeiro teste real~~ **FEITO** | `migrations/1.db`, `android-release.yml`, `commonTest` | nenhum |
 | 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release — **base pronta**, faltam os eventos de navegação (8.5) | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
 | 2 | ~~Despesas: schema, `1.sqm`, upsert, `Error` state, formatação pt-BR, parâmetro `ano`~~ **FEITO** | `DeputadoExpense.sq`, `1.sqm`, `2.db`, mapper, DAO, repositório, `DeputadosApi.kt`, tela | 0 |
-| 3 | `HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura` | `HttpClientFactory.kt`, `dto/*.kt`, `PartidosApi.kt` | 0 |
+| 3 | ~~`HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura`~~ **FEITO** | `HttpClientFactory.kt`, `ApiJson.kt`, `dto/*.kt`, `response/*.kt`, `PartidosApi.kt` | 0 |
 | 4 | Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado. Fazer um repositório por PR, começando por `Deputados` | `Modules.kt`, `repository/**` | 2, 3 |
 | 5 | Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura) | ver 4.5 | nenhum |
 | 6 | Split de telas, `contentDescription`, strings, splash/dark window, `whatsnew`, `dataExtractionRules` | `features/**/*Screen.kt`, `strings.xml`, manifest | nenhum |

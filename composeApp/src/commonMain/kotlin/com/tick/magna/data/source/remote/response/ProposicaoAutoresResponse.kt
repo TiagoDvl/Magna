@@ -9,5 +9,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProposicaoAutoresResponse(
     val dados: List<ProposicaoAutorDto>,
-    val links: List<LinkDto>
+    val links: List<LinkDto> = emptyList()
 )

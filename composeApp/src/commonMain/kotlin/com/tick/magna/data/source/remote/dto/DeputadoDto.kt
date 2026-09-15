@@ -4,17 +4,18 @@ import com.tick.magna.data.domain.Deputado
 import kotlinx.serialization.Serializable
 import com.tick.magna.Deputado as DeputadoEntity
 
+/**
+ * A deputado as it appears in a list. Only the id is required; a missing photo or state
+ * should cost that one field, not the whole list.
+ */
 @Serializable
 data class DeputadoDto(
     val id: String,
-    val uri: String,
-    val nome: String,
-    val siglaPartido: String?,
-    val uriPartido: String?,
-    val siglaUf: String,
-    val idLegislatura: Int,
-    val urlFoto: String,
-    val email: String?
+    val nome: String = "",
+    val siglaPartido: String? = null,
+    val siglaUf: String? = null,
+    val urlFoto: String? = null,
+    val email: String? = null,
 )
 
 fun DeputadoDto.toDomain(): Deputado {

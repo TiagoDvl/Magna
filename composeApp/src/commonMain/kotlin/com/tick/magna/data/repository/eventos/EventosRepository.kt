@@ -37,8 +37,8 @@ class EventosRepository(
                 proposicao = Proposicao(
                     id = it.proposicao.id.toString(),
                     type = it.proposicao.codTipo.toString(),
-                    ementa = it.proposicao.ementa,
-                    dataApresentacao = it.proposicao.dataApresentacao,
+                    ementa = it.proposicao.ementa.orEmpty(),
+                    dataApresentacao = it.proposicao.dataApresentacao.orEmpty(),
                     autores = emptyList(),
                     url = ""
                 ),

@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class OrgaosResponse(
     val dados: List<OrgaoDto>,
-    val links: List<LinkDto>
+    val links: List<LinkDto> = emptyList()
 )
