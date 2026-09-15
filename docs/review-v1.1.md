@@ -210,28 +210,46 @@ Regra de precedência escolhida: cache não vazio ganha de requisição falhada.
 
 ### 6.1 [MÉDIO] Acessibilidade: ícones clicáveis sem descrição
 
-- 20 ocorrências de `contentDescription = null`, incluindo voltar, fechar e buscar (`MagnaHomeScreen.kt`, `MagnaMediumTopBar.kt`, `MagnaLargeTopBar.kt`, `DeputadoDetailsScreen.kt`). Com TalkBack, o usuário não consegue voltar. Imagens decorativas podem ficar `null`; controles não.
+**Status: corrigido.** Voltar, buscar, limpar e fechar eram ícones sem descrição: o TalkBack anunciava botão sem rótulo e não havia como saber qual voltava.
+
+Os ícones decorativos mantiveram `null`, que é exatamente para isso que `null` serve. O que precisava de rótulo era o controle.
+
+As duas top bars passaram a receber a descrição como parâmetro, com default "Voltar", que é o uso das seis telas. Nenhum call site mudou.
 
 ### 6.2 [MÉDIO] Arquivos de tela grandes demais
 
-- `PartidoDetailsScreen.kt` 793 linhas (inclui `GenderChart`, `HorizontalBarChart`, `MemberRow`), `DeputadoDetailsScreen.kt` 670, `ProposicaoDetailsScreen.kt` 615, `DeputadoVotacoesScreen.kt` 491. O próprio `CLAUDE.md` pede split. Gráficos vão para `ui/component/chart/`, sheet de despesa para arquivo próprio.
+**Status: reduzido.**
+
+| Arquivo | Antes | Depois |
+|---|---|---|
+| `PartidoDetailsScreen.kt` | 793 | 629 |
+| `DeputadoDetailsScreen.kt` | 652 | 489 |
+| `ProposicaoDetailsScreen.kt` | 630 | 367 |
+
+Os gráficos saíram para `ui/component/chart/PartidoCharts.kt` — não têm nada de partido, são componentes de desenho. A sheet de despesa virou `DeputadoExpenseSheet.kt` e a lista de autores virou `ProposicaoAutores.kt`.
+
+Na tela de proposição achei mais código morto que escapou do bloco 5: o `VotacaoCard` (97 linhas) não tinha call site, o `ProposicaoVotacoesState` nunca era produzido pelo ViewModel, e o parâmetro `votacoesTitle` era passado pela árvore inteira sem nunca ser usado no corpo. Saíram os três, mais a string que os alimentava.
 
 ### 6.3 [BAIXO] Home
 
-- `MagnaHomeScreen.kt:182` — `remember { mutableStateOf(TextFieldState()) }` em vez de `rememberTextFieldState()`; texto some em rotação.
-- `:213` — clique no ícone de busca faz `append("")`, um no-op.
-- `:262` — `BottomSheetScaffold` com `sheetContent = {}` e `sheetPeekHeight = 0.dp`; é um `Scaffold` comum disfarçado.
-- Enquanto `syncState` é `Initial`, a tela é branca (nada renderiza fora de `Done`).
+**Status: corrigido.**
+
+- O texto da busca vivia num `remember`, não num saveable: girar o aparelho perdia a consulta. Agora usa `rememberTextFieldState()`.
+- O clique na lupa fazia `append("")`, que é literalmente nada. Agora abre a busca.
+- O `BottomSheetScaffold` tinha corpo vazio e `sheetPeekHeight = 0.dp`. Era um `Scaffold` fantasiado e virou um.
+- Enquanto o sync não terminava, a tela não renderizava nada: cold start ficava em branco até o diálogo aparecer. Agora mostra indicador de progresso.
 
 ### 6.4 [BAIXO] Strings
 
-- `loading`, `cancel`, `retry` em inglês dentro do `strings.xml` pt-BR.
-- `VotoFilter` (`DeputadoVotacoesState.kt`) tem labels em português hardcoded no enum.
+**Status: corrigido.** `cancel` virou "Cancelar", `loading` e `retry` saíram no bloco 5 por não terem uso, e o `contentDescription = "Clear"` em inglês virou recurso. "Mostrar menos" e "+ N autores" saíram do código para o `strings.xml`.
+
+Sobraram interpolações de contagem (`"${state.partidos.size} partidos"`, `"${ufMembers.size} dep."`). São de baixo valor e mexer nelas é churn; ficam para quem for fazer localização de verdade.
 
 ### 6.5 [BAIXO] Tema e janela
 
-- `AndroidManifest.xml:14` — `Theme.Material.Light.NoActionBar`. Sem `windowBackground` escuro, o cold start em dark mode dá um flash branco antes do Compose. Migrar para `Theme.SplashScreen` (core-splashscreen) resolve os dois.
-- `MagnaTheme.kt` — `CompositionLocalProvider(LocalDimensions provides LocalDimensions.current)` é um no-op.
+**Status: corrigido.** A janela de launch é desenhada pelo sistema antes do Compose subir, usando `android:windowBackground`. Como o app herdava o tema claro da plataforma, cold start em modo escuro piscava branco. Agora existe `Theme.Magna` com `values` e `values-night`, espelhando `backgroundLight` e `backgroundDark` do `Colors.kt`.
+
+O `CompositionLocalProvider` do `MagnaTheme` provia `LocalDimensions` com `LocalDimensions.current`, ou seja, o valor que já era. Era no-op e saiu.
 
 ---
 
@@ -269,7 +287,7 @@ Correção: remover as duas flags (`-XXLanguage:+ExplicitBackingFields` do `comp
 
 ### 7.5 [BAIXO] `dataExtractionRules` com schema errado
 
-- `AndroidManifest.xml:9` aponta `dataExtractionRules` para `backup_rules.xml`, cujo root é `<full-backup-content>`. Para API 31+ o formato é `<data-extraction-rules><cloud-backup><exclude .../></cloud-backup></data-extraction-rules>`. Hoje a exclusão do banco provavelmente não vale no Android 12+.
+**Status: corrigido.** `dataExtractionRules` apontava para o arquivo com root `<full-backup-content>`, que o Android 12+ não aceita nesse atributo, então a exclusão do banco provavelmente não valia em aparelho novo. Agora tem arquivo próprio no schema certo, com `cloud-backup` e `device-transfer`. O `fullBackupContent` continua apontando para o antigo, que é o que o Android 11 e abaixo leem.
 
 ### 7.6 [BAIXO] ProGuard
 
@@ -403,7 +421,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 3 | ~~`HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura`~~ **FEITO** | `HttpClientFactory.kt`, `ApiJson.kt`, `dto/*.kt`, `response/*.kt`, `PartidosApi.kt` | 0 |
 | 4 | ~~Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado~~ **FEITO** | `Resource.kt`, `Modules.kt`, `repository/**` | 2, 3 |
 | 5 | ~~Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura)~~ **FEITO** | ver 4.5 | nenhum |
-| 6 | Split de telas, `contentDescription`, strings, splash/dark window, `whatsnew`, `dataExtractionRules` | `features/**/*Screen.kt`, `strings.xml`, manifest | nenhum |
+| 6 | ~~Split de telas, `contentDescription`, strings, splash/dark window, `dataExtractionRules`~~ **FEITO** | `features/**/*Screen.kt`, `ui/component/chart/`, `strings.xml`, manifest | nenhum |
 | 7 | Feature nova da 1.1 | — | 0, 1, 2 |
 | 8 | **Último bloco, já com tudo pronto para publicar:** Data Safety, política de privacidade, `whatsnew`, bump de versão. Ver seção 10 | Play Console, `distribution/whatsnew/`, `androidApp/build.gradle.kts` | todos |
 
@@ -459,6 +477,6 @@ O catálogo em `AnalyticsEvent.kt` é a fonte de verdade para preencher isso: ca
 
 - **`whatsnew`** (item 7.4): `distribution/whatsnew/whatsnew-pt-BR` ainda anuncia "Histórico de votações de cada deputado, com filtros por tipo de voto", removido em `6b21146`. Reescrever para a 1.1.
 - **Versão**: `androidApp/build.gradle.kts` está em `versionCode = 3`, `versionName = "1.0.1"`. Subir os dois.
-- **`dataExtractionRules`** (item 7.5): o arquivo apontado usa schema de `<full-backup-content>`, que o Android 12+ ignora nesse atributo. Corrigir antes de publicar, senão o banco continua indo para o backup em aparelhos novos.
+- ~~**`dataExtractionRules`**~~ **corrigido no bloco 6.**
 - **Validar os eventos em aparelho real** antes de confiar no relatório: `adb shell setprop debug.firebase.analytics.app com.tick.magna` e acompanhar o DebugView. Eventos custom levam até 24h para aparecer nos relatórios normais, então o DebugView é o único jeito de saber na hora se a instrumentação está certa.
 - **Conferir que o release não loga**: com `AppBuildConfig`, um build de release não deve imprimir requisição do Ktor nem log do Koin. Vale um `adb logcat` rápido no APK assinado.

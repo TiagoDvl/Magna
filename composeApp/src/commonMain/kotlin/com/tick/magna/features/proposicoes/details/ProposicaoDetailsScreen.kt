@@ -1,62 +1,42 @@
 package com.tick.magna.features.proposicoes.details
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.tick.magna.data.domain.Deputado
-import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.data.domain.ProposicaoDetail
-import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.domain.proposicoesMock
+import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.LoadingComponent
-import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.proposicao_details_autores_show_less
-import magna.composeapp.generated.resources.proposicao_details_autores_show_more
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.proposicao_details_approved
 import magna.composeapp.generated.resources.proposicao_details_autores_title
@@ -66,12 +46,10 @@ import magna.composeapp.generated.resources.proposicao_details_orgao_label
 import magna.composeapp.generated.resources.proposicao_details_rejected
 import magna.composeapp.generated.resources.proposicao_details_status_title
 import magna.composeapp.generated.resources.proposicao_details_view_full_text
-import magna.composeapp.generated.resources.proposicao_details_votacoes_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
-
 @Composable
 fun ProposicaoDetailsScreen(
     viewModel: ProposicaoDetailsViewModel = koinViewModel(),
@@ -92,7 +70,6 @@ fun ProposicaoDetailsScreen(
         ementaTitle = stringResource(Res.string.proposicao_details_ementa_title),
         statusTitle = stringResource(Res.string.proposicao_details_status_title),
         autoresTitle = stringResource(Res.string.proposicao_details_autores_title),
-        votacoesTitle = stringResource(Res.string.proposicao_details_votacoes_title),
         despachoLabel = stringResource(Res.string.proposicao_details_despacho_label),
         orgaoLabel = stringResource(Res.string.proposicao_details_orgao_label),
         viewFullTextLabel = stringResource(Res.string.proposicao_details_view_full_text),
@@ -110,7 +87,6 @@ private fun ProposicaoDetailsContent(
     ementaTitle: String,
     statusTitle: String,
     autoresTitle: String,
-    votacoesTitle: String,
     despachoLabel: String,
     orgaoLabel: String,
     viewFullTextLabel: String,
@@ -335,252 +311,6 @@ private fun StatusSection(
     }
 }
 
-@Composable
-private fun AutoresSection(
-    state: ProposicaoAutoresState,
-    autoresTitle: String,
-    modifier: Modifier = Modifier,
-    onAutorClick: (String) -> Unit = {},
-) {
-    val dimensions = LocalDimensions.current
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-    ) {
-        Text(
-            text = autoresTitle,
-            style = typography.titleMedium.copy(
-                color = colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-            )
-        )
-
-        when (state) {
-            ProposicaoAutoresState.Loading -> CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = colorScheme.tertiary,
-                strokeWidth = 2.dp,
-            )
-            ProposicaoAutoresState.Empty -> Unit
-            is ProposicaoAutoresState.Content -> AutoresList(
-                autores = state.autores,
-                onAutorClick = onAutorClick,
-            )
-        }
-    }
-}
-
-private const val AUTORES_INITIAL_COUNT = 10
-
-@Composable
-private fun AutoresList(autores: List<Deputado>, onAutorClick: (String) -> Unit = {}) {
-    val dimensions = LocalDimensions.current
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
-
-    val hasMore = autores.size > AUTORES_INITIAL_COUNT
-    var expanded by remember { mutableStateOf(false) }
-    val chevronRotation by animateFloatAsState(
-        targetValue = if (expanded) 90f else 270f,
-        label = "autores_chevron",
-    )
-
-    Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid8)) {
-        autores.take(AUTORES_INITIAL_COUNT).forEachIndexed { index, deputado ->
-            AutorRow(index = index, deputado = deputado, onClick = onAutorClick)
-        }
-
-        if (hasMore) {
-            AnimatedVisibility(visible = expanded) {
-                Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid8)) {
-                    autores.drop(AUTORES_INITIAL_COUNT).forEachIndexed { index, deputado ->
-                        AutorRow(
-                            index = AUTORES_INITIAL_COUNT + index,
-                            deputado = deputado,
-                            onClick = onAutorClick,
-                        )
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .background(
-                        color = colorScheme.surfaceContainerLow,
-                        shape = MaterialTheme.shapes.small,
-                    )
-                    .padding(horizontal = dimensions.grid12, vertical = dimensions.grid8),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = if (expanded) {
-                        stringResource(Res.string.proposicao_details_autores_show_less)
-                    } else {
-                        stringResource(
-                            Res.string.proposicao_details_autores_show_more,
-                            autores.size - AUTORES_INITIAL_COUNT,
-                        )
-                    },
-                    style = typography.labelMedium.copy(
-                        color = colorScheme.secondary,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-                Icon(
-                    painter = painterResource(Res.drawable.ic_chevron_left),
-                    contentDescription = null,
-                    tint = colorScheme.secondary,
-                    modifier = Modifier
-                        .size(dimensions.grid16)
-                        .rotate(chevronRotation),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AutorRow(index: Int, deputado: Deputado, onClick: (String) -> Unit = {}) {
-    val dimensions = LocalDimensions.current
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick(deputado.id) },
-        horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Avatar(
-            modifier = Modifier
-                .shadow(elevation = 2.dp, CircleShape)
-                .zIndex(5 - index.toFloat()),
-            photoUrl = deputado.profilePicture,
-        )
-        Column {
-            Text(
-                text = deputado.name,
-                style = typography.bodyMedium.copy(
-                    color = colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold,
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val meta = listOfNotNull(deputado.partido, deputado.uf).joinToString(" · ")
-            if (meta.isNotEmpty()) {
-                Text(
-                    text = meta,
-                    style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun VotacaoCard(
-    votacao: Votacao,
-    approvedLabel: String,
-    rejectedLabel: String,
-    modifier: Modifier = Modifier,
-) {
-    val dimensions = LocalDimensions.current
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
-
-    val approvalColor = if (votacao.aprovacao) colorScheme.tertiary else colorScheme.error
-    val approvalLabel = if (votacao.aprovacao) approvedLabel else rejectedLabel
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
-    ) {
-        Column(
-            modifier = Modifier.padding(dimensions.grid12),
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-        ) {
-            // Description + result chip
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = votacao.descricao,
-                    style = typography.bodyMedium.copy(
-                        color = colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                SuggestionChip(
-                    onClick = {},
-                    label = {
-                        Text(
-                            text = approvalLabel,
-                            style = typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        )
-                    },
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = approvalColor.copy(alpha = 0.12f),
-                        labelColor = approvalColor,
-                    ),
-                    border = SuggestionChipDefaults.suggestionChipBorder(
-                        enabled = true,
-                        borderColor = approvalColor.copy(alpha = 0.3f),
-                    ),
-                )
-            }
-
-            // Date
-            votacao.dataHoraRegistro?.let { dateTime ->
-                val date = dateTime.substringBefore("T")
-                Text(
-                    text = date,
-                    style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
-                )
-            }
-
-            // Affected propositions
-            if (votacao.proposicoesAfetadas.isNotEmpty()) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-                    verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
-                ) {
-                    votacao.proposicoesAfetadas.take(3).forEach { ementa ->
-                        SuggestionChip(
-                            onClick = {},
-                            label = {
-                                Text(
-                                    text = ementa,
-                                    style = typography.labelSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            },
-                            colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = colorScheme.surfaceContainerHigh,
-                            ),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 @Preview
 @Composable
 private fun PreviewProposicaoDetailsContent() {
@@ -610,7 +340,6 @@ private fun PreviewProposicaoDetailsContent() {
             ementaTitle = "Ementa",
             statusTitle = "Situação",
             autoresTitle = "Autores",
-            votacoesTitle = "Votações",
             despachoLabel = "Despacho",
             orgaoLabel = "Órgão",
             viewFullTextLabel = "Ver texto completo",
@@ -630,7 +359,6 @@ private fun PreviewProposicaoDetailsLoading() {
             ementaTitle = "Ementa",
             statusTitle = "Situação",
             autoresTitle = "Autores",
-            votacoesTitle = "Votações",
             despachoLabel = "Despacho",
             orgaoLabel = "Órgão",
             viewFullTextLabel = "Ver texto completo",
