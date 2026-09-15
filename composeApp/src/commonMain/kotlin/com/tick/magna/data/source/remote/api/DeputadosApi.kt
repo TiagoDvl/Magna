@@ -25,7 +25,16 @@ internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInt
     override suspend fun getDeputadoExpenses(id: String, legislaturaId: String, year: String): DespesasResponse {
         return httpClient.get("deputados/$id/despesas") {
             parameter("idLegislatura", legislaturaId)
+            parameter("ano", year)
             parameter("ordem", "DESC")
+            parameter("ordenarPor", "dataDocumento")
+            // Without this the API returns its default page of 15, which for an active
+            // deputado is barely one month of the year being asked for.
+            parameter("itens", ITEMS_PER_PAGE)
         }.body()
+    }
+
+    private companion object {
+        const val ITEMS_PER_PAGE = 100
     }
 }

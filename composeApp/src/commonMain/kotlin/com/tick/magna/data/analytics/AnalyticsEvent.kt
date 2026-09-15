@@ -130,6 +130,7 @@ sealed class AnalyticsEvent(
     }
 
     enum class EmptyContent(val value: String) {
+        DEPUTADO_EXPENSES("deputado_expenses"),
         PARTIDO_MEMBROS("partido_membros"),
         PROPOSICAO_AUTORES("proposicao_autores"),
         COMISSAO_VOTACOES("comissao_votacoes"),

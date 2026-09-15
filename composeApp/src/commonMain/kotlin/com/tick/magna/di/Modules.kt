@@ -172,7 +172,7 @@ val viewModelModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get(), get()) }

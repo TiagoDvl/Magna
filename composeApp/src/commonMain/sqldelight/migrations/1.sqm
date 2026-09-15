@@ -1,0 +1,27 @@
+-- Rebuilds DeputadoExpense: year and month become INTEGER, documentValue becomes REAL,
+-- and a natural key on the document replaces the autoincrement id.
+--
+-- The old rows are dropped rather than converted. The table is a cache of the Camara
+-- expenses endpoint and every row is re-downloaded the next time the deputado screen
+-- opens, so nothing is lost. It is also the only way to clear the duplicates that the
+-- previous plain INSERT accumulated on every visit.
+DROP TABLE DeputadoExpense;
+
+CREATE TABLE DeputadoExpense (
+    deputadoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    codDocumento TEXT NOT NULL,
+    parcela INTEGER NOT NULL DEFAULT 0,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    despesaType TEXT,
+    documentDate TEXT,
+    documentNumber TEXT,
+    documentValue REAL NOT NULL DEFAULT 0.0,
+    documentUrl TEXT,
+    fornecedorName TEXT,
+    cnpjCpf TEXT,
+    PRIMARY KEY (deputadoId, legislaturaId, codDocumento, parcela),
+    FOREIGN KEY(deputadoId) REFERENCES Deputado(id),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);

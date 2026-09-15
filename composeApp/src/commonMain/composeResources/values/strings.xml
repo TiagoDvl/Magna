@@ -58,6 +58,8 @@
     <string name="deputado_details_expense_supplier_name">Nome do Fornecedor</string>
     <string name="deputado_details_expense_supplier_cnpjcpf">CNPJ/CPF do Fornecedor</string>
     <string name="deputado_details_check_document">Consultar documento</string>
+    <string name="deputado_details_expenses_empty">Nenhuma despesa registrada neste ano.</string>
+    <string name="deputado_details_expenses_error">Não foi possível carregar as despesas agora.</string>
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
     <string name="comissoes_permanentes_votacoes_title">Votações recentes</string>

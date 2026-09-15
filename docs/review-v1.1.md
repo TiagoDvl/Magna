@@ -38,21 +38,23 @@ A partir daqui, cada mudança de schema precisa de um `migrations/N.sqm` (`ALTER
 - `DeputadosRepository.getDeputadoExpenses` (linhas 111-139) chama a API e insere toda vez que a tela abre.
 - Resultado: 15 linhas novas por visita, e a lista cresce indefinidamente. Quem abriu o mesmo deputado cinco vezes vê 75 cards.
 
-Correção: gravar `codDocumento` (o `DespesaDto` já traz) e criar chave natural `UNIQUE(deputadoId, codDocumento, ano, mes)` com `INSERT ... ON CONFLICT DO UPDATE`, ou apagar as despesas do deputado dentro da mesma transação antes de reinserir. Exige migração (ver 2.1).
+**Status: corrigido.** A tabela foi refeita com chave natural `PRIMARY KEY (deputadoId, legislaturaId, codDocumento, parcela)` e o insert virou `ON CONFLICT ... DO UPDATE`. Revisitar o deputado agora atualiza as linhas em vez de acrescentar uma segunda cópia.
+
+`parcela` entrou na chave de propósito: um documento reembolsado em partes volta com uma linha por parcela, e chavear só por `codDocumento` faria as parcelas colapsarem numa só, perdendo dado em silêncio.
 
 ### 2.3 [MÉDIO] Ordenação de despesas por mês está errada
 
 - `DeputadoExpense.sq:44` e `:50` — `ORDER BY year DESC, month DESC` sobre colunas `TEXT`. `"9" > "10"` lexicograficamente, então outubro/novembro/dezembro aparecem antes de fevereiro a setembro.
 - Causa: `DeputadoExpenseMapper.kt:42` grava `ano.toString()` e `mes.toString()`.
 
-Correção: colunas `INTEGER`. Exige migração.
+**Status: corrigido.** `year` e `month` são `INTEGER`. A ordenação passou a ser numérica.
 
 ### 2.4 [MÉDIO] Valor monetário gravado como string formatada
 
 - `DeputadoExpenseMapper.kt:47` grava `"R$ $valorDocumento"` (vira `R$ 8000.0`, sem formatação pt-BR).
 - Impede somar, ordenar por valor ou trocar a formatação sem migração.
 
-Correção: coluna `REAL`, formatação na UI com separador de milhar e vírgula decimal. Exige migração.
+**Status: corrigido.** `documentValue` é `REAL` e o domínio carrega `Double`. A formatação virou `Double.toBrlString()` em `util/CurrencyFormat.kt`, chamada na tela: `8000.0` vira `R$ 8.000,00`. Escrita à mão porque não existe formatador de número multiplataforma. O mesmo tratamento foi dado à data: a coluna guarda o que a API mandou e a formatação acontece no mapper, então mudar o formato de exibição não exige migração.
 
 ### 2.5 [BAIXO] Chaves estrangeiras são decorativas
 
@@ -103,7 +105,7 @@ Correção: tornar nulável com default tudo que o app não precisa obrigatoriam
 ### 3.4 [MÉDIO] `getDeputadoExpenses` ignora o ano e só pega a primeira página
 
 - `DeputadosApi.kt:25-28` — o parâmetro `year` não é enviado. Sem `itens`, a API devolve 15 registros. O `LinkDto` com `rel=next` é desserializado em todas as responses e nunca lido.
-- Decisão de produto: ou mostra "últimas 15 despesas" explicitamente na UI, ou implementa paginação (`itens=100` + seguir `next`) por ano.
+**Status: parcialmente corrigido.** `ano` e `ordenarPor` agora são enviados, e `itens=100` substitui a página padrão de 15. Seguir o `rel=next` para quem estourar 100 documentos no ano continua em aberto.
 
 ### 3.5 [MÉDIO] Chamadas sequenciais onde deveriam ser paralelas
 
@@ -173,7 +175,9 @@ Decidir por item: apagar ou terminar. Manter meio-vivo custa em cada refactor.
 
 ### 5.1 [MÉDIO] Deputado sem despesas fica em "carregando" para sempre
 
-- `DeputadoDetailsViewModel.kt:49` — `expensesResult.isEmpty() -> ExpensesState.Loading`. Lista vazia e erro de API produzem o mesmo estado; `ExpensesState.Error` nunca é emitido. Resolvido de graça ao adotar o `Resource<T>` de 4.2.
+**Status: corrigido.** O repositório passou a devolver `DeputadoExpensesResult` (`Fetching` / `Error` / `Success`), e `ExpensesState` ganhou `Empty`. A tela renderiza texto para vazio e para erro, em vez do `-> Unit` silencioso de antes.
+
+Regra de precedência escolhida: cache não vazio ganha de requisição falhada. Mostrar a despesa da semana passada é melhor que mostrar erro porque a API da Câmara caiu agora. Erro só aparece quando não há nada em cache.
 
 ### 5.2 [BAIXO] `SharingStarted.Lazily`
 
@@ -352,7 +356,6 @@ A busca usa debounce de 1s só para o evento; a busca em si continua rodando a c
 
 - **Eventos de navegação com `source`**: `deputado_opened`, `proposicao_opened`, `partido_opened`. Ficaram de fora de propósito: só valem se as quatro fontes de `deputado_opened` entrarem juntas. Se só uma reportasse, o relatório diria que todo mundo chega por ali. Dado parcial de `source` engana mais que ausência de dado.
 - `expense_opened` e `external_link_opened` — o enum `LinkKind` já existe, falta chamar nas telas.
-- `content_empty` para despesas de deputado: bloqueado no bloco 2. Hoje lista vazia e erro produzem o mesmo estado (`ExpensesState.Loading`, item 5.1), então não dá para distinguir "não tem despesa" de "a API caiu".
 - `setUserProperty(legislatura_id)` no fim do sync.
 - Um teste de grafo do Koin (`checkModules`) em `jvmTest`.
 
@@ -375,7 +378,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 |---|---|---|---|
 | 0 | ~~Baseline de migração (`1.db`), CI rodando `:composeApp:jvmTest`, primeiro teste real~~ **FEITO** | `migrations/1.db`, `android-release.yml`, `commonTest` | nenhum |
 | 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release — **base pronta**, faltam os eventos de navegação (8.5) | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
-| 2 | Despesas: schema (`INTEGER`/`REAL`/`codDocumento UNIQUE`), `1.sqm`, upsert, `Error` state, formatação pt-BR na UI, parâmetro `ano` | `DeputadoExpense.sq`, `DeputadoExpenseMapper.kt`, `DeputadoExpenseDao.kt`, `DeputadosApi.kt`, `DeputadoDetailsViewModel.kt` | 0 |
+| 2 | ~~Despesas: schema, `1.sqm`, upsert, `Error` state, formatação pt-BR, parâmetro `ano`~~ **FEITO** | `DeputadoExpense.sq`, `1.sqm`, `2.db`, mapper, DAO, repositório, `DeputadosApi.kt`, tela | 0 |
 | 3 | `HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura` | `HttpClientFactory.kt`, `dto/*.kt`, `PartidosApi.kt` | 0 |
 | 4 | Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado. Fazer um repositório por PR, começando por `Deputados` | `Modules.kt`, `repository/**` | 2, 3 |
 | 5 | Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura) | ver 4.5 | nenhum |

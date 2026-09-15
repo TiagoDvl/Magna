@@ -3,7 +3,6 @@ package com.tick.magna.data.source.local.mapper
 import com.tick.magna.data.source.remote.dto.DespesaDto
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import com.tick.magna.DeputadoExpense as DeputadoExpenseEntity
 
@@ -12,6 +11,8 @@ class DeputadoExpenseMapperTest {
     private fun despesa(
         ano: Int = 2025,
         mes: Int = 6,
+        codDocumento: String = "7938876",
+        parcela: Int = 0,
         dataDocumento: String = "2025-06-15T00:00:00",
         valorDocumento: Double = 8000.0,
         urlDocumento: String? = "https://camara.leg.br/doc.pdf",
@@ -19,7 +20,7 @@ class DeputadoExpenseMapperTest {
         ano = ano,
         mes = mes,
         tipoDespesa = "COMBUSTIVEIS E LUBRIFICANTES",
-        codDocumento = "7938876",
+        codDocumento = codDocumento,
         tipoDocumento = "Nota Fiscal",
         codTipoDocumento = 0,
         dataDocumento = dataDocumento,
@@ -32,101 +33,119 @@ class DeputadoExpenseMapperTest {
         valorGlosa = 0.0,
         numRessarcimento = "",
         codLote = 1L,
-        parcela = 0,
+        parcela = parcela,
     )
 
     private fun entity(
-        year: String? = "2025",
-        month: String? = "6",
-        documentValue: String? = "R$ 8000.0",
+        year: Long = 2025,
+        month: Long = 6,
+        documentDate: String? = "2025-06-15T00:00:00",
+        documentValue: Double = 8000.0,
         documentUrl: String? = null,
     ) = DeputadoExpenseEntity(
-        expenseId = 1L,
         deputadoId = "204528",
         legislaturaId = "57",
+        codDocumento = "7938876",
+        parcela = 0,
         year = year,
         month = month,
         despesaType = "COMBUSTIVEIS E LUBRIFICANTES",
-        documentData = "15/06/2025",
+        documentDate = documentDate,
         documentNumber = "118216",
         documentValue = documentValue,
         documentUrl = documentUrl,
-        fileUri = null,
         fornecedorName = "POSTO IPIRANGA LTDA",
         cnpjCpf = "12345678000190",
     )
 
     @Test
-    fun formatter_renders_day_month_year_with_zero_padding() {
-        assertEquals("15/06/2025", formatter.format(kotlinx.datetime.LocalDateTime.parse("2025-06-15T00:00:00")))
-        assertEquals("01/01/2024", formatter.format(kotlinx.datetime.LocalDateTime.parse("2024-01-01T13:45:00")))
-        assertEquals("31/12/2023", formatter.format(kotlinx.datetime.LocalDateTime.parse("2023-12-31T23:59:59")))
+    fun toLocal_stores_year_and_month_as_numbers_so_they_sort_correctly() {
+        // The old TEXT columns sorted "9" after "10", putting Sep-Dec before Feb-Aug.
+        val setembro = despesa(mes = 9).toLocal("204528", "57")
+        val outubro = despesa(mes = 10).toLocal("204528", "57")
+
+        assertEquals(9L, setembro.month)
+        assertEquals(10L, outubro.month)
+        assertEquals(2025L, setembro.year)
     }
 
     @Test
-    fun toLocal_formats_document_date_to_brazilian_order() {
-        val local = despesa(dataDocumento = "2025-06-15T00:00:00").toLocal("204528", "57")
-
-        assertEquals("15/06/2025", local.documentData)
+    fun toLocal_stores_the_amount_as_a_number() {
+        // Previously persisted as the string "R$ 8000.0", which could not be added up.
+        assertEquals(8000.0, despesa(valorDocumento = 8000.0).toLocal("204528", "57").documentValue)
+        assertEquals(350.75, despesa(valorDocumento = 350.75).toLocal("204528", "57").documentValue)
     }
 
     @Test
-    fun toLocal_carries_identifiers_and_leaves_file_uri_empty() {
-        val local = despesa().toLocal(deputadoId = "204528", legislaturaId = "57")
+    fun toLocal_keeps_the_document_key_so_a_revisit_updates_instead_of_duplicating() {
+        val local = despesa(codDocumento = "7938876", parcela = 2).toLocal("204528", "57")
 
+        assertEquals("7938876", local.codDocumento)
+        assertEquals(2L, local.parcela)
         assertEquals("204528", local.deputadoId)
         assertEquals("57", local.legislaturaId)
-        assertEquals(0L, local.expenseId)
-        assertNull(local.fileUri)
     }
 
     @Test
-    fun toLocal_fails_when_api_sends_a_date_without_time() {
-        // The Camara API is not consistent here. LocalDateTime.parse requires a full
-        // date-time, so a plain "2025-06-15" takes down the whole expense list.
-        // Tracked in docs/review-v1.1.md section 3.1.
-        assertFailsWith<IllegalArgumentException> {
-            despesa(dataDocumento = "2025-06-15").toLocal("204528", "57")
-        }
+    fun toLocal_stores_the_date_exactly_as_the_api_sent_it() {
+        // Kept raw so the display format can change without a migration.
+        val local = despesa(dataDocumento = "2025-06-15T00:00:00").toLocal("204528", "57")
+
+        assertEquals("2025-06-15T00:00:00", local.documentDate)
     }
 
     @Test
-    fun toLocal_stores_month_unpadded_which_breaks_text_ordering() {
-        // Documents the bug in docs/review-v1.1.md section 2.3: month is a TEXT column,
-        // so "9" sorts after "10" and Sep-Dec appear before Feb-Aug.
-        // Update this test when the column becomes INTEGER.
-        assertEquals("6", despesa(mes = 6).toLocal("204528", "57").month)
-        assertEquals("10", despesa(mes = 10).toLocal("204528", "57").month)
+    fun toDomain_renders_the_date_in_brazilian_order() {
+        assertEquals("15/06/2025", entity(documentDate = "2025-06-15T00:00:00").toDomain().dataDocumento)
     }
 
     @Test
-    fun toLocal_stores_value_as_preformatted_string() {
-        // Documents the bug in docs/review-v1.1.md section 2.4: the value is persisted
-        // already formatted, so it cannot be summed or sorted numerically.
-        assertEquals("R$ 8000.0", despesa(valorDocumento = 8000.0).toLocal("204528", "57").documentValue)
+    fun toDomain_accepts_a_date_without_a_time() {
+        // The API sends both forms. Parsing only the full date-time used to throw, and
+        // because expenses are mapped as a list, one odd date emptied the whole screen.
+        assertEquals("15/06/2025", entity(documentDate = "2025-06-15").toDomain().dataDocumento)
     }
 
     @Test
-    fun entity_toDomain_parses_year_and_month() {
-        val domain = entity(year = "2025", month = "6").toDomain()
+    fun toDomain_passes_an_unparseable_date_through_rather_than_losing_the_row() {
+        assertEquals("15 de junho", entity(documentDate = "15 de junho").toDomain().dataDocumento)
+    }
+
+    @Test
+    fun toDomain_pads_single_digit_days_and_months() {
+        assertEquals("01/02/2024", entity(documentDate = "2024-02-01T09:30:00").toDomain().dataDocumento)
+    }
+
+    @Test
+    fun toDomain_returns_an_empty_date_when_the_column_is_null() {
+        assertEquals("", entity(documentDate = null).toDomain().dataDocumento)
+    }
+
+    @Test
+    fun toDomain_carries_numbers_through_without_formatting_them() {
+        val domain = entity(year = 2025, month = 6, documentValue = 350.75).toDomain()
 
         assertEquals(2025, domain.ano)
         assertEquals(6, domain.mes)
+        assertEquals(350.75, domain.valorDocumento)
     }
 
     @Test
-    fun entity_toDomain_defaults_unparseable_year_and_month_to_zero() {
-        val domain = entity(year = null, month = "abc").toDomain()
-
-        assertEquals(0, domain.ano)
-        assertEquals(0, domain.mes)
+    fun toDomain_keeps_a_null_document_url() {
+        assertNull(entity(documentUrl = null).toDomain().urlDocumento)
+        assertEquals("https://camara.leg.br/doc.pdf", entity(documentUrl = "https://camara.leg.br/doc.pdf").toDomain().urlDocumento)
     }
 
     @Test
-    fun entity_toDomain_keeps_null_document_url_but_empties_other_nulls() {
-        val domain = entity(documentValue = null, documentUrl = null).toDomain()
+    fun a_round_trip_through_storage_preserves_the_expense() {
+        val local = despesa(ano = 2025, mes = 3, valorDocumento = 1234.56, dataDocumento = "2025-03-08T00:00:00")
+            .toLocal("204528", "57")
 
-        assertNull(domain.urlDocumento)
-        assertEquals("", domain.valorDocumento)
+        val domain = local.toDomain()
+
+        assertEquals(2025, domain.ano)
+        assertEquals(3, domain.mes)
+        assertEquals(1234.56, domain.valorDocumento)
+        assertEquals("08/03/2025", domain.dataDocumento)
     }
 }

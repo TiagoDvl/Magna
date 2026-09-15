@@ -1,17 +1,24 @@
+-- Cache of the Camara expenses endpoint. Rows are re-downloaded whenever the deputado
+-- screen opens, so the natural key below is what keeps a revisit from duplicating the list.
+--
+-- codDocumento identifies the document and parcela the instalment within it; a document
+-- reimbursed in parts returns one row per instalment, so both are needed or instalments
+-- would silently collapse into one.
 CREATE TABLE DeputadoExpense (
-    expenseId INTEGER PRIMARY KEY AUTOINCREMENT,
     deputadoId TEXT NOT NULL,
     legislaturaId TEXT NOT NULL,
-    year TEXT,
-    month TEXT,
+    codDocumento TEXT NOT NULL,
+    parcela INTEGER NOT NULL DEFAULT 0,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
     despesaType TEXT,
-    documentData TEXT,
+    documentDate TEXT,
     documentNumber TEXT,
-    documentValue TEXT,
+    documentValue REAL NOT NULL DEFAULT 0.0,
     documentUrl TEXT,
-    fileUri TEXT,
     fornecedorName TEXT,
     cnpjCpf TEXT,
+    PRIMARY KEY (deputadoId, legislaturaId, codDocumento, parcela),
     FOREIGN KEY(deputadoId) REFERENCES Deputado(id),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
@@ -20,37 +27,31 @@ insertExpense:
 INSERT INTO DeputadoExpense(
     deputadoId,
     legislaturaId,
+    codDocumento,
+    parcela,
     year,
     month,
     despesaType,
-    documentData,
+    documentDate,
     documentNumber,
     documentValue,
     documentUrl,
-    fileUri,
     fornecedorName,
     cnpjCpf
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-
-getExpenseById:
-SELECT *
-FROM DeputadoExpense
-WHERE expenseId = ?;
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(deputadoId, legislaturaId, codDocumento, parcela) DO UPDATE SET
+    year = excluded.year,
+    month = excluded.month,
+    despesaType = excluded.despesaType,
+    documentDate = excluded.documentDate,
+    documentNumber = excluded.documentNumber,
+    documentValue = excluded.documentValue,
+    documentUrl = excluded.documentUrl,
+    fornecedorName = excluded.fornecedorName,
+    cnpjCpf = excluded.cnpjCpf;
 
 getExpensesByDeputado:
 SELECT *
 FROM DeputadoExpense
 WHERE deputadoId = ? AND legislaturaId = ?
-ORDER BY year DESC, month DESC;
-
-getExpensesByLegislatura:
-SELECT *
-FROM DeputadoExpense
-WHERE legislaturaId = ?
-ORDER BY year DESC, month DESC;
-
--- Get all expenses
-getAllExpenses:
-SELECT *
-FROM DeputadoExpense
-ORDER BY expenseId DESC;
+ORDER BY year DESC, month DESC, documentDate DESC;

@@ -60,6 +60,7 @@ import com.tick.magna.ui.core.avatar.AvatarSize
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
+import com.tick.magna.util.toBrlString
 import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.deputado_details_check_document
@@ -69,6 +70,8 @@ import magna.composeapp.generated.resources.deputado_details_expense_month
 import magna.composeapp.generated.resources.deputado_details_expense_supplier_name
 import magna.composeapp.generated.resources.deputado_details_expense_title
 import magna.composeapp.generated.resources.deputado_details_expense_year
+import magna.composeapp.generated.resources.deputado_details_expenses_empty
+import magna.composeapp.generated.resources.deputado_details_expenses_error
 import magna.composeapp.generated.resources.deputado_details_loading_details
 import magna.composeapp.generated.resources.deputado_details_loading_expenses
 import magna.composeapp.generated.resources.folder_eye
@@ -419,7 +422,7 @@ fun DeputadoExpenses(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = expense.valorDocumento,
+                                            text = expense.valorDocumento.toBrlString(),
                                             style = typography.labelSmall.copy(
                                                 color = colorScheme.tertiary,
                                                 fontWeight = FontWeight.SemiBold
@@ -458,9 +461,33 @@ fun DeputadoExpenses(
                     }
                 }
 
-                ExpensesState.Error -> Unit
+                ExpensesState.Empty -> item {
+                    ExpensesPlaceholder(text = stringResource(Res.string.deputado_details_expenses_empty))
+                }
+
+                ExpensesState.Error -> item {
+                    ExpensesPlaceholder(text = stringResource(Res.string.deputado_details_expenses_error))
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun ExpensesPlaceholder(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(LocalDimensions.current.grid24),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            ),
+        )
     }
 }
 
@@ -512,7 +539,7 @@ fun DeputadoExpenseDetails(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = deputadoExpense.valorDocumento,
+                text = deputadoExpense.valorDocumento.toBrlString(),
                 style = typography.headlineLarge.copy(
                     color = colorScheme.primary,
                     fontWeight = FontWeight.Bold,

@@ -25,6 +25,9 @@ sealed interface ExpensesState {
 
     data object Error: ExpensesState
 
+    /** The deputado has no expenses for the period, which is different from a failure. */
+    data object Empty: ExpensesState
+
     data class Content(val expenses: List<DeputadoExpense>): ExpensesState
 }
 

@@ -1,10 +1,10 @@
 package com.tick.magna.data.repository.deputados
 
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.DeputadoVotacao
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.result.DeputadoDetailsResult
+import com.tick.magna.data.repository.deputados.result.DeputadoExpensesResult
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
@@ -155,34 +155,48 @@ internal class DeputadosRepository(
         }
     }
 
-    override fun getDeputadoExpenses(deputadoId: String): Flow<List<DeputadoExpense>> {
+    override fun getDeputadoExpenses(deputadoId: String): Flow<DeputadoExpensesResult> {
         loggerInterface.d("getDeputadoExpenses: deputadoId=$deputadoId", TAG)
 
-        return userDao.getUser().flatMapLatest { user ->
+        val fetchStatus = MutableStateFlow(FetchStatus.InFlight)
+
+        coroutineScope.launch {
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+                ?: run {
+                    loggerInterface.w("getDeputadoExpenses: no legislaturaId, skipping API call", TAG)
+                    fetchStatus.value = FetchStatus.Failed
+                    return@launch
+                }
+
+            try {
+                val currentYear = currentYear()
+                val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, currentYear.toString())
+                val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
+                deputadoExpenseDao.insertDeputadoExpenses(expenses)
+                loggerInterface.d("getDeputadoExpenses: saved ${expenses.size} expenses for year=$currentYear", TAG)
+                fetchStatus.value = FetchStatus.Done
+            } catch (e: Exception) {
+                loggerInterface.e("getDeputadoExpenses: API call failed for deputadoId=$deputadoId", e, TAG)
+                fetchStatus.value = FetchStatus.Failed
+            }
+        }
+
+        val cachedExpenses = userDao.getUser().flatMapLatest { user ->
             if (user != null && user.legislaturaId != null) {
                 deputadoExpenseDao.getDeputadoExpense(deputadoId, user.legislaturaId)
             } else {
                 flowOf(emptyList())
             }
-        }.map { expenses ->
-            expenses.map { it.toDomain() }
-        }.also {
-            coroutineScope.launch {
-                val legislaturaId = userDao.getUser().first()?.legislaturaId
-                    ?: run {
-                        loggerInterface.w("getDeputadoExpenses: no legislaturaId, skipping API call", TAG)
-                        return@launch
-                    }
+        }
 
-                try {
-                    val currentYear = currentYear()
-                    val response = deputadosApi.getDeputadoExpenses(deputadoId, legislaturaId, currentYear.toString())
-                    val expenses = response.dados.map { it.toLocal(deputadoId, legislaturaId) }
-                    deputadoExpenseDao.insertDeputadoExpenses(expenses)
-                    loggerInterface.d("getDeputadoExpenses: saved ${expenses.size} expenses for year=$currentYear", TAG)
-                } catch (e: Exception) {
-                    loggerInterface.e("getDeputadoExpenses: API call failed for deputadoId=$deputadoId", e, TAG)
-                }
+        // Cached rows win over a failed request: showing last week's expenses beats showing
+        // an error because the Camara API happens to be down right now.
+        return combine(cachedExpenses, fetchStatus) { expenses, status ->
+            when {
+                expenses.isNotEmpty() -> DeputadoExpensesResult.Success(expenses.map { it.toDomain() })
+                status == FetchStatus.Failed -> DeputadoExpensesResult.Error
+                status == FetchStatus.Done -> DeputadoExpensesResult.Success(emptyList())
+                else -> DeputadoExpensesResult.Fetching
             }
         }
     }
@@ -224,3 +238,5 @@ internal class DeputadosRepository(
         }
     }
 }
+
+private enum class FetchStatus { InFlight, Done, Failed }
