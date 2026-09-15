@@ -26,13 +26,11 @@ A recomendação é: **antes da feature nova**, fazer o bloco 0 (baseline de mig
 - Os drivers (`DatabaseDriverFactory.android.kt`, `.ios.kt`, `.jvm.kt`) usam `MagnaDatabase.Schema` na versão 1. Usuários da 1.0 já têm um `magna.db` versão 1 no aparelho.
 - Consequência: a primeira alteração em qualquer `.sq` (que a correção de despesas e provavelmente a feature nova vão exigir) faz o app crashar na abertura para quem atualiza, com `no such column`.
 
-Ação obrigatória **antes de tocar em qualquer `.sq`**:
+**Status: resolvido.** O baseline `composeApp/src/commonMain/sqldelight/migrations/1.db` existe e está commitado, com `user_version = 1` — igual ao `MagnaDatabase.Schema.version` gerado, que é o que os usuários da 1.0 têm no aparelho. Os 9 `CREATE TABLE` foram conferidos um a um contra os `.sq` (normalizando espaços): batem exatamente.
 
-```bash
-./gradlew :composeApp:generateCommonMainMagnaDatabaseSchema
-```
+A partir daqui, cada mudança de schema precisa de um `migrations/N.sqm` (`ALTER TABLE ...`) e o `verifyMigrations` passa a proteger de verdade.
 
-Isso gera `migrations/1.db` (o baseline). Commitar. A partir daí, cada mudança de schema vem com um `migrations/1.sqm` (`ALTER TABLE ...`) e o `verifyMigrations` passa a proteger de verdade.
+> **Cuidado ao regerar no Windows.** `./gradlew :composeApp:generateCommonMainMagnaDatabaseSchema` falha nesta máquina com `UnsatisfiedLinkError: 'void org.sqlite.core.NativeDB._open_utf8'`. A causa não é o projeto: a task roda num worker isolado do Gradle que, no Windows, sobe sem `TMP`/`TEMP`, então `java.io.tmpdir` cai em `C:\WINDOWS` e o sqlite-jdbc não consegue extrair a `.dll` (`AccessDeniedException`). Verificado que o daemon tem tmpdir correto e que nem `-D` nem `org.gradle.jvmargs` propagam para o worker. O baseline atual foi gerado aplicando os mesmos `CREATE TABLE` via SQLite direto, o que produz um `sqlite_master` idêntico. `verifySqlDelightMigration` roda no CI (Linux), onde o problema não existe — é lá que a verificação vale.
 
 ### 2.2 [ALTO] Despesas duplicam a cada abertura do deputado
 
@@ -216,18 +214,29 @@ Decidir por item: apagar ou terminar. Manter meio-vivo custa em cada refactor.
 
 ### 7.1 [ALTO] O job de testes do CI não roda teste nenhum
 
-- `.github/workflows/android-release.yml:24` — `./gradlew testDebugUnitTest`. Verificado com `gradlew tasks --all`: essa task existe só em `:androidApp` (que não tem testes). Os testes de `commonTest` rodam via `:composeApp:jvmTest` (ou `:composeApp:allTests`). O job fica verde sem executar nada.
-- Correção: `./gradlew :composeApp:jvmTest :androidApp:testDebugUnitTest`.
+**Status: corrigido.** `./gradlew testDebugUnitTest` existe só em `:androidApp`, que não tem nenhum teste — o job ficava verde sem executar nada. Confirmado ao rodar: `:androidApp:testDebugUnitTest` reporta `NO-SOURCE`.
+
+O workflow agora roda `./gradlew :composeApp:jvmTest :androidApp:testDebugUnitTest`, mais um passo `:composeApp:verifySqlDelightMigration` antes dos testes. O glob de artefato (`**/build/test-results/**/*.xml`) já cobre a saída do `jvmTest`, não precisou mudar.
 
 ### 7.2 [ALTO] Um teste, e é `assertEquals(3, 1 + 2)`
 
-- `commonTest/.../ComposeAppCommonTest.kt` é o único teste. A arquitetura é toda testável (interfaces + `DispatcherInterface`), então o custo de começar é baixo.
-- Setup sugerido (só `commonTest` + `jvmTest`, sem Android): `kotlin-test`, `kotlinx-coroutines-test`, `turbine`, e `sqlite-driver` (`JdbcSqliteDriver.IN_MEMORY`) para testar DAOs e queries de verdade. Fakes à mão para APIs (sem MockK — não roda em commonTest).
-- Ordem de valor: mappers de data e valor → DTOs com JSON real contendo nulls → `SyncUserInformationUseCase` → filtros de `DeputadosSearchViewModel` → DAOs com migração (o próprio SQLDelight testa migração com o `.db` baseline).
+**Status: começado.** O placeholder `ComposeAppCommonTest.kt` saiu e entraram 21 testes em `commonTest`, todos verdes no `:composeApp:jvmTest`:
+
+- `DeputadoExpenseMapperTest` (9) — formatação de data, `toLocal`/`toDomain`, e três testes que fixam por escrito os bugs de 2.3, 2.4 e 3.1 (o de 3.1 prova com `assertFailsWith` que uma data sem hora explode o mapper).
+- `DeputadoDetailsMapperTest` (6) — parsing de redes sociais, incluindo o descarte de `x.com` descrito em 4.6.
+- `StringUtilsTest` (6) — `normalizeForSearch`, acentuação e maiúsculas.
+
+Os três testes que documentam bug passam de propósito: eles afirmam o comportamento atual e vão falhar quando o bloco 2 mudar o schema, forçando uma atualização consciente.
+
+Próximos passos, sem dependências novas ainda: DTOs com JSON real contendo nulls. Depois, adicionando `kotlinx-coroutines-test` + `turbine` + `sqlite-driver` (`JdbcSqliteDriver.IN_MEMORY`): `SyncUserInformationUseCase`, filtros de `DeputadosSearchViewModel` e DAOs. Fakes à mão para as APIs (MockK não roda em `commonTest`).
 
 ### 7.3 [MÉDIO] `-Xskip-prerelease-check`
 
-- `androidApp/build.gradle.kts:57`. Isso silencia um erro real: alguma dependência foi compilada com Kotlin mais novo que o 2.2.20 do projeto (suspeita: `androidx.compose.bom 2025.12.00`). Descobrir qual e alinhar a versão; a flag é uma bomba-relógio.
+**Diagnóstico corrigido.** A suspeita de dependência estava errada. A saída do compilador diz: `Following manually enabled features will force generation of pre-release binaries: ExplicitBackingFields`. Ou seja, é o próprio projeto: `composeApp/build.gradle.kts` liga `-XXLanguage:+ExplicitBackingFields`, o que marca os binários do `:composeApp` como pre-release, e por isso o `:androidApp` precisa do `-Xskip-prerelease-check` (linha 57) para consumi-los.
+
+E a flag não é usada: `grep` por `field =` em property não acha nenhuma ocorrência em `composeApp/src` nem `androidApp/src`.
+
+Correção: remover as duas flags (`-XXLanguage:+ExplicitBackingFields` do `composeApp` e `-Xskip-prerelease-check` do `androidApp`) e compilar Android + iOS + JVM para confirmar. Some a flag insegura e o warning de build junto.
 
 ### 7.4 [MÉDIO] `whatsnew` da Play Store anuncia feature removida
 
@@ -315,7 +324,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 
 | Bloco | Escopo | Arquivos principais | Pré-requisito |
 |---|---|---|---|
-| 0 | Baseline de migração (`1.db`), CI rodando `:composeApp:jvmTest`, primeiro teste real (mapper de data) | `build.gradle.kts`, `.github/workflows/*.yml`, `commonTest` | nenhum |
+| 0 | ~~Baseline de migração (`1.db`), CI rodando `:composeApp:jvmTest`, primeiro teste real~~ **FEITO** | `migrations/1.db`, `android-release.yml`, `commonTest` | nenhum |
 | 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
 | 2 | Despesas: schema (`INTEGER`/`REAL`/`codDocumento UNIQUE`), `1.sqm`, upsert, `Error` state, formatação pt-BR na UI, parâmetro `ano` | `DeputadoExpense.sq`, `DeputadoExpenseMapper.kt`, `DeputadoExpenseDao.kt`, `DeputadosApi.kt`, `DeputadoDetailsViewModel.kt` | 0 |
 | 3 | `HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura` | `HttpClientFactory.kt`, `dto/*.kt`, `PartidosApi.kt` | 0 |
