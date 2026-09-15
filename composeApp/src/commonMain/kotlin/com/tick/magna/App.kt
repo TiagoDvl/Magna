@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,6 +14,9 @@ import androidx.navigation.toRoute
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
+import com.tick.magna.data.analytics.toScreenName
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailScreen
 import com.tick.magna.features.deputados.details.DeputadoDetailScreen
@@ -31,6 +35,7 @@ import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -38,11 +43,23 @@ import org.koin.core.parameter.parametersOf
 @Preview
 fun App() {
     val navController = rememberNavController()
+    val analytics: AnalyticsInterface = koinInject()
 
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
             .crossfade(true)
             .build()
+    }
+
+    // Single source of screen tracking. Routes carry argument placeholders rather than
+    // real ids, so nothing identifying is reported. Firebase's own automatic screen
+    // reporting is disabled in the manifest so this is not counted twice.
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { backStackEntry ->
+            backStackEntry.destination.route?.let { route ->
+                analytics.track(AnalyticsEvent.ScreenView(route.toScreenName()))
+            }
+        }
     }
 
     MagnaTheme {

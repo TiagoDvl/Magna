@@ -11,21 +11,24 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 object HttpClientFactory {
-    fun create(): HttpClient {
+
+    fun create(isDebug: Boolean): HttpClient {
         return HttpClient {
             install(ContentNegotiation) {
                 json(
                     Json {
-                        prettyPrint = true
+                        prettyPrint = isDebug
                         isLenient = true
                         ignoreUnknownKeys = true
                     }
                 )
             }
 
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.INFO
+            if (isDebug) {
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.INFO
+                }
             }
 
             expectSuccess = true

@@ -254,11 +254,13 @@ Correção: remover as duas flags (`-XXLanguage:+ExplicitBackingFields` do `comp
 
 ## 8. Instrumentação (analytics + crash)
 
-### 8.1 Situação atual
+### 8.1 Situação original
 
-- `androidApp/build.gradle.kts` declara `firebase-analytics` e `firebase-crashlytics` e aplica os plugins. `grep -ri firebase` no código Kotlin: zero resultados.
-- Crashlytics funciona sem código (captura crash, sobe mapping via plugin). Mas nenhum log do Napier chega lá, então um crash vem sem breadcrumbs.
-- Analytics coleta `screen_view` automático por Activity. O app tem uma Activity. Ou seja: hoje se sabe que o app abriu e quanto tempo ficou aberto. Nada mais.
+- `androidApp/build.gradle.kts` declarava `firebase-analytics` e `firebase-crashlytics` e aplicava os plugins. `grep -ri firebase` no código Kotlin: zero resultados.
+- Crashlytics funcionava sem código (captura crash, sobe mapping via plugin). Mas nenhum log do Napier chegava lá, então um crash vinha sem breadcrumbs.
+- Analytics coletava `screen_view` automático por Activity. O app tem uma Activity. Ou seja: sabia-se que o app abriu e quanto tempo ficou aberto. Nada mais.
+
+**Status: infraestrutura no ar.** Ver 8.4 para o que já reporta e o que falta.
 
 ### 8.2 Proposta
 
@@ -316,6 +318,39 @@ Regras: nomes `snake_case`, até 25 parâmetros, nunca texto livre (o termo de b
 - Taxa de falha do sync inicial e tempo médio (mede a API da Câmara, não o app).
 - Sessões por semana dos usuários constantes, e em qual tela eles passam mais tempo.
 
+### 8.4 O que já está implementado
+
+Camada compartilhada, em `composeApp/src/commonMain/.../data/analytics/`:
+
+- `AnalyticsInterface` com `track(event)` e `setUserProperty(key, value)`.
+- `AnalyticsEvent`, o catálogo inteiro dos 13 eventos como `sealed class`. As regras do Firebase (nome snake_case, limites de 40 e 100 caracteres, prefixos reservados) são verificadas por teste, não por convenção.
+- `LogAnalytics`, o tracker padrão que só escreve no log. É o que iOS e desktop usam.
+- `toScreenName()`, que reduz a rota type-safe a um nome curto e estável.
+
+Android, em `androidApp`:
+
+- `FirebaseAnalyticsTracker` com `FirebaseAnalytics.getInstance(context)` e conversão de parâmetros para `Bundle`.
+- `CrashlyticsAntilog`, que manda `Napier.w/i` para `crashlytics.log()` (breadcrumb) e `Napier.e` para `recordException()`. Ativo só em release; debug continua com `DebugAntilog`.
+- `MagnaApplication` calcula `isDebug` por `ApplicationInfo.FLAG_DEBUGGABLE` (sem precisar de `BuildConfig`) e registra o módulo Firebase por cima do padrão.
+- Manifest desliga `google_analytics_automatic_screen_reporting_enabled`, senão a `MainActivity` seria contada em paralelo ao rastreio real.
+
+Gating de log (resolve o item 3.7): `AppBuildConfig(isDebug)` vem do `platformModule` de cada plataforma. Em release o Ktor `Logging` não é instalado, o `prettyPrint` do JSON sai, e o logger do Koin fica fora.
+
+Eventos ligados nesta primeira fatia: `screen_view` (automático, via back stack), `sync_started`, `sync_finished(success, duration_ms)`, `proposicao_filter_changed` e `partido_chart_selected`.
+
+**Testes: 40 passando.** Entre eles, `AnalyticsOverrideTest` fixa a premissa de que o Koin deixa um módulo posterior substituir um binding anterior. Se não deixasse, o `MagnaApplication` explodiria no launch para todo usuário. Verificado, não assumido.
+
+Validado: `:composeApp:jvmTest`, `:androidApp:assembleDebug` e `:androidApp:minifyReleaseWithR8` passam. **iOS não foi compilado** — os targets `iosArm64`/`iosSimulatorArm64` exigem macOS. O único ponto de risco lá é `kotlin.native.Platform.isDebugBinary` no `Platform.ios.kt`.
+
+### 8.5 O que falta (segunda fatia)
+
+- Eventos de navegação com `source`: `deputado_opened`, `proposicao_opened`, `partido_opened`, `comissao_opened`. O `source` é o dado mais valioso do catálogo e exige um método por ViewModel de componente, chamado no clique.
+- `search_performed`: precisa de debounce. Hoje `HomeViewModel.handleSearchQuery` roda a cada tecla; instrumentar direto geraria um evento por caractere.
+- `expense_opened` e `external_link_opened`.
+- `api_error`: melhor ligar junto com o `HttpTimeout` do bloco 3, para que timeout vire `status = null` de forma consistente.
+- `setUserProperty(legislatura_id)` no fim do sync.
+- Um teste de grafo do Koin (`checkModules`) em `jvmTest` para pegar binding faltando em tempo de teste. As três mudanças de construtor desta fatia foram conferidas na mão.
+
 ---
 
 ## 9. Sequência sugerida para a 1.1
@@ -325,7 +360,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | Bloco | Escopo | Arquivos principais | Pré-requisito |
 |---|---|---|---|
 | 0 | ~~Baseline de migração (`1.db`), CI rodando `:composeApp:jvmTest`, primeiro teste real~~ **FEITO** | `migrations/1.db`, `android-release.yml`, `commonTest` | nenhum |
-| 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
+| 1 | Analytics + `CrashlyticsAntilog` + gate de logs em release — **base pronta**, faltam os eventos de navegação (8.5) | `AnalyticsInterface`, `platformModule`, `App.kt`, `MagnaApplication.kt`, ViewModels (`processAction`) | 0 |
 | 2 | Despesas: schema (`INTEGER`/`REAL`/`codDocumento UNIQUE`), `1.sqm`, upsert, `Error` state, formatação pt-BR na UI, parâmetro `ano` | `DeputadoExpense.sq`, `DeputadoExpenseMapper.kt`, `DeputadoExpenseDao.kt`, `DeputadosApi.kt`, `DeputadoDetailsViewModel.kt` | 0 |
 | 3 | `HttpTimeout` + `HttpRequestRetry`; DTOs nuláveis com testes de JSON real; `getPartidos` com `idLegislatura` | `HttpClientFactory.kt`, `dto/*.kt`, `PartidosApi.kt` | 0 |
 | 4 | Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado. Fazer um repositório por PR, começando por `Deputados` | `Modules.kt`, `repository/**` | 2, 3 |

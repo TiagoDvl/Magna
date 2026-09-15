@@ -2,6 +2,8 @@ package com.tick.magna.features.proposicoes.component
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
@@ -19,6 +21,7 @@ class RecentProposicoesViewModel(
     proposicoesRepository: ProposicoesRepositoryInterface,
     dispatcherInterface: DispatcherInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
@@ -56,6 +59,7 @@ class RecentProposicoesViewModel(
     fun updateFilter(proposicao: ProposicaoType) {
         if (_proposicaoFilter.value != proposicao) {
             logger.d("updateFilter → $proposicao", TAG)
+            analytics.track(AnalyticsEvent.ProposicaoFilterChanged(proposicao.name))
             _proposicaoFilter.value = proposicao
         }
     }

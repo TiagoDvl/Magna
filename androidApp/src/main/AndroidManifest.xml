@@ -12,6 +12,16 @@
         android:roundIcon="@mipmap/ic_magna_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!--
+            Magna is a single-Activity app, so Firebase's automatic screen reporting would
+            only ever report MainActivity. App.kt reports the real screen from the
+            navigation back stack instead.
+        -->
+        <meta-data
+            android:name="google_analytics_automatic_screen_reporting_enabled"
+            android:value="false" />
+
         <activity
             android:name="com.tick.magna.MainActivity"
             android:exported="true">

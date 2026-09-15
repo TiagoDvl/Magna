@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.tick.magna.data.analytics.AnalyticsEvent
+import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.logger.AppLoggerInterface
@@ -19,6 +21,7 @@ class PartidoDetailsViewModel(
     private val dispatcher: DispatcherInterface,
     private val partidosRepository: PartidosRepositoryInterface,
     private val logger: AppLoggerInterface,
+    private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
@@ -60,7 +63,10 @@ class PartidoDetailsViewModel(
 
     fun processAction(action: PartidoDetailsAction) {
         when (action) {
-            is PartidoDetailsAction.SelectChart -> _state.update { it.copy(selectedChart = action.type) }
+            is PartidoDetailsAction.SelectChart -> {
+                analytics.track(AnalyticsEvent.PartidoChartSelected(action.type.name))
+                _state.update { it.copy(selectedChart = action.type) }
+            }
         }
     }
 

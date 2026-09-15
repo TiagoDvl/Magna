@@ -13,6 +13,9 @@ import com.tick.magna.PartidoQueries
 import com.tick.magna.ProposicaoQueries
 import com.tick.magna.SiglaTipoQueries
 import com.tick.magna.UserQueries
+import com.tick.magna.data.analytics.AnalyticsInterface
+import com.tick.magna.data.analytics.LogAnalytics
+import com.tick.magna.data.config.AppBuildConfig
 import com.tick.magna.data.dispatcher.AppDispatcher
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
@@ -119,7 +122,7 @@ val dataModule = module {
     single<DispatcherInterface> { AppDispatcher() }
 
     // Http
-    single<HttpClient> { HttpClientFactory.create() }
+    single<HttpClient> { HttpClientFactory.create(isDebug = get<AppBuildConfig>().isDebug) }
 
     // Coroutine Scope
     factory<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
@@ -160,19 +163,22 @@ val useCaseModule = module {
 
 val loggingModule = module {
     single<AppLoggerInterface> { NapierLogger() }
+
+    // Default tracker. Android replaces this at startup with the Firebase one.
+    single<AnalyticsInterface> { LogAnalytics(get()) }
 }
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get()) }
-    viewModel { RecentProposicoesViewModel(get(), get(), get()) }
+    viewModel { RecentProposicoesViewModel(get(), get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get()) }
     viewModel { PartidosComponentViewModel(get(), get(), get()) }
     viewModel { PartidosListViewModel(get(), get(), get()) }
-    viewModel { (handle: SavedStateHandle) -> PartidoDetailsViewModel(handle, get(), get(), get()) }
+    viewModel { (handle: SavedStateHandle) -> PartidoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ProposicaoDetailsViewModel(handle, get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoVotacoesViewModel(handle, get(), get(), get()) }
 }
