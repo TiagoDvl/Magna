@@ -13,6 +13,7 @@ import com.tick.magna.data.source.local.dao.ProposicaoDaoInterface
 import com.tick.magna.data.source.local.dao.SiglaTipoDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.ProposicoesApiInterface
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +43,8 @@ internal class ProposicoesRepository(
             siglaTipoDao.insertSiglaTipos(siglaTipos)
             loggerInterface.i("syncSiglaTipos: saved ${siglaTipos.size} siglaTipos", TAG)
             true
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (exception: Exception) {
             loggerInterface.e("syncSiglaTipos: failed", exception, TAG)
             false

@@ -16,6 +16,7 @@ import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.util.currentYear
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -59,6 +60,8 @@ internal class DeputadosRepository(
         launch {
             try {
                 refreshDeputados(legislaturaId)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (e: Exception) {
                 loggerInterface.e("getDeputados: refresh failed, serving cache", e, TAG)
             }
@@ -91,6 +94,8 @@ internal class DeputadosRepository(
         return try {
             refreshDeputados(legislaturaId)
             true
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (e: Exception) {
             loggerInterface.e("syncDeputados: failed", e, TAG)
             false

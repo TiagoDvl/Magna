@@ -502,3 +502,64 @@ O catálogo em `AnalyticsEvent.kt` é a fonte de verdade para preencher isso: ca
 - ~~**`dataExtractionRules`**~~ **corrigido no bloco 6.**
 - **Validar os eventos em aparelho real** antes de confiar no relatório: `adb shell setprop debug.firebase.analytics.app com.tick.magna` e acompanhar o DebugView. Eventos custom levam até 24h para aparecer nos relatórios normais, então o DebugView é o único jeito de saber na hora se a instrumentação está certa.
 - **Conferir que o release não loga**: com `AppBuildConfig`, um build de release não deve imprimir requisição do Ktor nem log do Koin. Vale um `adb logcat` rápido no APK assinado.
+
+---
+
+## 11. Achados da verificação em aparelho
+
+Primeira compilação depois dos blocos 0 a 6. Os seis blocos passaram inteiros: **0 erros de Kotlin** no alvo JVM e no `:androidApp`, **73 testes, 0 falhas**. O único erro de compilação do lote foi um `AUTORES_INITIAL_COUNT` declarado duas vezes, deixado pela extração de arquivos do bloco 6 e corrigido no bloco 1.
+
+O que apareceu de verdade foi o que só um aparelho mostra.
+
+### 11.1 O gateway da Câmara recusa `Accept-Charset` — CORRIGIDO
+
+Todas as requisições do app voltavam **403** com uma página HTML dizendo que o sistema de segurança bloqueou a operação. Não era query malformada: o endpoint sem nenhum parâmetro (`/referencias/proposicoes/siglaTipo`) também caiu.
+
+O gatilho é o header `Accept-Charset`, **em qualquer valor**:
+
+| Requisição | Resposta |
+| --- | --- |
+| sem o header | 200 |
+| `Accept-Charset: UTF-8` | 403 |
+| `Accept-Charset: utf-8` | 403 |
+| `Accept-Charset: *` | 403 |
+| `Accept-Charset: ISO-8859-1` | 403 |
+| header vazio | 403 |
+
+O Ktor instala `HttpPlainText` por padrão e ele carimba esse header em toda requisição. Ou seja, o app estava **completamente quebrado em produção**, independente do refactor.
+
+A remoção precisa acontecer no **send pipeline**. O `HttpPlainText` adiciona o header na fase `Render` do request pipeline, então tirar pelo `defaultRequest` não tem efeito nenhum: aquilo roda antes e o plugin recoloca depois.
+
+Vale registrar o que isso diz sobre o bloco 1: o `HttpResponseValidator` mandou `api_error(endpoint, 403)` para o Firebase em todas as chamadas. Se a instrumentação existisse antes, o bloqueio teria aparecido no painel em vez de num logcat.
+
+### 11.2 Cancelamento tratado como falha — CORRIGIDO
+
+`CancellationException: Flow was aborted, no more elements needed` aparecia como **erro** no log. O `Resource.kt` (bloco 4) relança cancelamento corretamente, mas nove `catch` genéricos fora dele não: os quatro `sync*` que devolvem `Boolean`, o `channelFlow` de `getDeputados`, o fetch por membro de `getPartidoMembros` e o `try` externo do `SyncUserInformationUseCase`.
+
+Duas consequências, e as duas corrompem justamente o que os blocos 1 e 4 construíram:
+
+- **Crashlytics mentiria.** `CrashlyticsAntilog` manda `Napier.e` para `recordException()`. Cada cold start gravaria um não-fatal falso.
+- **O analytics mentiria.** Sair da Home no meio do sync cancela as quatro `async` e reportaria `sync_step_failed` nos quatro mais `sync_finished(success=false)` — o painel diria que a API da Câmara vive caindo quando o usuário apenas saiu da tela.
+
+Verificado no aparelho: abrir e sair em um segundo não produz mais nenhum passo reportado como falha.
+
+### 11.3 O build não roda no Windows — EM ABERTO
+
+`generateCommonMainMagnaDatabaseInterface` falha antes de chegar no Kotlin. A mensagem do SQLDelight (`Failed to compile 1.sqm:482: DeputadoExpense`) é embrulho; embaixo está:
+
+```
+java.nio.file.AccessDeniedException: C:\WINDOWS\sqlite-3.49.1.0-...-sqlitejdbc.dll.lck
+Caused by: java.lang.UnsatisfiedLinkError: 'void org.sqlite.core.NativeDB._open_utf8(byte[], int)'
+```
+
+Para resolver as referências do `1.sqm`, o SQLDelight abre o `1.db` com sqlite-jdbc. O **worker process** que o Gradle lança vai com ambiente raspado — sem `TMP`, `TEMP` nem `USERPROFILE` — então o JVM cai no fallback `C:\WINDOWS` e a DLL nativa não pode ser extraída ali.
+
+Descartado por medição, não por suposição: daemon reaproveitado (`--stop` e daemon novo falham igual), shell (PowerShell falha igual), `JAVA_TOOL_OPTIONS` com `org.sqlite.tmpdir` (o launcher pega, o worker não) e o próprio daemon (sondado: `java.io.tmpdir` correto). Vale desde `eb2e2fd`, quando o `1.sqm` entrou. A CI em Linux não é afetada.
+
+**Destravamento temporário**, para compilar localmente: tirar os `.db` do diretório de migrações e reduzir o `1.sqm` ao `CREATE` sem `DROP` e sem as cláusulas `FOREIGN KEY`. Só afeta a validação da migração; o Kotlin gerado vem dos `.sq` e sai idêntico. **Um APK produzido assim carrega uma migração errada** — faria `CREATE TABLE DeputadoExpense` sem o `DROP` — e só pode ser instalado em banco zerado. Restaurar os dois arquivos logo em seguida.
+
+**Correção de verdade, a decidir:** `deriveSchemaFromMigrations = true` com um `0.sqm` carregando o schema original. As migrações viram a fonte da verdade e o codegen para de precisar abrir `.db`. É mudança estrutural: os `CREATE TABLE` sairiam dos `.sq`, que passariam a conter apenas queries.
+
+### 11.4 O que continua sem verificação
+
+Os alvos iOS e o build de release com R8. Nenhum dos dois foi compilado ainda.

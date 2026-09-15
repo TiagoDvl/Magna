@@ -30,6 +30,8 @@ internal class OrgaosRepository(
             orgaosDao.insertOrgaos(comissoesPermanentes.map { it.toLocal() })
             loggerInterface.i("syncComissoesPermanentes: saved ${comissoesPermanentes.size} orgaos", TAG)
             true
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (e: Exception) {
             loggerInterface.e("syncComissoesPermanentes: failed", e, TAG)
             false

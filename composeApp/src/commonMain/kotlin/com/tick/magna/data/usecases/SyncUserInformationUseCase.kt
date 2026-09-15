@@ -9,6 +9,7 @@ import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.repository.user.result.UserConfiguration
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -57,6 +58,11 @@ class SyncUserInformationUseCase(
                 }
 
                 reportLegislatura()
+            } catch (cancellation: CancellationException) {
+                // Leaving the screen cancels this flow. Reporting Retry here would tell the
+                // dialog the sync failed and would put a sync_finished(success=false) in the
+                // report for something nobody experienced as a failure.
+                throw cancellation
             } catch (exception: Exception) {
                 logger.e("invoke: unexpected error", exception, TAG)
                 emit(SyncUserInformationState.Retry)

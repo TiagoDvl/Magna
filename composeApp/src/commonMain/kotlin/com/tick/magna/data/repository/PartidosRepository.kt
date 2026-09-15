@@ -60,6 +60,8 @@ internal class PartidosRepository(
             partidoDao.insertPartidos(partidos)
             loggerInterface.i("syncPartidos: saved ${partidos.size} partidos", TAG)
             true
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (e: Exception) {
             loggerInterface.e("syncPartidos: failed", e, TAG)
             false
@@ -152,6 +154,8 @@ internal class PartidosRepository(
                             ufNascimento = detail.ufNascimento,
                             municipioNascimento = detail.municipioNascimento,
                         )
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
                     } catch (e: Exception) {
                         // One missing record should not blank out the whole roster.
                         member
