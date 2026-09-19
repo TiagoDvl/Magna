@@ -73,13 +73,11 @@ fun ProposicaoCard(proposicao: Proposicao, onClick: () -> Unit) {
                 modifier = Modifier.weight(1f).padding(dimensions.grid12),
                 verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
             ) {
-                Text(
-                    text = proposicao.type,
-                    style = typography.labelMedium.copy(
-                        color = MagnaArea.PROPOSICOES.accent,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                )
+                // The sigla used to be the whole marker, in the area's colour, at 12sp: a REQ
+                // and a PL were the same card until you read four characters. The badge adds
+                // an icon for the kind of instrument, which is the difference a reader is
+                // making anyway.
+                ProposicaoTipoBadge(siglaTipo = proposicao.type)
 
                 Text(
                     text = proposicao.ementa,

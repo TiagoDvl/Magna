@@ -80,6 +80,10 @@
     <string name="recent_proposicoes_section_title">Apresentadas recentemente</string>
     <string name="recent_proposicoes_janela">%1$d apresentadas nos últimos %2$d meses</string>
     <string name="proposicoes_see_all">Ver todas</string>
+    <string name="proposicao_bucket_constituicao">Constituição</string>
+    <string name="proposicao_bucket_lei">Lei</string>
+    <string name="proposicao_bucket_ato">Ato do Congresso</string>
+    <string name="proposicao_bucket_tramitacao">Tramitação</string>
     <string name="proposicoes_list_title">Proposições</string>
     <string name="proposicoes_filtro_todas">Todas</string>
     <string name="proposicoes_list_empty">Nenhuma proposição deste tipo</string>
