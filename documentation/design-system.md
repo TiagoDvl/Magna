@@ -103,7 +103,6 @@ Removidos dos 13 pontos onde estavam. Eles renderizam diferente em cada aparelho
 
 ## O que ainda falta neste bloco
 
-- `MagnaScreen` — Scaffold + top bar + padding + comportamento de scroll padrão
 - `MagnaSection` — regra de separação entre seções
 - Aplicar `MagnaScreen` nas telas que faltam: Home, busca, detalhe do deputado (usa `BottomSheetScaffold`) e detalhe do partido
 - Transições de navegação: o `NavHost` usa o padrão, e não há nenhuma
