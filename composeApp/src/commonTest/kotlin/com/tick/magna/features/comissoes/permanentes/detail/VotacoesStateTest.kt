@@ -72,7 +72,8 @@ class VotacoesStateTest {
         descricao = "Aprovado o Parecer.",
         dataHoraRegistro = "2026-09-01",
         aprovacao = aprovada,
-        proposicoesAfetadas = emptyList(),
+        proposicoes = emptyList(),
+        parecer = null,
         idEvento = null,
     )
 }

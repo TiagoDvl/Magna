@@ -1,6 +1,8 @@
 package com.tick.magna.data.source.remote
 
 import com.tick.magna.data.source.remote.dto.LegislaturaDto
+import com.tick.magna.data.source.remote.dto.ProposicoesAfetadasDto
+import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.hasPeriod
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.source.remote.response.DeputadoByIdResponse
@@ -8,6 +10,7 @@ import com.tick.magna.data.source.remote.response.DespesasResponse
 import com.tick.magna.data.source.remote.response.DeputadosResponse
 import com.tick.magna.data.source.remote.response.LegislaturasResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
+import com.tick.magna.data.source.remote.response.VotacaoDetailResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -24,6 +27,78 @@ import kotlin.test.assertTrue
 class ApiParsingTest {
 
     private val json = apiJson()
+
+    @Test
+    fun a_committee_vote_carries_the_rapporteur_and_the_proposition_label() {
+        // Both were arriving in every response and being dropped: the screen showed the
+        // descricao, which says "Aprovado o Parecer." in every committee measured.
+        val payload = """
+            {
+              "dados": {
+                "id": "2392193-60",
+                "dataHoraRegistro": "2026-08-12T15:04:00",
+                "descricao": "Aprovado o Parecer.",
+                "aprovacao": 1,
+                "idEvento": "82336",
+                "ultimaApresentacaoProposicao": {
+                  "descricao": "Parecer do Relator, Dep. Delegado Fabio Costa (PP-AL), pela constitucionalidade.",
+                  "uriProposicao": "https://dadosabertos.camara.leg.br/api/v2/proposicoes/2392193"
+                },
+                "objetosPossiveis": [],
+                "efeitosRegistrados": [],
+                "proposicoesAfetadas": [
+                  {
+                    "id": "2392193",
+                    "siglaTipo": "PL",
+                    "numero": 4770,
+                    "ano": 2023,
+                    "ementa": "Altera a Lei 9.503, de 1997."
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val detail = json.decodeFromString<VotacaoDetailResponse>(payload).dados
+
+        assertEquals(
+            "Parecer do Relator, Dep. Delegado Fabio Costa (PP-AL), pela constitucionalidade.",
+            detail.ultimaApresentacaoProposicao?.descricao,
+        )
+        assertEquals("PL 4770/2023", detail.proposicoesAfetadas.single().toDomain().rotulo)
+    }
+
+    @Test
+    fun a_vote_with_no_presentation_parses_rather_than_failing() {
+        val payload = """
+            {
+              "dados": {
+                "id": "2392193-61",
+                "dataHoraRegistro": null,
+                "descricao": "Aprovada a Redação Final.",
+                "aprovacao": 1,
+                "idEvento": null,
+                "proposicoesAfetadas": []
+              }
+            }
+        """.trimIndent()
+
+        val detail = json.decodeFromString<VotacaoDetailResponse>(payload).dados
+
+        assertNull(detail.ultimaApresentacaoProposicao)
+        assertTrue(detail.proposicoesAfetadas.isEmpty())
+    }
+
+    @Test
+    fun a_proposition_missing_any_of_the_three_label_fields_has_no_label() {
+        // Half a label reads as a typo. The ementa still carries the meaning.
+        val semAno = ProposicoesAfetadasDto(id = "1", siglaTipo = "PL", numero = 4770, ementa = "Altera.")
+        val semTipo = ProposicoesAfetadasDto(id = "2", numero = 4770, ano = 2023, ementa = "Altera.")
+
+        assertNull(semAno.toDomain().rotulo)
+        assertNull(semTipo.toDomain().rotulo)
+        assertEquals("Altera.", semAno.toDomain().ementa)
+    }
 
     @Test
     fun deputados_list_survives_a_record_with_nulls() {

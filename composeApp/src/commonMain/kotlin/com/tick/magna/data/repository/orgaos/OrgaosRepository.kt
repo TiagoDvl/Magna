@@ -10,6 +10,7 @@ import com.tick.magna.data.source.local.mapper.toDisplayDate
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
+import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.source.remote.response.totalFromLastPage
 import kotlin.coroutines.cancellation.CancellationException
@@ -280,14 +281,15 @@ internal class OrgaosRepository(
                     dataHoraRegistro = detail.dataHoraRegistro?.toDisplayDate(),
                     descricao = detail.descricao,
                     aprovacao = detail.aprovacao == APPROVED,
-                    proposicoesAfetadas = detail.proposicoesAfetadas.map { it.ementa },
+                    proposicoes = detail.proposicoesAfetadas.map { it.toDomain() },
+                    parecer = detail.ultimaApresentacaoProposicao?.descricao?.takeIf { it.isNotBlank() },
                     idEvento = detail.idEvento,
                 )
             }
             // A vote with no proposition attached has nothing to show but its descricao, and
             // that is procedural boilerplate. It is also most of what a quiet quarter contains,
             // which is why one window was not enough.
-            .filter { it.proposicoesAfetadas.isNotEmpty() }
+            .filter { it.proposicoes.isNotEmpty() }
     }
 
     private companion object {

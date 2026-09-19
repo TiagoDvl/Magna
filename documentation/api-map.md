@@ -466,6 +466,38 @@ Isso é bem menor que os arquivos de votação, mas continua sendo download, ent
 
 ---
 
+### 5.5 Os campos que a votação já traz e a tela descartava — CORRIGIDO
+
+Medido em 2026-09-19 em CCJC, CSAUDE e CPD, duas votações cada:
+
+| Campo | Estado | Conteúdo |
+|---|---|---|
+| `ultimaApresentacaoProposicao.descricao` | **usado agora** | `Parecer da Relatora, Dep. Silvia Cristina (PP-RO), pela aprovação.` |
+| `proposicoesAfetadas[].siglaTipo/numero/ano` | **usado agora** | `PL 4770/2023` |
+| `objetosPossiveis` | não usado | 1 a 4 itens por votação |
+| `efeitosRegistrados` | **descartado de vez** | **vazio nas 6 votações, nas 3 comissões** |
+
+`efeitosRegistrados` era dúvida em aberto do bloco 7 ("pode ser da CCJC, pode ser geral"). É geral, nas amostras: não serve para desenhar nada em cima.
+
+O `descricao` da votação continua dizendo "Aprovado o Parecer." em toda comissão medida. A diferença é que agora ele não é mais a única coisa no card.
+
+Ressalva que continua valendo: o nome do relator e o partido vêm **embutidos no texto livre**, não em campos. A frase é exibida como veio; virar link para a tela do deputado exigiria casar o texto com a lista do banco, e isso é outro problema.
+
+### 5.6 `/orgaos/{id}/eventos` funciona — com janela de datas
+
+Outra dúvida do bloco 7 fechada, e pela mesma pegadinha do item 3.4:
+
+| Chamada | Resultado |
+|---|---|
+| `/orgaos/2003/eventos` | **0 itens** |
+| `/orgaos/2003/eventos?dataInicio=2026-06-01&dataFim=2026-09-01` | **14 itens** |
+
+O vazio não era ausência de dado, era ausência de janela. Campos: `dataHoraInicio`, `dataHoraFim`, `situacao`, `descricaoTipo`, `descricao`, `localCamara`, `urlRegistro`.
+
+`situacao` carrega coisas como `Cancelada`, e `descricaoTipo` distingue `Reunião Deliberativa` de audiência pública. É conteúdo real, ainda não usado pelo app.
+
+---
+
 ## 7. O que este documento ainda não cobre
 
 - **Ordenação padrão de cada endpoint.** Só foi verificada onde o app passa `ordenarPor` explicitamente.

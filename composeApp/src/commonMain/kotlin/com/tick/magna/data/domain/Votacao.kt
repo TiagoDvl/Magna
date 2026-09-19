@@ -3,91 +3,84 @@ package com.tick.magna.data.domain
 data class Votacao(
     val id: String,
     val dataHoraRegistro: String?,
+    /**
+     * What the Camara records as the outcome, and it is procedural boilerplate: across every
+     * committee measured it says either "Aprovado o Parecer." or "Aprovada a Redação Final.".
+     * The substance is in [parecer] and [proposicoes].
+     */
     val descricao: String,
     val aprovacao: Boolean,
-    val proposicoesAfetadas: List<String>,
+    val proposicoes: List<ProposicaoAfetada>,
+    /**
+     * What the rapporteur argued, free text, straight from the API — for example "Parecer da
+     * Relatora, Dep. Silvia Cristina (PP-RO), pela aprovação."
+     *
+     * Already downloaded with every vote detail and thrown away until now. The name and party
+     * are embedded in the sentence rather than in fields of their own, so this is shown as
+     * written; turning it into a link to the deputado screen would mean matching the text
+     * against the stored roster, and that is a separate problem.
+     */
+    val parecer: String?,
     val idEvento: String?,
+)
+
+/**
+ * A proposition a vote acted on.
+ *
+ * [rotulo] is the short name people recognise — "PL 4770/2023" — built from fields the detail
+ * already returns and that were being dropped, leaving the screen showing a bare ementa with
+ * nothing to call it.
+ */
+data class ProposicaoAfetada(
+    val id: String,
+    val rotulo: String?,
+    val ementa: String,
 )
 
 val votacoesMock = listOf(
     Votacao(
         id = "2358471-1",
-        dataHoraRegistro = "2024-03-15T14:30:00",
-        descricao = "PL 2630/2020 - Lei das Fake News - Votação do texto principal em Plenário",
+        dataHoraRegistro = "15/03/2024",
+        descricao = "Aprovado o Parecer.",
         aprovacao = true,
-        proposicoesAfetadas = listOf("PL 2630/2020", "PL 1429/2022"),
-        idEvento = "65432"
+        proposicoes = listOf(
+            ProposicaoAfetada(
+                id = "2256735",
+                rotulo = "PL 2630/2020",
+                ementa = "Institui a Lei Brasileira de Liberdade, Responsabilidade e Transparência na Internet.",
+            ),
+        ),
+        parecer = "Parecer do Relator, Dep. Orlando Silva (PCdoB-SP), pela constitucionalidade, juridicidade e técnica legislativa.",
+        idEvento = "65432",
     ),
     Votacao(
         id = "2358472-2",
-        dataHoraRegistro = "2024-03-15T16:45:00",
-        descricao = "PEC 45/2019 - Reforma Tributária - Destaque para votação em separado",
+        dataHoraRegistro = "15/03/2024",
+        descricao = "Aprovada a Redação Final.",
         aprovacao = false,
-        proposicoesAfetadas = listOf("PEC 45/2019"),
-        idEvento = "65433"
+        proposicoes = listOf(
+            ProposicaoAfetada(
+                id = "2196833",
+                rotulo = "PEC 45/2019",
+                ementa = "Altera o Sistema Tributário Nacional e dá outras providências.",
+            ),
+        ),
+        parecer = "Parecer da Relatora, Dep. Marussa Boldrin (REPUBLIC-GO), pela aprovação, com emenda.",
+        idEvento = "65433",
     ),
     Votacao(
         id = "2358473-3",
-        dataHoraRegistro = "2024-03-20T10:15:00",
-        descricao = "MPV 1234/2024 - Medidas de auxílio emergencial para regiões atingidas por desastres",
+        dataHoraRegistro = "20/03/2024",
+        descricao = "Aprovado o Parecer.",
         aprovacao = true,
-        proposicoesAfetadas = listOf("MPV 1234/2024"),
-        idEvento = "65445"
+        proposicoes = listOf(
+            ProposicaoAfetada(
+                id = "2412345",
+                rotulo = null,
+                ementa = "Dispõe sobre medidas de auxílio emergencial para regiões atingidas por desastres.",
+            ),
+        ),
+        parecer = null,
+        idEvento = "65445",
     ),
-    Votacao(
-        id = "2358474-4",
-        dataHoraRegistro = null,
-        descricao = "PL 5555/2023 - Marco Legal da Inteligência Artificial no Brasil",
-        aprovacao = true,
-        proposicoesAfetadas = listOf("PL 5555/2023", "PL 21/2020"),
-        idEvento = null
-    ),
-    Votacao(
-        id = "2358475-5",
-        dataHoraRegistro = "2024-04-02T15:00:00",
-        descricao = "Requerimento de urgência para PL 1234/2024 - Regulamentação do trabalho por aplicativos",
-        aprovacao = false,
-        proposicoesAfetadas = listOf("PL 1234/2024"),
-        idEvento = "65478"
-    ),
-    Votacao(
-        id = "2358476-6",
-        dataHoraRegistro = "2024-04-10T11:30:00",
-        descricao = "PLP 68/2024 - Lei Complementar sobre ICMS em operações interestaduais",
-        aprovacao = true,
-        proposicoesAfetadas = listOf("PLP 68/2024"),
-        idEvento = "65490"
-    ),
-    Votacao(
-        id = "2358477-7",
-        dataHoraRegistro = "2024-04-15T14:20:00",
-        descricao = "PDC 234/2024 - Sustação de decreto presidencial sobre uso de armamento",
-        aprovacao = false,
-        proposicoesAfetadas = listOf("PDC 234/2024"),
-        idEvento = "65501"
-    ),
-    Votacao(
-        id = "2358478-8",
-        dataHoraRegistro = "2024-05-05T09:45:00",
-        descricao = "PL 2586/2022 - Programa Acredita - Crédito para microempreendedores",
-        aprovacao = true,
-        proposicoesAfetadas = listOf("PL 2586/2022", "PL 1735/2021"),
-        idEvento = "65520"
-    ),
-    Votacao(
-        id = "2358479-9",
-        dataHoraRegistro = null,
-        descricao = "Emenda Constitucional - Prorrogação da DRU até 2032",
-        aprovacao = true,
-        proposicoesAfetadas = listOf("PEC 23/2024"),
-        idEvento = null
-    ),
-    Votacao(
-        id = "2358480-10",
-        dataHoraRegistro = "2024-05-20T16:10:00",
-        descricao = "PL 4567/2023 - Política Nacional de Educação Digital nas escolas públicas",
-        aprovacao = true,
-        proposicoesAfetadas = listOf("PL 4567/2023", "PL 2738/2022", "PL 1234/2021"),
-        idEvento = "65545"
-    )
 )

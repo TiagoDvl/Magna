@@ -174,42 +174,50 @@ private fun ComissaoPermanenteVotacoes(
                                     )
                                 }
 
-                                // Descrição
-                                Text(
-                                    text = votacao.descricao,
-                                    style = typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                )
-
-                                // Proposições afetadas como pills
-                                if (votacao.proposicoesAfetadas.isNotEmpty()) {
-                                    FlowRow(
-                                        horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-                                        verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
-                                    ) {
-                                        votacao.proposicoesAfetadas.forEach { proposicao ->
-                                            Box(
-                                                modifier = Modifier
-                                                    .background(
-                                                        color = colorScheme.surfaceContainerHigh,
-                                                        shape = MaterialTheme.shapes.extraSmall
-                                                    )
-                                                    .padding(
-                                                        horizontal = dimensions.grid8,
-                                                        vertical = dimensions.grid2
-                                                    )
-                                            ) {
-                                                Text(
-                                                    text = proposicao,
-                                                    style = typography.labelSmall.copy(
-                                                        color = colorScheme.onSurfaceVariant,
-                                                        fontWeight = FontWeight.Medium
-                                                    )
+                                // The proposition this vote acted on: its short name, then
+                                // what it is about. The label used to be discarded, so the
+                                // card showed an ementa with nothing to call it.
+                                votacao.proposicoes.forEach { proposicao ->
+                                    proposicao.rotulo?.let { rotulo ->
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    color = colorScheme.surfaceContainerHigh,
+                                                    shape = MaterialTheme.shapes.extraSmall
                                                 )
-                                            }
+                                                .padding(
+                                                    horizontal = dimensions.grid8,
+                                                    vertical = dimensions.grid2
+                                                )
+                                        ) {
+                                            Text(
+                                                text = rotulo,
+                                                style = typography.labelSmall.copy(
+                                                    color = colorScheme.onSurfaceVariant,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            )
                                         }
                                     }
+
+                                    Text(
+                                        text = proposicao.ementa,
+                                        style = typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    )
+                                }
+
+                                // What the rapporteur argued. This is the substance of a
+                                // committee vote, and the descricao below it is the
+                                // boilerplate that used to stand in for it.
+                                votacao.parecer?.let { parecer ->
+                                    Text(
+                                        text = parecer,
+                                        style = typography.bodySmall.copy(
+                                            color = colorScheme.onSurfaceVariant
+                                        )
+                                    )
                                 }
                             }
                         }
