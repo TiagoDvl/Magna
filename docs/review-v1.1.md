@@ -781,7 +781,7 @@ Isso é uma linha do tempo pronta, com nomes que o app já tem nas telas de depu
 
 Segunda ressalva, honesta: as votações recentes da CCJC são quase todas `PDL` de renovação de concessão de rádio e TV. Mostrar o rótulo e o relator torna isso **visível**, não emocionante. A tela fica honesta; o conteúdo é o que o Congresso produziu.
 
-### 12.4 As seis comissões
+### 12.4 As seis comissões — FEITO
 
 A curadoria é decisão de produto — comissões de nome reconhecível e com votação suficiente para a tela não ficar vazia. Ela continua válida como intenção, mas está congelada como constante em `data/repository/orgaos/params/` e envelheceu: das seis, **CCTI (16 votações) e CAPADR (7) hoje estão atrás de oito comissões que o app não mostra**, entre elas CPOVOS (45) e CCULT (38). Números completos no item 4.3 do mapa.
 
@@ -790,7 +790,9 @@ Duas mudanças, e a segunda depende da primeira:
 1. **mover o critério para onde ele é decisão**, fora de `data/`, com o porquê escrito junto (nome reconhecível + atividade). Isso resolve o item 4.6 do plano de quebra;
 2. **ordenar por atividade em vez de fixar ids** — o app já baixa as 30 de `/orgaos?codTipoOrgao=2` e pode rankear. Mantém a intenção e para de precisar de revisão manual a cada legislatura.
 
-**Pré-requisito do item 2, e não é opcional:** `ComissaoPermanenteDetailScreen.kt:73` usa `if (state.votacoes.isEmpty())` para decidir mostrar o `LoadingComponent`. Não existe estado de vazio, e **CASP tem zero votações**. Além disso, `OrgaosRepository.kt:81` filtra votações sem `proposicoesAfetadas`, então uma comissão pode esvaziar depois do filtro mesmo tendo votações. Nos dois casos a tela gira para sempre. O componente de estado vazio do bloco 11 é o que destrava abrir a curadoria.
+As duas foram feitas: a lista vem de `selectOrgaosByAtividade`, medida uma vez por legislatura, e o enum `MagnaComissaoPermanente` foi apagado. A Home mostra as 10 primeiras e uma tela "ver todas" abre as 30.
+
+**Pré-requisito do item 2, e não era opcional:** `ComissaoPermanenteDetailScreen.kt:73` usava `if (state.votacoes.isEmpty())` para decidir mostrar o `LoadingComponent`. Não existe estado de vazio, e **CASP tem zero votações**. Além disso, `OrgaosRepository.kt:81` filtra votações sem `proposicoesAfetadas`, então uma comissão pode esvaziar depois do filtro mesmo tendo votações. Nos dois casos a tela gira para sempre. O componente de estado vazio do bloco 11 é o que destrava abrir a curadoria.
 
 ### 12.5 Custo e cache — PENDENTE
 
