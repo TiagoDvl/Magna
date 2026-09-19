@@ -206,6 +206,17 @@ Dois pontos que a medição fechou:
 
 - **`itens` tem teto de 100.** Pedir `itens=200` devolve 100 e um `rel=next`. Então `itens=100` não é atalho suficiente: paginar é obrigatório.
 - **Os números passam do total de cadeiras** porque o endpoint devolve todo mundo que passou pelo partido durante a legislatura, não a bancada de hoje.
+- **O endpoint repete pessoas, e não é artefato de paginação.** A página 1 do PL na 57 devolve **100 linhas com 99 deputados**; a página 2 devolve 45 linhas com 44. Quem sai do partido e volta dentro da legislatura ganha uma linha por período. Sem deduplicar por id, o PL tem 145 linhas para 143 pessoas — e os gráficos contam linhas.
+
+Interseção entre partidos, medida na 57, porque é o que decide se guardar biografia compartilha trabalho entre telas:
+
+| par | em comum |
+|---|---|
+| PL ∩ UNIÃO | 11 |
+| PL ∩ PP | 7 |
+| PL ∩ PT | 0 |
+
+Existe, e vem de quem trocou de partido no meio do mandato — mas é pequena. Guardar biografia se paga pela **revisita ao mesmo partido**, não pela partilha entre partidos.
 
 O leque de `deputados/{id}` continua sendo o problema caro: os campos que a tela de partido usa nos gráficos — `siglaSexo`, `dataNascimento`, `ufNascimento`, `municipioNascimento` — **não vêm na listagem de membros**, só no detalhe individual. Paginar sem resolver isso troca 16 requisições por 146 no PL.
 
@@ -220,8 +231,8 @@ Custo antes e depois, no PL da 57:
 
 | | antes | primeira visita | revisita |
 |---|---|---|---|
-| roster | 1 requisição, 15 de 145 membros | 2 requisições, 145 membros | 2 |
-| biografia | 15 | 145 | **0** |
+| roster | 1 requisição, 15 de 143 membros | 2 requisições, 143 membros | 2 |
+| biografia | 15 | 143 | **0** |
 
 O caminho 2 continua valendo e agora é barato de encaixar: ele só preenche a mesma tabela por outra porta.
 

@@ -48,6 +48,32 @@ class PartidoMembrosTest {
     }
 
     @Test
+    fun somebody_who_left_and_came_back_is_one_person() = runTest {
+        // Not a paging artefact: page one of the PL in the 57th returns a hundred rows holding
+        // ninety-nine deputados. A spell out of the party and back gives one row per spell, and
+        // the charts count rows.
+        val api = PagedPartidosApi(
+            pages = listOf(ids(1..3) + DeputadoDto(id = "2", nome = "Deputado 2")),
+        )
+
+        val members = repository(api).membros()
+
+        assertEquals(listOf("1", "2", "3"), members.map { it.id })
+    }
+
+    @Test
+    fun a_repeated_member_is_only_looked_up_once() = runTest {
+        val deputadosApi = CountingDeputadosApi()
+        val api = PagedPartidosApi(
+            pages = listOf(ids(1..3) + DeputadoDto(id = "2", nome = "Deputado 2")),
+        )
+
+        repository(api, deputadosApi, InMemoryBioDao()).membros()
+
+        assertEquals(3, deputadosApi.detailCalls)
+    }
+
+    @Test
     fun a_roster_that_fits_one_page_asks_for_one_page() = runTest {
         val api = PagedPartidosApi(pages = listOf(ids(1..80)))
 

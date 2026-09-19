@@ -156,6 +156,11 @@ internal class PartidosRepository(
      * Pages until the response stops offering a next one. The cap is there so a change on the
      * Camara side cannot turn this into an unbounded loop; at a hundred per page it is far
      * above the largest party measured.
+     *
+     * The answer is deduplicated because the endpoint repeats people, and not across pages:
+     * page one of the PL in the 57th returns a hundred rows holding ninety-nine deputados.
+     * Somebody who leaves the party and comes back within the term gets one row per spell.
+     * Kept as one person, because that is what they are — and because the charts count rows.
      */
     private suspend fun fetchRoster(partidoId: String, legislaturaId: String): List<DeputadoMembro> {
         val membros = mutableListOf<DeputadoMembro>()
@@ -187,7 +192,7 @@ internal class PartidosRepository(
             pagina++
         }
 
-        return membros
+        return membros.distinctBy { it.id }
     }
 
     /**
