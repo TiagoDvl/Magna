@@ -146,7 +146,7 @@ val loggingModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get(), get(), get()) }
     viewModel { DeputadosSearchViewModel(get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get()) }

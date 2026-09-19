@@ -24,6 +24,7 @@ class AnalyticsEventTest {
         AnalyticsEvent.PartidoChartSelected(chart = "GENDER"),
         AnalyticsEvent.ComissaoOpened(sigla = "CCJC"),
         AnalyticsEvent.ApiError(endpoint = "deputados", status = 503),
+        AnalyticsEvent.LegislaturaChanged(from = "57", to = "56"),
     )
 
     private val firebaseNamePattern = Regex("^[a-z][a-z0-9_]*$")
@@ -158,6 +159,15 @@ class AnalyticsEventTest {
         values.forEach { value ->
             assertTrue(firebaseNamePattern.matches(value), "enum value '$value' is not snake_case")
         }
+    }
+
+    @Test
+    fun legislatura_changed_carries_both_ends_of_the_move() {
+        val event = AnalyticsEvent.LegislaturaChanged(from = "57", to = "56")
+
+        assertEquals("legislatura_changed", event.name)
+        assertEquals("57", event.params[AnalyticsEvent.PARAM_FROM])
+        assertEquals("56", event.params[AnalyticsEvent.PARAM_TO])
     }
 
     @Test

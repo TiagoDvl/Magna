@@ -7,6 +7,8 @@ import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.legislaturas.LegislaturasRepositoryInterface
+import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import kotlin.time.TimeSource
@@ -25,6 +27,8 @@ class HomeViewModel(
     private val dispatcher: DispatcherInterface,
     private val syncUserInformation: SyncUserInformationUseCase,
     private val deputadosRepository: DeputadosRepositoryInterface,
+    private val legislaturasRepository: LegislaturasRepositoryInterface,
+    private val userRepository: UserRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
 ): ViewModel() {
@@ -46,6 +50,7 @@ class HomeViewModel(
     init {
         trySync()
         trackSearchesAfterTypingStops()
+        observeLegislatura()
     }
 
     fun processAction(action: HomeAction) {
@@ -55,6 +60,46 @@ class HomeViewModel(
             is HomeAction.SearchDeputado -> handleSearchQuery(action.query)
             HomeAction.SearchResultOpened ->
                 analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.HOME_SEARCH))
+            is HomeAction.SelectLegislatura -> selectLegislatura(action.legislaturaId)
+        }
+    }
+
+    /**
+     * Both the chosen term and the list to choose from, kept as flows so the selector follows
+     * the database instead of a copy of it. The list fills in on the first sync; before that
+     * the selector has a single entry and nothing to switch to.
+     */
+    private fun observeLegislatura() {
+        viewModelScope.launch(dispatcher.io) {
+            userRepository.observeLegislaturaId().collect { legislaturaId ->
+                _homeState.update { it.copy(legislaturaId = legislaturaId) }
+            }
+        }
+        viewModelScope.launch(dispatcher.io) {
+            legislaturasRepository.getLegislaturas().collect { legislaturas ->
+                _homeState.update { it.copy(legislaturas = legislaturas) }
+            }
+        }
+    }
+
+    /**
+     * Writing the row is not enough on its own. Reads react to it, but the term being switched
+     * to has no local data yet, so the sync has to run again — and it is the sync that puts the
+     * screen in a loading state instead of showing an empty Home as if that were the answer.
+     */
+    private fun selectLegislatura(legislaturaId: String) {
+        val current = _homeState.value.legislaturaId
+        if (current == legislaturaId) {
+            logger.d("selectLegislatura: already on $legislaturaId, ignoring", TAG)
+            return
+        }
+
+        viewModelScope.launch(dispatcher.io) {
+            userRepository.setLegislatura(legislaturaId)
+            analytics.track(
+                AnalyticsEvent.LegislaturaChanged(from = current.orEmpty(), to = legislaturaId)
+            )
+            trySync()
         }
     }
 

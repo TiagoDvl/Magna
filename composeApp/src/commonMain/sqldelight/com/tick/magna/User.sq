@@ -12,5 +12,9 @@ getLastUser:
 SELECT * FROM User ORDER BY id DESC LIMIT 1;
 
 -- Update
+-- Targets the same row getLastUser reads instead of hardcoding id 0. That only worked
+-- because setupInitialUser inserts an explicit 0, and it would silently update nothing the
+-- day that changed.
 updateUserLegislatura:
-UPDATE User SET legislaturaId = ? WHERE id = 0;
+UPDATE User SET legislaturaId = ?
+WHERE id = (SELECT id FROM User ORDER BY id DESC LIMIT 1);

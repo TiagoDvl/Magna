@@ -280,6 +280,14 @@ private fun MagnaHomeContent(
             ) {
                 val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)
 
+                LegislaturaSelector(
+                    legislaturas = homeState.legislaturas,
+                    selected = homeState.selectedLegislatura,
+                    onSelect = { sendAction(HomeAction.SelectLegislatura(it)) },
+                )
+
+                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+
                 RecentDeputadosComponent(
                     modifier = sectionsBaseModifier,
                     onNavigate = { navigateTo(it) }

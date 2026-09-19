@@ -99,6 +99,15 @@ sealed class AnalyticsEvent(
         params = mapOf(PARAM_SIGLA to sigla),
     )
 
+    /**
+     * The question this release exists to answer: does anyone move off the current term?
+     * Both ids are numeric and assigned by the Camara, so neither is free text.
+     */
+    data class LegislaturaChanged(val from: String, val to: String) : AnalyticsEvent(
+        name = "legislatura_changed",
+        params = mapOf(PARAM_FROM to from, PARAM_TO to to),
+    )
+
     /** [status] is null when the request never got an answer, such as a timeout. */
     data class ApiError(val endpoint: String, val status: Int?) : AnalyticsEvent(
         name = "api_error",
@@ -162,6 +171,8 @@ sealed class AnalyticsEvent(
         const val PARAM_CONTENT = "content"
         const val PARAM_ENDPOINT = "endpoint"
         const val PARAM_STATUS = "status"
+        const val PARAM_FROM = "from"
+        const val PARAM_TO = "to"
 
         /** User property, not an event parameter. */
         const val USER_PROPERTY_LEGISLATURA = "legislatura_id"
