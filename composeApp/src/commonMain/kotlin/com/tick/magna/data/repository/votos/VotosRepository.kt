@@ -2,7 +2,9 @@ package com.tick.magna.data.repository.votos
 
 import com.tick.magna.Voto as VotoEntity
 import com.tick.magna.VotacaoNominal as VotacaoNominalEntity
+import com.tick.magna.VotoImport as VotoImportEntity
 import com.tick.magna.VotoSync as VotoSyncEntity
+import com.tick.magna.data.domain.ImportacaoVotos
 import com.tick.magna.data.domain.ProposicaoVotada
 import com.tick.magna.data.domain.VotacaoDetalhe
 import com.tick.magna.data.domain.VotoDeputado
@@ -16,6 +18,7 @@ import com.tick.magna.data.repository.today
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.dao.VotoDaoInterface
+import com.tick.magna.data.source.remote.api.ArquivosApiInterface
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.response.hasNextPage
@@ -29,6 +32,7 @@ import kotlinx.coroutines.sync.withPermit
 
 internal class VotosRepository(
     private val votacoesApi: VotacoesApiInterface,
+    private val arquivosApi: ArquivosApiInterface,
     private val votoDao: VotoDaoInterface,
     private val userDao: UserDaoInterface,
     private val legislaturaDao: LegislaturaDaoInterface,
@@ -130,6 +134,149 @@ internal class VotosRepository(
             Result.failure(e)
         }
     }
+
+    /**
+     * Whether the full-year download is on offer, and in what state.
+     *
+     * Two `HEAD` requests and nothing else: no byte of either file is transferred. That is what
+     * makes both product rules cheap to honour, because the screen can state the weight before
+     * asking and can tell that a newer snapshot exists without fetching one.
+     */
+    override suspend fun getImportacao(): ImportacaoVotos {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+            ?: return ImportacaoVotos.Indisponivel
+
+        // The download is one file per calendar year. A term that has ended is five of them and
+        // some 150 MB, which is not a thing to offer on a phone.
+        if (!isOnCurrentLegislatura(legislaturaId)) return ImportacaoVotos.Indisponivel
+
+        val ano = today().year.toString()
+
+        return try {
+            val indexInfo = arquivosApi.head(arquivoDeVotacoes(ano))
+            val votosInfo = arquivosApi.head(arquivoDeVotos(ano))
+            val bytes = indexInfo.bytes + votosInfo.bytes
+            val importado = votoDao.getImport(legislaturaId, ano)
+
+            if (importado == null) {
+                ImportacaoVotos.Disponivel(bytes)
+            } else {
+                ImportacaoVotos.Completa(
+                    completoAte = importado.lastModified,
+                    votos = importado.votos,
+                    // Compared as text, because it is the same string the server sent last
+                    // time; any difference means the nightly rebuild produced something new.
+                    desatualizada = votosInfo.lastModified != null &&
+                        votosInfo.lastModified != importado.lastModified,
+                    bytes = bytes,
+                )
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            // Offering a download whose size is unknown would break the one rule that matters
+            // here, so a failed HEAD hides the offer rather than guessing.
+            loggerInterface.w("getImportacao: HEAD falhou, oferta escondida", TAG)
+            ImportacaoVotos.Indisponivel
+        }
+    }
+
+    /**
+     * Downloads the year and writes it in one transaction, reporting progress as it goes.
+     *
+     * Two files, because neither is enough alone. `votacoesVotos-{ano}.csv` has the votes and
+     * no idea what was voted on; `votacoes-{ano}.csv` has the descriptions, the orgao, and the
+     * only reliable nominal-or-symbolic discriminator the Camara publishes anywhere —
+     * `votosSim`/`votosNao`/`votosOutros`, filled on exactly the 152 nominal votacoes of 2026
+     * and on none of the 7208 symbolic ones.
+     *
+     * The smaller one goes first on purpose: 4.28 MB against 16.4 MB, so a connection that is
+     * going to fail tends to fail before the expensive half.
+     *
+     * Everything is held in memory and written at the end, which is the price of never leaving
+     * a half-imported index behind. About 52 thousand rows of four short strings each.
+     */
+    override suspend fun importarAno(onProgress: (Float) -> Unit): Result<Int> {
+        return try {
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+                ?: return Result.success(0)
+
+            val ano = today().year.toString()
+            val indexUrl = arquivoDeVotacoes(ano)
+            val votosUrl = arquivoDeVotos(ano)
+
+            val indexInfo = arquivosApi.head(indexUrl)
+            val votosInfo = arquivosApi.head(votosUrl)
+            val total = (indexInfo.bytes + votosInfo.bytes).coerceAtLeast(1L)
+
+            val linhas = mutableListOf<String>()
+            arquivosApi.download(
+                url = indexUrl,
+                onProgress = { lidos -> onProgress(fracao(lidos, total)) },
+                onLine = { line -> linhas += line },
+            )
+
+            val votacoes = VotacoesCsvParser().parse(linhas.asSequence(), legislaturaId).toList()
+            linhas.clear()
+
+            arquivosApi.download(
+                url = votosUrl,
+                onProgress = { lidos -> onProgress(fracao(indexInfo.bytes + lidos, total)) },
+                onLine = { line -> linhas += line },
+            )
+
+            val todos = VotosCsvParser().parse(linhas.asSequence(), legislaturaId).toList()
+            linhas.clear()
+
+            // Only the votes of votacoes the index called nominal. The vote file also carries
+            // rows for votacoes the index says are symbolic, and storing those would put an
+            // individual vote under a votacao that has no individual record.
+            val nominais = votacoes.mapTo(mutableSetOf()) { it.id }
+            val guardados = todos.filter { it.votacaoId in nominais }
+
+            loggerInterface.i(
+                "importarAno: $ano -> ${votacoes.size} votacoes nominais, " +
+                    "${guardados.size} votos de ${todos.size} linhas",
+                TAG,
+            )
+
+            votoDao.saveImport(
+                votacoes = votacoes,
+                votos = guardados,
+                importacao = VotoImportEntity(
+                    legislaturaId = legislaturaId,
+                    ano = ano,
+                    lastModified = votosInfo.lastModified,
+                    importedAt = nowMillis(),
+                    votos = guardados.size.toLong(),
+                ),
+            )
+
+            onProgress(1f)
+            Result.success(guardados.size)
+        } catch (cancellation: CancellationException) {
+            // Leaving the screen stops the transfer, and nothing has been written at that point.
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.e("importarAno: falhou", e, TAG)
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun isOnCurrentLegislatura(legislaturaId: String): Boolean {
+        val maisRecente = legislaturaDao.getLegislaturas().first()
+            .maxByOrNull { it.id.toIntOrNull() ?: 0 }
+            ?.id
+            ?: return false
+
+        return legislaturaId == maisRecente
+    }
+
+    private fun arquivoDeVotacoes(ano: String) =
+        "https://dadosabertos.camara.leg.br/arquivos/votacoes/csv/votacoes-$ano.csv"
+
+    private fun arquivoDeVotos(ano: String) =
+        "https://dadosabertos.camara.leg.br/arquivos/votacoesVotos/csv/votacoesVotos-$ano.csv"
 
     private suspend fun read(legislaturaId: String, deputadoId: String): List<VotoDeputado> {
         return votoDao.getVotosDoDeputado(legislaturaId, deputadoId).map { row ->
@@ -284,6 +431,10 @@ internal class VotosRepository(
         val siglaOrgao: String?,
         val aprovacao: Boolean,
     )
+
+    /** Clamped, because the byte count is measured on the decoded lines and can drift high. */
+    private fun fracao(lidos: Long, total: Long): Float =
+        (lidos.toFloat() / total).coerceIn(0f, 1f)
 
     private companion object {
         const val TAG = "VotosRepository"

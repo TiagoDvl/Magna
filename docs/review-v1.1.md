@@ -986,6 +986,30 @@ Migração `10.sqm`: três colunas novas e nulas em `VotacaoNominal`. Linhas gra
 - **`/votacoes/{id}/votos` sem `itens`**, com um teste que trave isso, porque é o erro que a próxima pessoa vai repetir;
 - **estados**: nunca baixado, baixando, completo até X, desatualizado, sem rede. São cinco, e o componente de estado vazio do bloco 11 é pré-requisito.
 
+### 13.5.3 O download — feito, e sem WorkManager
+
+Medido antes de decidir: **2,4 MB/s**, arquivo inteiro em **~7s**; em rede móvel ruim (0,3 MB/s), ~55s. Com parse e gravação, o total é ~15s em rede boa e ~90s em rede ruim.
+
+Isso derrubou o WorkManager com notificação de progresso. O custo não é o código, é o resto: `POST_NOTIFICATIONS` em runtime, `FOREGROUND_SERVICE` com tipo declarado no Android 14+, `expect/actual` porque WorkManager é Android-only, e **uma justificativa de foreground service no Play Console** — terceiro bloqueante do bloco 12, para um download de 7 segundos que o Google costuma recusar.
+
+Ficou: barra de progresso na tela, botão de cancelar, zero permissão nova.
+
+**São dois arquivos, não um.** O de votos não tem `descricao` — dá os votos, não o que foi votado:
+
+| Arquivo | Peso | O que traz |
+|---|---|---|
+| `votacoes-2026.csv` | 4,28 MB | descrição, órgão, aprovação, `votosSim/Nao/Outros`, `idProposicao` |
+| `votacoesVotos-2026.csv` | 16,4 MB | o voto de cada deputado |
+| **total** | **20,7 MB** | |
+
+O menor vai primeiro de propósito: conexão que vai falhar tende a falhar antes da metade cara.
+
+O índice é melhor que a API em dois pontos: traz o discriminador `votosSim/votosNao/votosOutros`, preenchido nas **152 nominais de 2026 e em nenhuma das 7.208 simbólicas** — sem adivinhar por texto — e cobre **todos os órgãos**, então as 29 nominais de comissão entram junto das 123 do Plenário. O sweep trimestral pega 14.
+
+`idProposicao` vem preenchido em **84 das 152**; o resto fica nulo e o card simplesmente não tem proposição para abrir.
+
+**Atômico:** tudo em memória e uma transação no fim. Fechar o app no meio não deixa índice pela metade — perde só os bytes. O preço é ~52 mil linhas de quatro strings curtas na memória durante a importação.
+
 ### 13.7 O que este bloco não promete
 
 - **Legislatura antiga não tem a feature.** É consequência direta da regra do ano corrente, e a tela precisa dizer isso, não fingir que não há votos.

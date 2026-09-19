@@ -1,5 +1,6 @@
 package com.tick.magna.data.repository.votos
 
+import com.tick.magna.data.domain.ImportacaoVotos
 import com.tick.magna.data.domain.VotacaoDetalhe
 import com.tick.magna.data.domain.VotoDeputado
 
@@ -21,4 +22,17 @@ interface VotosRepositoryInterface {
      * reachable by restoring a deep link rather than by tapping a card.
      */
     suspend fun getVotacao(votacaoId: String): Result<VotacaoDetalhe?>
+
+    /**
+     * Whether the full-year download is on offer, how big it is and how fresh what is already
+     * stored is. Costs two `HEAD` requests and transfers nothing.
+     */
+    suspend fun getImportacao(): ImportacaoVotos
+
+    /**
+     * Downloads the year and writes it in one transaction, reporting progress from 0 to 1.
+     *
+     * Cancelling the caller cancels the transfer, and nothing has been written at that point.
+     */
+    suspend fun importarAno(onProgress: (Float) -> Unit): Result<Int>
 }

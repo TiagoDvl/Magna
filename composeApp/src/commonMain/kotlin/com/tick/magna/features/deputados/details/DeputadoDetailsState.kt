@@ -3,6 +3,7 @@ package com.tick.magna.features.deputados.details
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
+import com.tick.magna.data.domain.ImportacaoVotos
 import com.tick.magna.data.domain.VotoDeputado
 
 data class DeputadoDetailsState(
@@ -11,9 +12,60 @@ data class DeputadoDetailsState(
     val expensesState: ExpensesState = ExpensesState.Loading,
     val votosState: VotosState = VotosState.Loading,
     val selectedTab: DeputadoTab = DeputadoTab.DESPESAS,
+    val importacao: ImportacaoState = ImportacaoState.Escondida,
 )
 
 enum class DeputadoTab { DESPESAS, VOTOS }
+
+/**
+ * The optional full-year download, which is the only thing in this app that moves megabytes.
+ *
+ * Its states are the product rules made visible: nothing is offered for a past term, the size
+ * is on the button before anything transfers, what is stored declares how complete it is, and
+ * the refresh only appears when a `HEAD` found something newer.
+ */
+sealed interface ImportacaoState {
+
+    /** Nothing to offer: a past term, or the size could not be read. */
+    data object Escondida : ImportacaoState
+
+    data class Disponivel(val bytes: Long) : ImportacaoState
+
+    data class Baixando(val progresso: Float) : ImportacaoState
+
+    data class Completa(
+        val completoAte: String?,
+        val votos: Long,
+        val desatualizada: Boolean,
+        val bytes: Long,
+    ) : ImportacaoState
+
+    /** The download failed and nothing was written, which is worth saying out loud. */
+    data class Falhou(val bytes: Long) : ImportacaoState
+}
+
+internal fun importacaoStateFor(importacao: ImportacaoVotos): ImportacaoState = when (importacao) {
+    ImportacaoVotos.Indisponivel -> ImportacaoState.Escondida
+    is ImportacaoVotos.Disponivel -> ImportacaoState.Disponivel(importacao.bytes)
+    is ImportacaoVotos.Completa -> ImportacaoState.Completa(
+        completoAte = importacao.completoAte,
+        votos = importacao.votos,
+        desatualizada = importacao.desatualizada,
+        bytes = importacao.bytes,
+    )
+}
+
+/**
+ * Megabytes with one decimal, because this number is a promise.
+ *
+ * Rounded down deliberately: the download turning out smaller than announced is fine, larger
+ * is not.
+ */
+internal fun formatarBytes(bytes: Long): String {
+    val decimos = bytes * 10 / (1024 * 1024)
+
+    return "${decimos / 10},${decimos % 10} MB"
+}
 
 sealed interface DetailsState {
 

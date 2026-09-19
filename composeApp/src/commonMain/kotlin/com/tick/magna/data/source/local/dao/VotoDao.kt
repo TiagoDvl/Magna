@@ -5,6 +5,8 @@ import com.tick.magna.SelectVotosDaVotacao
 import com.tick.magna.SelectVotosDoDeputado
 import com.tick.magna.Voto
 import com.tick.magna.VotacaoNominal
+import com.tick.magna.VotoImport
+import com.tick.magna.VotoImportQueries
 import com.tick.magna.VotoQueries
 import com.tick.magna.VotoSync
 import com.tick.magna.VotoSyncQueries
@@ -13,6 +15,7 @@ class VotoDao(
     private val database: MagnaDatabase,
     private val votoQueries: VotoQueries,
     private val votoSyncQueries: VotoSyncQueries,
+    private val votoImportQueries: VotoImportQueries,
 ) : VotoDaoInterface {
 
     override suspend fun getVotosDoDeputado(
@@ -39,6 +42,28 @@ class VotoDao(
 
     override suspend fun getVotacoesSincronizadas(legislaturaId: String): Set<String> {
         return votoQueries.selectVotacoesNominaisSincronizadas(legislaturaId).executeAsList().toSet()
+    }
+
+    override suspend fun getImport(legislaturaId: String, ano: String): VotoImport? {
+        return votoImportQueries.selectVotoImport(legislaturaId, ano).executeAsOneOrNull()
+    }
+
+    override suspend fun saveImport(
+        votacoes: List<VotacaoNominal>,
+        votos: List<Voto>,
+        importacao: VotoImport,
+    ) {
+        database.transaction {
+            votacoes.forEach { votoQueries.insertVotacaoNominal(it) }
+            votos.forEach { votoQueries.insertVoto(it) }
+            votoImportQueries.insertVotoImport(
+                importacao.legislaturaId,
+                importacao.ano,
+                importacao.lastModified,
+                importacao.importedAt,
+                importacao.votos,
+            )
+        }
     }
 
     override suspend fun saveVotos(

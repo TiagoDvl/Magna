@@ -41,6 +41,7 @@ import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
 import com.tick.magna.ComissaoCacheQueries
 import com.tick.magna.VotoQueries
+import com.tick.magna.VotoImportQueries
 import com.tick.magna.VotoSyncQueries
 import com.tick.magna.ComissaoMembroQueries
 import com.tick.magna.ComissaoVotacaoQueries
@@ -70,6 +71,8 @@ import com.tick.magna.data.source.local.dao.VotoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.platformModule
 import com.tick.magna.data.source.remote.HttpClientFactory
+import com.tick.magna.data.source.remote.api.ArquivosApi
+import com.tick.magna.data.source.remote.api.ArquivosApiInterface
 import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.LegislaturasApi
@@ -123,6 +126,7 @@ val databaseModule = module {
     single<ComissaoCacheQueries> { get<MagnaDatabase>().comissaoCacheQueries }
     single<VotoQueries> { get<MagnaDatabase>().votoQueries }
     single<VotoSyncQueries> { get<MagnaDatabase>().votoSyncQueries }
+    single<VotoImportQueries> { get<MagnaDatabase>().votoImportQueries }
     single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
@@ -132,7 +136,7 @@ val databaseModule = module {
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get(), get()) }
     single<ComissaoCacheDaoInterface> { ComissaoCacheDao(get(), get(), get(), get()) }
-    single<VotoDaoInterface> { VotoDao(get(), get(), get()) }
+    single<VotoDaoInterface> { VotoDao(get(), get(), get(), get()) }
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }
     single<ProposicaoDaoInterface> { ProposicaoDao(get(), get()) }
@@ -160,7 +164,9 @@ val dataModule = module {
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
-    single<VotosRepositoryInterface> { VotosRepository(get(), get(), get(), get(), get()) }
+    single<ArquivosApiInterface> { ArquivosApi(get()) }
+
+    single<VotosRepositoryInterface> { VotosRepository(get(), get(), get(), get(), get(), get()) }
 
     single<OrgaosRepositoryInterface> {
         OrgaosRepository(get(), get(), get(), get(), get(), get(), get(), get())

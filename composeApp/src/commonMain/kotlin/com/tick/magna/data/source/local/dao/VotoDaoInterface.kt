@@ -4,6 +4,7 @@ import com.tick.magna.SelectVotosDaVotacao
 import com.tick.magna.SelectVotosDoDeputado
 import com.tick.magna.Voto
 import com.tick.magna.VotacaoNominal
+import com.tick.magna.VotoImport
 import com.tick.magna.VotoSync
 
 interface VotoDaoInterface {
@@ -32,6 +33,19 @@ interface VotoDaoInterface {
      * costs a request and returns about four hundred rows.
      */
     suspend fun getVotacoesSincronizadas(legislaturaId: String): Set<String>
+
+    /** What the annual import brought in for this year, or null if it was never run. */
+    suspend fun getImport(legislaturaId: String, ano: String): VotoImport?
+
+    /**
+     * The whole year in one transaction: tens of thousands of rows, so leaving it half written
+     * because the app was closed is the thing to avoid.
+     */
+    suspend fun saveImport(
+        votacoes: List<VotacaoNominal>,
+        votos: List<Voto>,
+        importacao: VotoImport,
+    )
 
     /**
      * One transaction for the whole window: the votacoes, their votes and the stamp. Tens of

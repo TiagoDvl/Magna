@@ -1,0 +1,12 @@
+-- Records the annual-file import: which year, how fresh, how many votes.
+--
+-- Plain CREATE. Nothing imported anything before this, and a term that never ran the import
+-- has no row, which is what tells "never downloaded" from "downloaded and found nothing".
+CREATE TABLE VotoImport (
+    legislaturaId TEXT NOT NULL,
+    ano TEXT NOT NULL,
+    lastModified TEXT,
+    importedAt INTEGER NOT NULL,
+    votos INTEGER NOT NULL,
+    PRIMARY KEY (legislaturaId, ano)
+);

@@ -1,0 +1,25 @@
+-- What the annual-file import brought in, and how fresh it is.
+--
+-- Separate from VotoSync, which tracks the three-month sweep over the API. They answer
+-- different questions and move at different speeds: the sweep refreshes every six hours and
+-- covers a quarter of the plenary, this covers a whole year including committees and is only
+-- ever run because somebody asked for it.
+--
+-- `lastModified` is the file's own header, not the moment of the download. The files are
+-- regenerated every night, so "downloaded at 14:00" says nothing about how complete the data
+-- is; `Sat, 19 Sep 2026 06:56:10 GMT` says the record is complete to that morning.
+CREATE TABLE VotoImport (
+    legislaturaId TEXT NOT NULL,
+    ano TEXT NOT NULL,
+    lastModified TEXT,
+    importedAt INTEGER NOT NULL,
+    votos INTEGER NOT NULL,
+    PRIMARY KEY (legislaturaId, ano)
+);
+
+insertVotoImport:
+INSERT OR REPLACE INTO VotoImport(legislaturaId, ano, lastModified, importedAt, votos)
+VALUES (?, ?, ?, ?, ?);
+
+selectVotoImport:
+SELECT * FROM VotoImport WHERE legislaturaId = :legislaturaId AND ano = :ano;
