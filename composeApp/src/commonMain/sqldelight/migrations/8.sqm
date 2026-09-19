@@ -1,0 +1,53 @@
+-- Adds the four tables that let a committee screen open without the network.
+--
+-- Plain CREATEs, nothing dropped and nothing copied: none of this data existed anywhere before,
+-- because the committee screens went from Ktor straight to the UI. An upgrade lands with four
+-- empty tables and fills them the first time each screen is opened.
+--
+-- ComissaoCache is the one that is not obvious. It records that a fetch happened, which is not
+-- the same as the fetch having produced rows: the CASP has no votes at all, and without this
+-- table that committee would re-download its own emptiness on every visit forever.
+CREATE TABLE ComissaoVotacao (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    votacaoId TEXT NOT NULL,
+    dataHoraRegistro TEXT,
+    descricao TEXT NOT NULL,
+    aprovacao INTEGER NOT NULL,
+    parecer TEXT,
+    idEvento TEXT,
+    PRIMARY KEY (orgaoId, legislaturaId, votacaoId)
+);
+
+CREATE TABLE ComissaoVotacaoProposicao (
+    votacaoId TEXT NOT NULL,
+    proposicaoId TEXT NOT NULL,
+    ordem INTEGER NOT NULL,
+    rotulo TEXT,
+    ementa TEXT NOT NULL,
+    PRIMARY KEY (votacaoId, proposicaoId)
+);
+
+CREATE TABLE ComissaoMembro (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    fonte TEXT NOT NULL,
+    deputadoId TEXT NOT NULL,
+    dataInicio TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    siglaPartido TEXT,
+    siglaUf TEXT,
+    urlFoto TEXT,
+    titulo TEXT NOT NULL,
+    codTitulo INTEGER NOT NULL,
+    dataFim TEXT,
+    PRIMARY KEY (orgaoId, legislaturaId, fonte, deputadoId, dataInicio)
+);
+
+CREATE TABLE ComissaoCache (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    conteudo TEXT NOT NULL,
+    fetchedAt INTEGER NOT NULL,
+    PRIMARY KEY (orgaoId, legislaturaId, conteudo)
+);

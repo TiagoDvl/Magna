@@ -1,15 +1,21 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.Legislatura as LegislaturaEntity
 import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Orgao
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.source.local.dao.ComissaoCacheDaoInterface
+import com.tick.magna.data.source.local.dao.ComissaoConteudo
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
-import com.tick.magna.data.source.local.mapper.toDisplayDate
 import com.tick.magna.data.source.local.mapper.toDomain
+import com.tick.magna.data.source.local.mapper.toMembroEntities
+import com.tick.magna.data.source.local.mapper.toMembrosDomain
+import com.tick.magna.data.source.local.mapper.toProposicaoEntities
+import com.tick.magna.data.source.local.mapper.toVotacaoEntities
 import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
@@ -28,6 +34,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import com.tick.magna.data.repository.nowMillis
 import com.tick.magna.data.repository.today
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -38,6 +45,7 @@ internal class OrgaosRepository(
     private val userDao: UserDaoInterface,
     private val legislaturaDao: LegislaturaDaoInterface,
     private val deputadoDao: DeputadoDaoInterface,
+    private val comissaoCacheDao: ComissaoCacheDaoInterface,
     private val loggerInterface: AppLoggerInterface,
 ) : OrgaosRepositoryInterface {
 
@@ -237,31 +245,34 @@ internal class OrgaosRepository(
      * window; a quiet one pays for a few more rather than looking empty.
      */
     override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>> {
-        return try {
-            val legislaturaId = userDao.getUser().first()?.legislaturaId
-            val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
-                ?: return Result.success(emptyList())
+        return withCache(
+            idOrgao = idOrgao,
+            conteudo = ComissaoConteudo.VOTACOES,
+            read = { legislaturaId ->
+                comissaoCacheDao.getVotacoes(idOrgao, legislaturaId)
+                    .toDomain(comissaoCacheDao.getVotacaoProposicoes(idOrgao, legislaturaId))
+            },
+            write = { legislaturaId, votacoes, fetchedAt ->
+                comissaoCacheDao.saveVotacoes(
+                    orgaoId = idOrgao,
+                    legislaturaId = legislaturaId,
+                    votacoes = votacoes.toVotacaoEntities(idOrgao, legislaturaId),
+                    proposicoes = votacoes.toProposicaoEntities(),
+                    fetchedAt = fetchedAt,
+                )
+            },
+            fetch = { legislatura ->
+                val windows = mandateWindows(legislatura.startDate, legislatura.endDate, today())
+                val result = mutableListOf<Votacao>()
 
-            val windows = mandateWindows(legislatura.startDate, legislatura.endDate, today())
-            val result = mutableListOf<Votacao>()
+                for (window in windows.take(MAX_WINDOWS_PER_SCREEN)) {
+                    result += votacoesIn(idOrgao, window)
+                    if (result.size >= ENOUGH_VOTACOES) break
+                }
 
-            for (window in windows.take(MAX_WINDOWS_PER_SCREEN)) {
-                result += votacoesIn(idOrgao, window)
-                if (result.size >= ENOUGH_VOTACOES) break
-            }
-
-            loggerInterface.d(
-                "getComissaoPermanenteVotacoes: ${result.size} votacoes for orgao=$idOrgao " +
-                    "on legislatura=$legislaturaId",
-                TAG,
-            )
-            Result.success(result)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (e: Exception) {
-            loggerInterface.e("getComissaoPermanenteVotacoes: failed for orgao=$idOrgao", e, TAG)
-            Result.failure(e)
-        }
+                result
+            },
+        )
     }
 
     private suspend fun votacoesIn(idOrgao: String, window: AtividadeWindow): List<Votacao> {
@@ -282,7 +293,7 @@ internal class OrgaosRepository(
             .map { detail ->
                 Votacao(
                     id = detail.id,
-                    dataHoraRegistro = detail.dataHoraRegistro?.toDisplayDate(),
+                    dataHoraRegistro = detail.dataHoraRegistro,
                     descricao = detail.descricao,
                     aprovacao = detail.aprovacao == APPROVED,
                     proposicoes = detail.proposicoesAfetadas.map { it.toDomain() },
@@ -311,30 +322,38 @@ internal class OrgaosRepository(
      * pages to pay for, not a limit being obeyed.
      */
     override suspend fun getComissaoMembros(idOrgao: String): Result<List<MembroComissao>> {
-        return try {
-            val legislaturaId = userDao.getUser().first()?.legislaturaId
-            val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
-                ?: return Result.success(emptyList())
+        return withCache(
+            idOrgao = idOrgao,
+            conteudo = ComissaoConteudo.COMPOSICAO,
+            read = { legislaturaId ->
+                comissaoCacheDao.getMembros(idOrgao, legislaturaId, ComissaoConteudo.COMPOSICAO)
+                    .toMembrosDomain()
+            },
+            write = { legislaturaId, membros, fetchedAt ->
+                comissaoCacheDao.saveMembros(
+                    orgaoId = idOrgao,
+                    legislaturaId = legislaturaId,
+                    fonte = ComissaoConteudo.COMPOSICAO,
+                    membros = membros.toMembroEntities(
+                        idOrgao,
+                        legislaturaId,
+                        ComissaoConteudo.COMPOSICAO,
+                    ),
+                    fetchedAt = fetchedAt,
+                )
+            },
+            fetch = { legislatura ->
+                val window = mandateWindows(legislatura.startDate, legislatura.endDate, today())
+                    .firstOrNull()
 
-            val window = mandateWindows(legislatura.startDate, legislatura.endDate, today())
-                .firstOrNull()
-                ?: return Result.success(emptyList())
-
-            val membros = comissaoComposition(fetchMembros(idOrgao, window), window.end)
-            val completed = withPartidoFromLocal(membros, legislaturaId)
-
-            loggerInterface.d(
-                "getComissaoMembros: ${completed.size} membros for orgao=$idOrgao " +
-                    "on legislatura=$legislaturaId",
-                TAG,
-            )
-            Result.success(completed)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (e: Exception) {
-            loggerInterface.e("getComissaoMembros: failed for orgao=$idOrgao", e, TAG)
-            Result.failure(e)
-        }
+                if (window == null) {
+                    emptyList()
+                } else {
+                    val membros = comissaoComposition(fetchMembros(idOrgao, window), window.end)
+                    withPartidoFromLocal(membros, legislatura.id)
+                }
+            },
+        )
     }
 
     /**
@@ -351,34 +370,124 @@ internal class OrgaosRepository(
      * that is the honest outcome.
      */
     override suspend fun getComissaoPresidentes(idOrgao: String): Result<List<MembroComissao>> {
-        return try {
-            val legislaturaId = userDao.getUser().first()?.legislaturaId
-            val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
-                ?: return Result.success(emptyList())
+        return withCache(
+            idOrgao = idOrgao,
+            conteudo = ComissaoConteudo.PRESIDENCIA,
+            read = { legislaturaId ->
+                comissaoCacheDao.getMembros(idOrgao, legislaturaId, ComissaoConteudo.PRESIDENCIA)
+                    .toMembrosDomain()
+            },
+            write = { legislaturaId, presidentes, fetchedAt ->
+                comissaoCacheDao.saveMembros(
+                    orgaoId = idOrgao,
+                    legislaturaId = legislaturaId,
+                    fonte = ComissaoConteudo.PRESIDENCIA,
+                    membros = presidentes.toMembroEntities(
+                        idOrgao,
+                        legislaturaId,
+                        ComissaoConteudo.PRESIDENCIA,
+                    ),
+                    fetchedAt = fetchedAt,
+                )
+            },
+            fetch = { legislatura ->
+                val window = fullMandateWindow(legislatura.startDate, legislatura.endDate, today())
 
-            val window = fullMandateWindow(legislatura.startDate, legislatura.endDate, today())
-                ?: return Result.success(emptyList())
+                if (window == null) {
+                    emptyList()
+                } else {
+                    val presidentes = fetchMembros(idOrgao, window, MAX_HISTORY_PAGES)
+                        .filter { it.isPresidente }
+                        // Somebody can preside twice in one term, so the same person is not a
+                        // repeat; the same person over the same period is.
+                        .distinctBy { it.deputadoId to it.dataInicio }
+                        .sortedByDescending { it.dataInicio }
 
-            val presidentes = fetchMembros(idOrgao, window, MAX_HISTORY_PAGES)
-                .filter { it.isPresidente }
-                // Somebody can preside twice in one term, so the same person is not a repeat;
-                // the same person over the same period is.
-                .distinctBy { it.deputadoId to it.dataInicio }
-                .sortedByDescending { it.dataInicio }
+                    withPartidoFromLocal(presidentes, legislatura.id)
+                }
+            },
+        )
+    }
 
+    /**
+     * Read what is stored, download only when it is stale, and prefer stale to nothing.
+     *
+     * This screen had none of that. Every tab went from Ktor to the UI and wrote nothing down,
+     * so a committee already visited was a spinner and then an error whenever the network was
+     * gone, including for the 56th legislature, whose committees have not changed since
+     * January 2023 and never will.
+     *
+     * The order of the three steps is the whole behaviour:
+     *
+     * A fresh cache answers without touching the network. What counts as fresh is in
+     * [isComissaoCacheFresh], and for a term that has ended the answer is always yes.
+     *
+     * A failed download falls back to whatever is stored, and reports the failure only when
+     * there is nothing stored. Showing last week's committee beats showing an error about this
+     * week's, and the person did not ask for a refresh, they opened a screen.
+     *
+     * The stamp is read once, before the attempt, and reused after it. It is what tells an
+     * empty cache from a cache that was never written: the CASP has no votes, and re-asking
+     * for that emptiness on every visit is the bug this avoids.
+     */
+    private suspend fun <T> withCache(
+        idOrgao: String,
+        conteudo: ComissaoConteudo,
+        read: suspend (legislaturaId: String) -> List<T>,
+        write: suspend (legislaturaId: String, values: List<T>, fetchedAt: Long) -> Unit,
+        fetch: suspend (legislatura: LegislaturaEntity) -> List<T>,
+    ): Result<List<T>> {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId
+        val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
+            ?: return Result.success(emptyList())
+
+        val fetchedAt = comissaoCacheDao.getFetchedAt(idOrgao, legislatura.id, conteudo)
+        val isFresh = isComissaoCacheFresh(
+            fetchedAt = fetchedAt,
+            now = nowMillis(),
+            conteudo = conteudo,
+            termHasEnded = hasEnded(legislatura),
+        )
+
+        if (isFresh) {
+            val stored = read(legislatura.id)
             loggerInterface.d(
-                "getComissaoPresidentes: ${presidentes.size} presidentes for orgao=$idOrgao " +
-                    "on legislatura=$legislaturaId",
+                "withCache: $conteudo for orgao=$idOrgao served from cache, ${stored.size} rows",
                 TAG,
             )
-            Result.success(withPartidoFromLocal(presidentes, legislaturaId))
+            return Result.success(stored)
+        }
+
+        return try {
+            val downloaded = fetch(legislatura)
+            write(legislatura.id, downloaded, nowMillis())
+            loggerInterface.d(
+                "withCache: $conteudo for orgao=$idOrgao downloaded, ${downloaded.size} rows",
+                TAG,
+            )
+            Result.success(downloaded)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (e: Exception) {
-            loggerInterface.e("getComissaoPresidentes: failed for orgao=$idOrgao", e, TAG)
-            Result.failure(e)
+            loggerInterface.e("withCache: $conteudo for orgao=$idOrgao failed", e, TAG)
+
+            if (fetchedAt == null) {
+                Result.failure(e)
+            } else {
+                loggerInterface.w("withCache: falling back to what was stored at $fetchedAt", TAG)
+                Result.success(read(legislatura.id))
+            }
         }
     }
+
+    /**
+     * Whether the term is over, which is what makes its cache permanent.
+     *
+     * Compared as text because both sides are ISO dates, and cut to ten characters because the
+     * API sends the end of a mandate as a plain date in one place and with a time in another.
+     */
+    private fun hasEnded(legislatura: LegislaturaEntity): Boolean =
+        legislatura.endDate.take(DATE_LENGTH) < today().toString()
 
     private suspend fun fetchMembros(
         idOrgao: String,

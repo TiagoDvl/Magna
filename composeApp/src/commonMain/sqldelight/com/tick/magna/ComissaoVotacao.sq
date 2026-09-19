@@ -1,0 +1,72 @@
+-- The votes of one committee in one term, so the screen opens without the network.
+--
+-- It used to open only with it: getComissaoPermanenteVotacoes went straight from Ktor to the
+-- UI and nothing was written down, so a committee already visited was a spinner and then an
+-- error when the train went into a tunnel. It is also the most expensive screen in the app —
+-- a window plus one request per vote, up to four windows — which makes paying for it twice
+-- the worst thing to do twice.
+--
+-- Scoped by term like everything else here, because the window the votes are fetched in comes
+-- from the mandate of the selected term.
+CREATE TABLE ComissaoVotacao (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    votacaoId TEXT NOT NULL,
+    -- Stored as the API sends it, not as the screen shows it. ISO text sorts chronologically,
+    -- which is how the list is ordered; the display format is applied on the way out.
+    dataHoraRegistro TEXT,
+    descricao TEXT NOT NULL,
+    aprovacao INTEGER NOT NULL,
+    parecer TEXT,
+    idEvento TEXT,
+    PRIMARY KEY (orgaoId, legislaturaId, votacaoId)
+);
+
+-- The propositions a vote acted on. Keyed by the vote alone because a votacaoId is unique
+-- across the whole Camara; the term comes from the vote it hangs off.
+CREATE TABLE ComissaoVotacaoProposicao (
+    votacaoId TEXT NOT NULL,
+    proposicaoId TEXT NOT NULL,
+    -- The order the API listed them in, kept because there is no other order to fall back on
+    -- and a card that reshuffles its own propositions between visits looks broken.
+    ordem INTEGER NOT NULL,
+    rotulo TEXT,
+    ementa TEXT NOT NULL,
+    PRIMARY KEY (votacaoId, proposicaoId)
+);
+
+insertComissaoVotacao:
+INSERT OR REPLACE INTO ComissaoVotacao(
+    orgaoId, legislaturaId, votacaoId, dataHoraRegistro, descricao, aprovacao, parecer, idEvento
+)
+VALUES ?;
+
+insertComissaoVotacaoProposicao:
+INSERT OR REPLACE INTO ComissaoVotacaoProposicao(votacaoId, proposicaoId, ordem, rotulo, ementa)
+VALUES ?;
+
+selectComissaoVotacoes:
+SELECT *
+FROM ComissaoVotacao
+WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId
+ORDER BY dataHoraRegistro DESC;
+
+selectComissaoVotacaoProposicoes:
+SELECT ComissaoVotacaoProposicao.*
+FROM ComissaoVotacaoProposicao
+JOIN ComissaoVotacao ON ComissaoVotacao.votacaoId = ComissaoVotacaoProposicao.votacaoId
+WHERE ComissaoVotacao.orgaoId = :orgaoId AND ComissaoVotacao.legislaturaId = :legislaturaId
+ORDER BY ComissaoVotacaoProposicao.ordem ASC;
+
+-- Cleared before a refresh writes, so a committee that returns fewer votes than last time
+-- does not keep showing the ones that went away.
+deleteComissaoVotacaoProposicoes:
+DELETE FROM ComissaoVotacaoProposicao
+WHERE votacaoId IN (
+    SELECT votacaoId FROM ComissaoVotacao
+    WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId
+);
+
+deleteComissaoVotacoes:
+DELETE FROM ComissaoVotacao
+WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId;

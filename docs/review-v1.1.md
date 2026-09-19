@@ -794,7 +794,7 @@ As duas foram feitas: a lista vem de `selectOrgaosByAtividade`, medida uma vez p
 
 **Pré-requisito do item 2, e não era opcional:** `ComissaoPermanenteDetailScreen.kt:73` usava `if (state.votacoes.isEmpty())` para decidir mostrar o `LoadingComponent`. Não existe estado de vazio, e **CASP tem zero votações**. Além disso, `OrgaosRepository.kt:81` filtra votações sem `proposicoesAfetadas`, então uma comissão pode esvaziar depois do filtro mesmo tendo votações. Nos dois casos a tela gira para sempre. O componente de estado vazio do bloco 11 é o que destrava abrir a curadoria.
 
-### 12.5 Custo e cache — PENDENTE
+### 12.5 Custo e cache — FEITO
 
 Hoje a tela gasta 21 requisições e **não guarda nada** — `OrgaosRepository.getComissaoPermanenteVotacoes` devolve direto para a UI, sem passar pelo banco. Sem rede, a tela não abre nem depois de já ter aberto uma vez.
 
@@ -809,6 +809,30 @@ O que este bloco acrescenta, medido:
 A composição vigente é barata e vale a pena, e **está feita**: 2 requisições, junto das votações em vez de depois delas. O histórico só se a tela de fato o usar. **Nada disso deveria ser feito sem cache**: composição de comissão muda uma vez por ano, e é o tipo de dado que pertence ao banco. As tabelas precisam de `legislaturaId`, o que conecta este bloco ao item 11.3 e a uma migração — ver o item 16.3 antes, porque migração é o que não compila no Windows hoje.
 
 Aproveitar para resolver as 21 requisições: buscar votações por data com paginação honesta em vez de `ordenarPor=idProposicaoObjeto&itens=20`, e considerar se o detalhe de cada votação precisa ser buscado na lista ou só quando a pessoa abre uma.
+
+#### Como ficou
+
+Migração `8.sqm`, quatro tabelas, nada removido nem copiado — esse dado não existia em lugar nenhum antes.
+
+| Tabela | Guarda |
+|---|---|
+| `ComissaoVotacao` + `ComissaoVotacaoProposicao` | as votações e as proposições de cada uma |
+| `ComissaoMembro` | composição **e** presidências, separadas por `fonte` |
+| `ComissaoCache` | **quando** cada parte foi baixada |
+
+Três decisões que valem estar escritas:
+
+1. **`ComissaoCache` existe porque vazio e nunca-perguntado são respostas diferentes.** A CASP não tem votação nenhuma; sem o carimbo, esse vazio seria rebaixado a cada visita, para sempre. Este projeto já pagou por essa confusão duas vezes — a lista de comissões, legitimamente vazia em legislatura antiga, e a contagem de atividade, que quem atualizava já tinha linhas e nunca media.
+2. **`fonte` é parte da chave de `ComissaoMembro`, não um detalhe.** As duas abas vêm do mesmo endpoint perguntado de dois jeitos. Num balde só, um presidente de 2023 apareceria como membro da composição de hoje.
+3. **Legislatura encerrada nunca expira.** A 56ª acabou em janeiro de 2023 e não vai votar de novo. Navegar por legislatura antiga — que é o ponto do bloco 8 — custa rede exatamente uma vez.
+
+Prazos de validade para a legislatura corrente: votações 6 horas, composição e presidência 7 dias. Carimbo no futuro conta como vencido, porque relógio de aparelho não é confiável.
+
+**Falha de rede não descarta o que já existe.** Se o refresh falha e há cache, a tela mostra o cache; o erro só aparece quando não há nada guardado. Quem abriu uma tela não pediu atualização.
+
+Um efeito colateral que era dívida: `Votacao.dataHoraRegistro` guardava a data **já formatada**, então a única cópia do timestamp era uma string que não ordena e que o cache não teria como guardar sem manter a original ao lado. Agora guarda o que a API mandou e a tela formata.
+
+**O que ficou de fora, de propósito:** não há indicador de "atualizando". Com cache vencido e rede lenta, a tela espera em branco em vez de mostrar o antigo enquanto busca. Isso pede `Flow<Resource<T>>` nas três abas, que é mudança de assinatura e de estado nas três — vale, mas não é cache, é outra coisa.
 
 ### 12.6 O que este bloco não resolve
 

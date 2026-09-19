@@ -6,6 +6,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * Runs the migrations against a database built the way version 4 built it.
@@ -123,6 +124,33 @@ class SchemaMigrationTest {
 
         assertEquals(1, database.deputadoQueries.getDeputados("57").executeAsList().size)
         assertEquals(1, database.deputadoQueries.getDeputados("56").executeAsList().size)
+    }
+
+    @Test
+    fun the_committee_cache_lands_empty_on_an_upgrade_rather_than_missing() {
+        // Migration 8 adds four tables and copies nothing, because none of this data existed
+        // anywhere before: the committee screens went from Ktor straight to the UI. What has
+        // to be true after an upgrade is that the tables are there and answer.
+        // 8.sqm takes the schema from 8 to 9, so the whole chain from the shipped release is
+        // 4 to 9. Getting this off by one is how the test found the migration had not run.
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 9).value
+        val database = MagnaDatabase(driver)
+
+        assertEquals(
+            0,
+            database.comissaoVotacaoQueries.selectComissaoVotacoes("2003", "57").executeAsList().size,
+        )
+        assertEquals(
+            0,
+            database.comissaoMembroQueries.selectComissaoComposicao("2003", "57").executeAsList().size,
+        )
+
+        // Null rather than zero: nothing was ever downloaded, which is not the same as having
+        // downloaded nothing. That is the whole reason ComissaoCache exists.
+        assertNull(
+            database.comissaoCacheQueries.selectComissaoCache("2003", "57", "VOTACOES")
+                .executeAsOneOrNull()
+        )
     }
 
     private companion object {

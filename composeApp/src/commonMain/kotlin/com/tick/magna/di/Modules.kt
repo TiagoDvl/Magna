@@ -37,6 +37,11 @@ import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepository
 import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
+import com.tick.magna.ComissaoCacheQueries
+import com.tick.magna.ComissaoMembroQueries
+import com.tick.magna.ComissaoVotacaoQueries
+import com.tick.magna.data.source.local.dao.ComissaoCacheDao
+import com.tick.magna.data.source.local.dao.ComissaoCacheDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoBioDao
 import com.tick.magna.data.source.local.dao.DeputadoBioDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDao
@@ -106,6 +111,9 @@ val databaseModule = module {
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
     single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }
     single<OrgaoAtividadeQueries> { get<MagnaDatabase>().orgaoAtividadeQueries }
+    single<ComissaoVotacaoQueries> { get<MagnaDatabase>().comissaoVotacaoQueries }
+    single<ComissaoMembroQueries> { get<MagnaDatabase>().comissaoMembroQueries }
+    single<ComissaoCacheQueries> { get<MagnaDatabase>().comissaoCacheQueries }
     single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
@@ -114,6 +122,7 @@ val databaseModule = module {
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get(), get()) }
+    single<ComissaoCacheDaoInterface> { ComissaoCacheDao(get(), get(), get(), get()) }
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }
     single<ProposicaoDaoInterface> { ProposicaoDao(get(), get()) }
@@ -141,7 +150,9 @@ val dataModule = module {
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
-    single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get(), get(), get()) }
+    single<OrgaosRepositoryInterface> {
+        OrgaosRepository(get(), get(), get(), get(), get(), get(), get(), get())
+    }
     single<UserRepositoryInterface> { UserRepository(get(), get()) }
     single<LegislaturasRepositoryInterface> { LegislaturasRepository(get(), get(), get()) }
 }

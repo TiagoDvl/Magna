@@ -1,11 +1,16 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.ComissaoMembro as ComissaoMembroEntity
+import com.tick.magna.ComissaoVotacao as ComissaoVotacaoEntity
+import com.tick.magna.ComissaoVotacaoProposicao as ComissaoVotacaoProposicaoEntity
 import com.tick.magna.Deputado as DeputadoEntity
 import com.tick.magna.Legislatura
 import com.tick.magna.Orgao
 import com.tick.magna.SelectOrgaosByAtividade
 import com.tick.magna.User
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.source.local.dao.ComissaoCacheDaoInterface
+import com.tick.magna.data.source.local.dao.ComissaoConteudo
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
@@ -166,6 +171,7 @@ class ComissaoDataInicioTest {
         userDao = userDao,
         legislaturaDao = Legislaturas(),
         deputadoDao = NoDeputados(),
+        comissaoCacheDao = EmptyComissaoCache(),
         loggerInterface = SilentLogger(),
     )
 
@@ -224,6 +230,45 @@ class ComissaoDataInicioTest {
             dataFim: String,
             pagina: Int,
         ): MembrosOrgaoResponse = throw UnsupportedOperationException("not part of the sync")
+    }
+
+    /**
+     * Never written to and always empty, so every read in these tests goes to the network,
+     * which is what they are about. `getFetchedAt` returning null is what says "never asked".
+     */
+    private class EmptyComissaoCache : ComissaoCacheDaoInterface {
+        override suspend fun getFetchedAt(
+            orgaoId: String,
+            legislaturaId: String,
+            conteudo: ComissaoConteudo,
+        ): Long? = null
+
+        override suspend fun getVotacoes(orgaoId: String, legislaturaId: String) = emptyList<ComissaoVotacaoEntity>()
+
+        override suspend fun getVotacaoProposicoes(orgaoId: String, legislaturaId: String) =
+            emptyList<ComissaoVotacaoProposicaoEntity>()
+
+        override suspend fun saveVotacoes(
+            orgaoId: String,
+            legislaturaId: String,
+            votacoes: List<ComissaoVotacaoEntity>,
+            proposicoes: List<ComissaoVotacaoProposicaoEntity>,
+            fetchedAt: Long,
+        ) = Unit
+
+        override suspend fun getMembros(
+            orgaoId: String,
+            legislaturaId: String,
+            fonte: ComissaoConteudo,
+        ) = emptyList<ComissaoMembroEntity>()
+
+        override suspend fun saveMembros(
+            orgaoId: String,
+            legislaturaId: String,
+            fonte: ComissaoConteudo,
+            membros: List<ComissaoMembroEntity>,
+            fetchedAt: Long,
+        ) = Unit
     }
 
     /**

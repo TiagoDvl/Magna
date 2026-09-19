@@ -2,6 +2,13 @@ package com.tick.magna.data.domain
 
 data class Votacao(
     val id: String,
+    /**
+     * As the Camara sends it, `2026-08-12T15:04:00`, not as the screen shows it.
+     *
+     * It used to be formatted here, which meant the only copy of the timestamp was a string
+     * that no longer sorts and that the cache could not store without keeping the original
+     * alongside it. Formatting is a question for the screen and happens there.
+     */
     val dataHoraRegistro: String?,
     /**
      * What the Camara records as the outcome, and it is procedural boilerplate: across every
@@ -40,7 +47,7 @@ data class ProposicaoAfetada(
 val votacoesMock = listOf(
     Votacao(
         id = "2358471-1",
-        dataHoraRegistro = "15/03/2024",
+        dataHoraRegistro = "2024-03-15T10:30:00",
         descricao = "Aprovado o Parecer.",
         aprovacao = true,
         proposicoes = listOf(
@@ -55,7 +62,7 @@ val votacoesMock = listOf(
     ),
     Votacao(
         id = "2358472-2",
-        dataHoraRegistro = "15/03/2024",
+        dataHoraRegistro = "2024-03-15T10:30:00",
         descricao = "Aprovada a Redação Final.",
         aprovacao = false,
         proposicoes = listOf(
@@ -70,7 +77,7 @@ val votacoesMock = listOf(
     ),
     Votacao(
         id = "2358473-3",
-        dataHoraRegistro = "20/03/2024",
+        dataHoraRegistro = "2024-03-20T14:05:00",
         descricao = "Aprovado o Parecer.",
         aprovacao = true,
         proposicoes = listOf(

@@ -25,4 +25,13 @@ internal fun today(): LocalDate {
     return LocalDate.fromEpochDays(epochDays.toInt())
 }
 
+/**
+ * The wall clock, in epoch milliseconds, used to decide whether a cache is stale.
+ *
+ * It is the device's clock and it can be wrong, which is why the rule that reads this treats
+ * a stamp in the future as stale rather than as very fresh. See `isComissaoCacheFresh`.
+ */
+@OptIn(ExperimentalTime::class)
+internal fun nowMillis(): Long = Clock.System.now().toEpochMilliseconds()
+
 private const val MILLIS_PER_DAY = 86_400_000L

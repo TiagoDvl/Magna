@@ -1,0 +1,27 @@
+-- When each piece of a committee screen was last downloaded.
+--
+-- Without it an empty cache and a cache that was never filled are the same three rows of
+-- nothing, and this project has already paid for that confusion twice: once with the committee
+-- list, which is legitimately empty on old terms, and once with the activity counts, which an
+-- upgrade already had rows for and never measured. The CASP has no votes at all, so "no rows"
+-- is a real answer here too and has to be told apart from "never asked".
+--
+-- `fetchedAt` is epoch milliseconds. It is what decides a refresh, and the rule that reads it
+-- is in ComissaoCachePolicy, not here.
+CREATE TABLE ComissaoCache (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    -- 'VOTACOES', 'COMPOSICAO' or 'PRESIDENCIA'.
+    conteudo TEXT NOT NULL,
+    fetchedAt INTEGER NOT NULL,
+    PRIMARY KEY (orgaoId, legislaturaId, conteudo)
+);
+
+insertComissaoCache:
+INSERT OR REPLACE INTO ComissaoCache(orgaoId, legislaturaId, conteudo, fetchedAt)
+VALUES (?, ?, ?, ?);
+
+selectComissaoCache:
+SELECT fetchedAt
+FROM ComissaoCache
+WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId AND conteudo = :conteudo;

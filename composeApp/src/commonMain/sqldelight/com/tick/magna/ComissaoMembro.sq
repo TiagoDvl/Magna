@@ -1,0 +1,51 @@
+-- Who sat on a committee, for both questions the screen asks.
+--
+-- `fonte` is part of the key and not a detail. The two tabs come from the same endpoint asked
+-- two different ways: the composition is the last three months of the mandate filtered to the
+-- seats still held, the presidency is the whole mandate filtered to codTitulo 1. Storing them
+-- in one bucket would let a president fetched by the second query show up as a member of the
+-- first, dated years ago, which is exactly the kind of quiet wrong answer this table exists to
+-- avoid.
+--
+-- What is stored is the answer, not the raw window: comissaoComposition has already dropped
+-- the seats that ended and the people listed twice. The ordering is not stored because it is
+-- reproducible — codTitulo then name for a composition, most recent first for a presidency.
+CREATE TABLE ComissaoMembro (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    -- 'COMPOSICAO' or 'PRESIDENCIA'.
+    fonte TEXT NOT NULL,
+    deputadoId TEXT NOT NULL,
+    dataInicio TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    siglaPartido TEXT,
+    siglaUf TEXT,
+    urlFoto TEXT,
+    titulo TEXT NOT NULL,
+    codTitulo INTEGER NOT NULL,
+    dataFim TEXT,
+    PRIMARY KEY (orgaoId, legislaturaId, fonte, deputadoId, dataInicio)
+);
+
+insertComissaoMembro:
+INSERT OR REPLACE INTO ComissaoMembro(
+    orgaoId, legislaturaId, fonte, deputadoId, dataInicio,
+    nome, siglaPartido, siglaUf, urlFoto, titulo, codTitulo, dataFim
+)
+VALUES ?;
+
+selectComissaoComposicao:
+SELECT *
+FROM ComissaoMembro
+WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId AND fonte = 'COMPOSICAO'
+ORDER BY codTitulo ASC, nome ASC;
+
+selectComissaoPresidencia:
+SELECT *
+FROM ComissaoMembro
+WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId AND fonte = 'PRESIDENCIA'
+ORDER BY dataInicio DESC;
+
+deleteComissaoMembros:
+DELETE FROM ComissaoMembro
+WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId AND fonte = :fonte;
