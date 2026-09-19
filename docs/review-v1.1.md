@@ -943,9 +943,33 @@ Os 3% que o filtro perde não somem para sempre: o botão de atualizar do item 1
 
 *(Detalhe que explica o filtro: o arquivo `votacoes-{ano}.csv` tem as colunas `votosSim`/`votosNao`/`votosOutros`, e elas são discriminador perfeito — 151 das 152 nominais preenchidas, zero das 7.208 simbólicas. A API não devolve esse campo em lugar nenhum, nem na listagem nem no detalhe. O `"Sim:"` na descrição é o mesmo dado vazando pelo texto.)*
 
+### 13.5.1 A ordem do bloco estava errada — CORRIGIDO
+
+Medindo para implementar, apareceu uma coisa que muda a ordem inteira: **`/votacoes` aceita `idOrgao`**. O plano tratou a varredura pela API como "manter fresco" e o arquivo de 16 MB como o caminho principal. É o contrário.
+
+Medido em 2026-09-19:
+
+| Varredura | Requisições de listagem | Nominais achadas |
+|---|---|---|
+| Câmara inteira, 3 meses | 17 (1640 votações) | 17 |
+| **Só `idOrgao=180` (PLEN), 3 meses** | **4** (301 votações) | **14** |
+
+Com o Plenário, o trimestre inteiro custa **4 de listagem + 14 de `/votos` = 18 requisições**, e rende **5814 linhas de voto cobrindo os 566 deputados**. As 3 que ficam de fora são de comissão, e a tela de comissão já mostra aquilo.
+
+Ou seja: **a feature funciona sem baixar arquivo nenhum.** O arquivo anual continua sendo o caminho do histórico completo, mas virou o segundo passo, não o primeiro.
+
+Duas correções menores do que está escrito acima:
+
+- **o CSV tem 12 colunas, não 11** — falta `deputado_uri` na lista do item 13.2. O parser tem que ler por nome de coluna, não por posição;
+- os headers do `HEAD` estão todos lá (`content-length` 17.218.936, `last-modified`, `etag`, `accept-ranges: bytes`), então as regras de produto do item 13.4 continuam de pé.
+
 ### 13.6 O que precisa existir no código
 
-- **tabela nova** para o voto, com `idVotacao`, `deputadoId`, `voto`, data e `legislaturaId` — migração, então ver o item **16.3** antes;
+- ~~**tabela nova** para o voto~~ — **feito**: `Voto`, `VotacaoNominal` e `VotoSync` na migração `9.sqm`, com índice `(legislaturaId, deputadoId)`;
+- ~~**`/votacoes/{id}/votos` sem `itens`**, com um teste que trave isso~~ — **feito**, e documentado na interface da API;
+- ~~**escrita em lote no SQLDelight**~~ — **feito**, uma transação por janela;
+- ~~**estados**~~ — **feito**: carregando, vazio, erro, conteúdo. O vazio é o ramo comum, não o raro, e a tela diz **por quê**: voto simbólico não tem registro individual, então lista vazia não é ausência;
+- **ainda falta:** parser de CSV, download com progresso e cancelamento, e a tela de permissão com o peso.
 - **parser de CSV** em `commonMain`. É a primeira vez que o app lê algo que não é JSON da API; o arquivo usa `;` como separador e vem com BOM;
 - **download com progresso e cancelamento**, que também é novo. Ktor dá o `ByteReadChannel`; o que falta é a tela e o cancelamento decente (o bloco 4 já ensinou a tratar cancelamento como cancelamento);
 - **escrita em lote no SQLDelight** — 52 mil linhas não entram uma a uma;

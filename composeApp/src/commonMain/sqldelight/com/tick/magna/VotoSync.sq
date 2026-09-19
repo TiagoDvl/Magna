@@ -1,0 +1,19 @@
+-- Which stretch of a term has had its nominal votes downloaded, and when.
+--
+-- Shared by every deputado, which is the point: the sync is per votacao, so the first person
+-- whose screen is opened pays for the window and everybody else in that term reads it for
+-- free. Without this row the app cannot tell a term whose window was downloaded and found
+-- eleven votacoes from a term that was never asked about — and eleven is a normal quarter.
+CREATE TABLE VotoSync (
+    legislaturaId TEXT NOT NULL PRIMARY KEY,
+    windowStart TEXT NOT NULL,
+    windowEnd TEXT NOT NULL,
+    fetchedAt INTEGER NOT NULL
+);
+
+insertVotoSync:
+INSERT OR REPLACE INTO VotoSync(legislaturaId, windowStart, windowEnd, fetchedAt)
+VALUES (?, ?, ?, ?);
+
+selectVotoSync:
+SELECT * FROM VotoSync WHERE legislaturaId = :legislaturaId;

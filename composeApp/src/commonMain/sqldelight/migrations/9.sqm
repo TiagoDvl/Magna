@@ -1,0 +1,32 @@
+-- Adds the deputado-vote index: two tables for the data and one for what has been downloaded.
+--
+-- Plain CREATEs. Nothing existed before, because the API has no endpoint that answers "how did
+-- this person vote" — /deputados/{id}/votos is a 405 — and the previous attempt at the feature
+-- was deleted rather than stored.
+CREATE TABLE Voto (
+    votacaoId TEXT NOT NULL,
+    deputadoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    voto TEXT NOT NULL,
+    dataHoraVoto TEXT,
+    PRIMARY KEY (votacaoId, deputadoId, legislaturaId)
+);
+
+CREATE INDEX Voto_por_deputado ON Voto(legislaturaId, deputadoId);
+
+CREATE TABLE VotacaoNominal (
+    id TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    dataHoraRegistro TEXT,
+    descricao TEXT NOT NULL,
+    siglaOrgao TEXT,
+    aprovacao INTEGER NOT NULL,
+    PRIMARY KEY (id, legislaturaId)
+);
+
+CREATE TABLE VotoSync (
+    legislaturaId TEXT NOT NULL PRIMARY KEY,
+    windowStart TEXT NOT NULL,
+    windowEnd TEXT NOT NULL,
+    fetchedAt INTEGER NOT NULL
+);

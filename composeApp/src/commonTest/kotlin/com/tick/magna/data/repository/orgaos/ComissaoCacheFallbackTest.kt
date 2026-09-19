@@ -25,6 +25,7 @@ import com.tick.magna.data.source.remote.response.OrgaoDetalheResponse
 import com.tick.magna.data.source.remote.response.OrgaosResponse
 import com.tick.magna.data.source.remote.response.VotacaoDetailResponse
 import com.tick.magna.data.source.remote.response.VotacoesResponse
+import com.tick.magna.data.source.remote.response.VotosResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -248,6 +249,16 @@ class ComissaoCacheFallbackTest {
         ): VotacoesResponse = throw UnsupportedOperationException("not part of this test")
 
         override suspend fun getVotacaoDetail(id: String): VotacaoDetailResponse =
+            throw UnsupportedOperationException("not part of this test")
+
+        override suspend fun getVotacoesPage(
+            idOrgao: String,
+            dataInicio: String,
+            dataFim: String,
+            pagina: Int,
+        ): VotacoesResponse = throw UnsupportedOperationException("not part of this test")
+
+        override suspend fun getVotos(idVotacao: String): VotosResponse =
             throw UnsupportedOperationException("not part of this test")
     }
 

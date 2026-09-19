@@ -1,21 +1,13 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.data.repository.isCacheFresh
 import com.tick.magna.data.source.local.dao.ComissaoConteudo
 
 /**
  * Whether what is stored for a committee is still worth showing without asking again.
  *
- * Three rules, in order:
- *
- * A term that has already ended never changes. The 56th legislature finished in January 2023
- * and its committees will not vote again or elect another president, so once downloaded it is
- * correct forever — which also means that browsing old terms, the thing block 8 made possible,
- * costs the network exactly once.
- *
- * A stamp in the future is stale. The device clock is not trustworthy: one jump forward and
- * back would otherwise freeze a cache written "tomorrow" until tomorrow arrives.
- *
- * Otherwise it is an age limit, and the three contents do not share one. The votes are the
+ * The rules themselves are in [isCacheFresh], which the vote index shares. What belongs here
+ * is the age limit, and the three contents do not share one. The votes are the
  * expensive half of the screen and the only part that moves week to week; a composition is
  * renewed once a legislative year and a presidency changes about as often.
  *
@@ -29,11 +21,12 @@ internal fun isComissaoCacheFresh(
     conteudo: ComissaoConteudo,
     termHasEnded: Boolean,
 ): Boolean {
-    if (fetchedAt == null) return false
-    if (termHasEnded) return true
-    if (now < fetchedAt) return false
-
-    return now - fetchedAt < conteudo.maxAge
+    return isCacheFresh(
+        fetchedAt = fetchedAt,
+        now = now,
+        maxAge = conteudo.maxAge,
+        termHasEnded = termHasEnded,
+    )
 }
 
 private val ComissaoConteudo.maxAge: Long

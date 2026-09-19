@@ -10,8 +10,10 @@ import com.tick.magna.data.source.remote.response.DespesasResponse
 import com.tick.magna.data.source.remote.response.DeputadosResponse
 import com.tick.magna.data.source.remote.response.LegislaturasResponse
 import com.tick.magna.data.source.remote.response.MembrosOrgaoResponse
+import com.tick.magna.data.source.remote.response.VotosResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.VotacaoDetailResponse
+import com.tick.magna.data.source.remote.response.VotacoesResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -409,5 +411,63 @@ class ApiParsingTest {
         assertNull(membro.siglaUf)
         assertEquals("2023-01-31", membro.dataFim)
         assertEquals("1º Vice-Presidente", membro.titulo)
+    }
+
+    @Test
+    fun a_vote_parses_the_field_whose_name_ends_in_an_underscore() {
+        // `deputado_` really is spelled that way, and it is the only place in this API that
+        // does it. Getting it wrong is a MissingFieldException at the worst moment.
+        val payload = """
+            {
+              "dados": [
+                {
+                  "tipoVoto": "Não",
+                  "dataRegistroVoto": "2026-09-01T17:56:39",
+                  "deputado_": {
+                    "id": 204479,
+                    "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/204479",
+                    "nome": "Nicoletti",
+                    "siglaPartido": "PL",
+                    "siglaUf": "RR",
+                    "idLegislatura": 57,
+                    "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204479.jpg",
+                    "email": "dep.nicoletti@camara.leg.br"
+                  }
+                }
+              ],
+              "links": [{ "rel": "self", "href": "..." }]
+            }
+        """.trimIndent()
+
+        val voto = json.decodeFromString<VotosResponse>(payload).dados.single()
+
+        assertEquals("Não", voto.tipoVoto)
+        assertEquals("204479", voto.deputado.id)
+        assertEquals("PL", voto.deputado.siglaPartido)
+    }
+
+    @Test
+    fun a_votacao_in_the_listing_carries_whether_it_passed() {
+        // The listing sends `aprovacao` and only the detail was ever read for it, which cost
+        // a request per votacao to learn something already in hand.
+        val payload = """
+            {
+              "dados": [
+                {
+                  "id": "2611313-34",
+                  "dataHoraRegistro": "2026-09-03T17:29:39",
+                  "siglaOrgao": "PLEN",
+                  "proposicaoObjeto": null,
+                  "descricao": "Aprovado o Requerimento de Urgência. Sim: 320; Não: 41.",
+                  "aprovacao": 1
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val votacao = json.decodeFromString<VotacoesResponse>(payload).dados.single()
+
+        assertEquals(1, votacao.aprovacao)
+        assertEquals("PLEN", votacao.siglaOrgao)
     }
 }

@@ -1,5 +1,6 @@
 package com.tick.magna.features.deputados.details
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +21,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -44,12 +47,15 @@ import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
+import com.tick.magna.data.domain.VotoDeputado
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
+import com.tick.magna.data.source.local.mapper.toDisplayDate
+import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
@@ -58,6 +64,12 @@ import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.deputado_details_expense_title
 import magna.composeapp.generated.resources.deputado_details_expenses_empty
+import magna.composeapp.generated.resources.deputado_tab_despesas
+import magna.composeapp.generated.resources.deputado_tab_votos
+import magna.composeapp.generated.resources.deputado_votos_empty
+import magna.composeapp.generated.resources.deputado_votos_empty_description
+import magna.composeapp.generated.resources.deputado_votos_nota
+import magna.composeapp.generated.resources.deputado_votos_title
 import magna.composeapp.generated.resources.deputado_details_expenses_error
 import magna.composeapp.generated.resources.deputado_details_loading_details
 import magna.composeapp.generated.resources.deputado_details_loading_expenses
@@ -65,6 +77,7 @@ import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_arrow_right
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.ic_light_users
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -83,6 +96,7 @@ fun DeputadoDetailScreen(
         onExpenseOpened = viewModel::onExpenseOpened,
         onExpenseDocumentOpened = viewModel::onExpenseDocumentOpened,
         onSocialOpened = viewModel::onSocialOpened,
+        onTabSelected = viewModel::onTabSelected,
     )
 }
 
@@ -93,6 +107,7 @@ private fun DeputadoDetails(
     onExpenseOpened: (DeputadoExpense) -> Unit = {},
     onExpenseDocumentOpened: () -> Unit = {},
     onSocialOpened: () -> Unit = {},
+    onTabSelected: (DeputadoTab) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -159,13 +174,30 @@ private fun DeputadoDetails(
                     onSocialOpened = onSocialOpened,
                 )
 
-                DeputadoExpenses(
-                    state = state.expensesState,
-                    onExpenseClick = { expense ->
-                        onExpenseOpened(expense)
-                        showSheet(DeputadoDetailsSheetState.Expense(expense))
-                    },
-                )
+                // Tabs rather than two sections stacked, because each of these owns a
+                // LazyColumn and putting both in one Column makes them fight for the height
+                // that is left.
+                PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
+                    DeputadoTab.entries.forEach { tab ->
+                        Tab(
+                            selected = state.selectedTab == tab,
+                            onClick = { onTabSelected(tab) },
+                            text = { Text(text = stringResource(tab.label)) },
+                        )
+                    }
+                }
+
+                when (state.selectedTab) {
+                    DeputadoTab.DESPESAS -> DeputadoExpenses(
+                        state = state.expensesState,
+                        onExpenseClick = { expense ->
+                            onExpenseOpened(expense)
+                            showSheet(DeputadoDetailsSheetState.Expense(expense))
+                        },
+                    )
+
+                    DeputadoTab.VOTOS -> DeputadoVotos(state = state.votosState)
+                }
             }
         }
     }
@@ -456,6 +488,145 @@ fun DeputadoExpenses(
                     ExpensesPlaceholder(text = stringResource(Res.string.deputado_details_expenses_error))
                 }
             }
+        }
+    }
+}
+
+private val DeputadoTab.label: StringResource
+    get() = when (this) {
+        DeputadoTab.DESPESAS -> Res.string.deputado_tab_despesas
+        DeputadoTab.VOTOS -> Res.string.deputado_tab_votos
+    }
+
+@Composable
+private fun DeputadoVotos(state: VotosState) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(top = dimensions.grid16),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = dimensions.grid16),
+            text = stringResource(Res.string.deputado_votos_title),
+            style = typography.titleLarge.copy(
+                textAlign = TextAlign.Center,
+                color = colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+            ),
+        )
+
+        when (state) {
+            VotosState.Loading -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = colorScheme.tertiary)
+            }
+
+            VotosState.Error -> ExpensesPlaceholder(
+                text = stringResource(Res.string.deputado_details_expenses_error)
+            )
+
+            // The common branch, not the rare one. Only 2% of what the Camara registers is
+            // nominal, so a deputado with nothing here is ordinary — and saying why matters,
+            // because an empty list otherwise reads as "did not vote".
+            VotosState.Empty -> EmptyComponent(
+                modifier = Modifier.fillMaxSize(),
+                title = stringResource(Res.string.deputado_votos_empty),
+                description = stringResource(Res.string.deputado_votos_empty_description),
+            )
+
+            is VotosState.Content -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    horizontal = dimensions.grid16,
+                    vertical = dimensions.grid8,
+                ),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+            ) {
+                item {
+                    Text(
+                        text = "${state.votos.size} votos · ${state.sim} sim · ${state.nao} não · ${state.outros} outros",
+                        style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+                }
+
+                items(state.votos, key = { it.votacaoId }) { voto -> VotoCard(voto = voto) }
+
+                // What the list does not contain, said once. The window is a quarter of the
+                // plenary, so this is not the deputado's whole record.
+                item {
+                    Text(
+                        modifier = Modifier.padding(top = dimensions.grid8),
+                        text = stringResource(Res.string.deputado_votos_nota),
+                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VotoCard(voto: VotoDeputado) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    Card(
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(dimensions.grid12),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // How this person voted comes first and reads on its own. Whether the votacao
+                // passed is a separate fact and is not colour-coded against them.
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = colorScheme.primaryContainer,
+                            shape = MaterialTheme.shapes.extraSmall,
+                        )
+                        .padding(horizontal = dimensions.grid8, vertical = dimensions.grid2),
+                ) {
+                    Text(
+                        text = voto.voto,
+                        style = typography.labelSmall.copy(
+                            color = colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                    )
+                }
+
+                voto.dataHoraRegistro?.let { data ->
+                    Text(
+                        text = data.toDisplayDate(),
+                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+                }
+
+                voto.siglaOrgao?.let { orgao ->
+                    Text(
+                        text = orgao,
+                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+                }
+            }
+
+            Text(
+                text = voto.descricao,
+                style = typography.bodyMedium,
+            )
         }
     }
 }

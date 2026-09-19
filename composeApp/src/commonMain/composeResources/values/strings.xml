@@ -72,6 +72,12 @@
     <string name="deputado_details_expense_supplier_cnpjcpf">CNPJ/CPF do Fornecedor</string>
     <string name="deputado_details_check_document">Consultar documento</string>
     <string name="deputado_details_expenses_empty">Nenhuma despesa registrada neste ano.</string>
+    <string name="deputado_votos_title">Como votou</string>
+    <string name="deputado_votos_empty">Nenhum voto nominal no período</string>
+    <string name="deputado_votos_empty_description">A Câmara só registra voto individual em votação nominal, que é 2% do total. No resto, não existe registro por deputado — não é ausência.</string>
+    <string name="deputado_votos_nota">Só votações nominais do Plenário, dos últimos três meses.</string>
+    <string name="deputado_tab_despesas">Despesas</string>
+    <string name="deputado_tab_votos">Como votou</string>
     <string name="deputado_details_expenses_error">Não foi possível carregar as despesas agora.</string>
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>

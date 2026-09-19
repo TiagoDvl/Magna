@@ -11,6 +11,7 @@ import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.votos.VotosRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ class DeputadoDetailsViewModel(
     savedStateHandle: SavedStateHandle,
     dispatcherInterface: DispatcherInterface,
     deputadosRepository: DeputadosRepositoryInterface,
+    private val votosRepository: VotosRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
 ) : ViewModel() {
@@ -66,9 +68,36 @@ class DeputadoDetailsViewModel(
                 )
             }.collect { state ->
                 logger.d("state → detailsState=${state.detailsState::class.simpleName}, expensesState=${state.expensesState::class.simpleName}", TAG)
-                _state.value = state
+
+                // The combine rebuilds the whole state on every emission, and the votes are
+                // not one of its sources. Assigning it whole would throw them away each time
+                // an expense or a detail arrived.
+                _state.value = state.copy(votosState = _state.value.votosState)
             }
         }
+
+        // Its own coroutine because it is not part of that combine and must not hold it up:
+        // the first deputado opened in a term pays for the whole window of plenary votes,
+        // and everybody after them reads it from the index for free.
+        viewModelScope.launch(dispatcherInterface.io) {
+            val result = votosRepository.getVotosDoDeputado(deputadoIdArgs)
+            result
+                .onSuccess { votos ->
+                    logger.d("votos: ${votos.size} para deputadoId=$deputadoIdArgs", TAG)
+                    if (votos.isEmpty()) {
+                        analytics.track(
+                            AnalyticsEvent.ContentEmpty(AnalyticsEvent.EmptyContent.DEPUTADO_VOTOS)
+                        )
+                    }
+                }
+                .onFailure { e -> logger.e("votos: falhou para deputadoId=$deputadoIdArgs", e, TAG) }
+
+            _state.value = _state.value.copy(votosState = votosStateFor(result))
+        }
+    }
+
+    fun onTabSelected(tab: DeputadoTab) {
+        _state.value = _state.value.copy(selectedTab = tab)
     }
 
     /**

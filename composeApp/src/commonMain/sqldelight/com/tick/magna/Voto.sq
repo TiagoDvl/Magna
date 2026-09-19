@@ -1,0 +1,65 @@
+-- How each deputado voted, which the API cannot be asked directly.
+--
+-- `/deputados/{id}/votos` and `/deputados/{id}/votacoes` are both HTTP 405: they do not exist.
+-- The only way in is `/votacoes/{id}/votos`, which answers the opposite question. The previous
+-- attempt at this feature searched twenty recent votacoes for one deputado and was removed in
+-- block 5 for costing 21 requests; it failed because of the direction, not the effort. Only 2%
+-- of what the Camara registers is nominal, so searching recent votacoes for a person is
+-- looking for the rare thing by asking about the common one.
+--
+-- This table is the inversion. Votes are synced votacao by votacao and the index answers by
+-- deputado.
+CREATE TABLE Voto (
+    votacaoId TEXT NOT NULL,
+    deputadoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    -- As the Camara words it: Sim, Não, Abstenção, Obstrução, Artigo 17.
+    voto TEXT NOT NULL,
+    dataHoraVoto TEXT,
+    PRIMARY KEY (votacaoId, deputadoId, legislaturaId)
+);
+
+-- The whole point of the table is this lookup, and without the index it is a scan of every
+-- vote of the term to build one screen.
+CREATE INDEX Voto_por_deputado ON Voto(legislaturaId, deputadoId);
+
+-- What was being voted on, so a vote is not a bare word on a screen.
+--
+-- Only the nominal ones are ever stored here: a symbolic vote has no individual record at all,
+-- and a row in this table without rows in Voto would claim otherwise.
+CREATE TABLE VotacaoNominal (
+    id TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    dataHoraRegistro TEXT,
+    descricao TEXT NOT NULL,
+    siglaOrgao TEXT,
+    aprovacao INTEGER NOT NULL,
+    PRIMARY KEY (id, legislaturaId)
+);
+
+insertVoto:
+INSERT OR REPLACE INTO Voto(votacaoId, deputadoId, legislaturaId, voto, dataHoraVoto)
+VALUES ?;
+
+insertVotacaoNominal:
+INSERT OR REPLACE INTO VotacaoNominal(id, legislaturaId, dataHoraRegistro, descricao, siglaOrgao, aprovacao)
+VALUES ?;
+
+-- The one query the index exists for: what this person voted, most recent first.
+selectVotosDoDeputado:
+SELECT
+    VotacaoNominal.id,
+    VotacaoNominal.dataHoraRegistro,
+    VotacaoNominal.descricao,
+    VotacaoNominal.siglaOrgao,
+    VotacaoNominal.aprovacao,
+    Voto.voto
+FROM Voto
+JOIN VotacaoNominal
+    ON VotacaoNominal.id = Voto.votacaoId
+    AND VotacaoNominal.legislaturaId = Voto.legislaturaId
+WHERE Voto.legislaturaId = :legislaturaId AND Voto.deputadoId = :deputadoId
+ORDER BY VotacaoNominal.dataHoraRegistro DESC;
+
+selectVotacoesNominaisSincronizadas:
+SELECT id FROM VotacaoNominal WHERE legislaturaId = :legislaturaId;

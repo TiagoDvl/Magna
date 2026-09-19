@@ -11,5 +11,7 @@ data class VotacaoDto(
     val descricao: String? = null,
     val dataHoraRegistro: String? = null,
     val siglaOrgao: String? = null,
+    /** 1 when it passed. The listing carries it; only the detail was ever read for it. */
+    val aprovacao: Int? = null,
     val proposicoesAfetadas: List<ProposicoesAfetadasDto> = emptyList(),
 )
