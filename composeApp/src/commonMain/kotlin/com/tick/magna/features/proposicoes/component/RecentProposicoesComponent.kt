@@ -2,18 +2,13 @@ package com.tick.magna.features.proposicoes.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.ProposicoesNaJanela
 import com.tick.magna.data.domain.proposicoesMock
@@ -23,7 +18,7 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.proposicoes_see_all
+import magna.composeapp.generated.resources.section_ver_todos
 import magna.composeapp.generated.resources.recent_proposicoes_janela
 import magna.composeapp.generated.resources.recent_proposicoes_section_title
 import org.jetbrains.compose.resources.stringResource
@@ -53,7 +48,7 @@ fun RecentProposicoesComponent(
 /**
  * The most recent propositions of the selected term, every type mixed.
  *
- * It used to be a segmented control over PEC, MPV and PLP showing five of one type at a time,
+ * It used to be a segmented control over PEC, MPV and PLP showing a few of one type at a time,
  * and measuring the window it covers is what condemned that: PEC has 1 proposition, MPV 24,
  * PLP 62, and PL — never one of the three — has 2074. The section opened on PEC, so it opened
  * on a single card inside a box of 380 fixed dp, and changing type dropped back into loading
@@ -78,27 +73,15 @@ private fun RecentProposicoesComponentContent(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MagnaSectionHeader(
-                modifier = Modifier.weight(1f),
-                title = stringResource(Res.string.recent_proposicoes_section_title),
-                area = MagnaArea.PROPOSICOES,
-            )
+        MagnaSectionHeader(
+            title = stringResource(Res.string.recent_proposicoes_section_title),
+            area = MagnaArea.PROPOSICOES,
+            onClick = onVerTodasClick,
+            actionLabel = stringResource(Res.string.section_ver_todos),
+        )
 
-            TextButton(onClick = onVerTodasClick) {
-                Text(
-                    text = stringResource(Res.string.proposicoes_see_all),
-                    style = typography.labelMedium.copy(color = colorScheme.primary),
-                )
-            }
-        }
-
-        // What the five on screen are five of, and over what stretch. Without it a list of
-        // five looks the same whether it is everything there is or a fifth of one percent.
+        // What the four on screen are four of, and over what stretch. Without it a short
+        // list looks the same whether it is everything there is or a thirtieth of a percent.
         state.janela?.let { janela ->
             Text(
                 text = stringResource(Res.string.recent_proposicoes_janela, janela.total, janela.meses),

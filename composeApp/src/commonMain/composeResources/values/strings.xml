@@ -42,7 +42,6 @@
 
     <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes </string>
     <string name="recent_deputados_title">Deputados recentes</string>
-    <string name="recent_deputados_more">Ver todos</string>
     <string name="recent_deputados_find_more">Ver todos</string>
 
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
@@ -72,7 +71,7 @@
     <string name="deputado_tab_votos">Como votou</string>
     <string name="recent_proposicoes_section_title">Apresentadas recentemente</string>
     <string name="recent_proposicoes_janela">%1$d apresentadas nos últimos %2$d meses</string>
-    <string name="proposicoes_see_all">Ver todas</string>
+    <string name="section_ver_todos">Ver todos</string>
     <string name="proposicao_bucket_constituicao">Constituição</string>
     <string name="proposicao_bucket_lei">Lei</string>
     <string name="proposicao_bucket_ato">Ato do Congresso</string>
@@ -96,7 +95,6 @@
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
     <string name="comissoes_permanentes_votacoes_title">Votações recentes</string>
     <string name="comissoes_list_title">Comissões Permanentes</string>
-    <string name="comissoes_see_all">Ver todas</string>
     <string name="comissoes_votacoes_count">%1$d votações no período</string>
     <string name="comissoes_list_empty">Nenhuma comissão nesta legislatura</string>
     <string name="comissoes_list_empty_description">As comissões permanentes de hoje foram criadas depois do fim deste mandato.</string>
@@ -116,7 +114,6 @@
     <string name="comissao_presidentes_incompleto">A Câmara não publica um registro contínuo: períodos podem faltar.</string>
 
     <string name="partidos_section_title">Partidos</string>
-    <string name="partidos_see_all">Ver todos</string>
     <string name="partidos_list_title">Partidos</string>
     <string name="partidos_members_suffix">membros</string>
     <string name="partidos_deputados_suffix">deputados</string>

@@ -25,7 +25,7 @@ class RecentProposicoesViewModel(
         private const val TAG = "RecentProposicoesViewModel"
 
         /** What fits on the Home without the section becoming the screen. */
-        private const val HOME_LIMIT = 5
+        private const val HOME_LIMIT = 4
     }
 
     private val _state = MutableStateFlow(RecentProposicoesState())

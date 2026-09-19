@@ -17,7 +17,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +30,7 @@ import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_permanentes_section_title
-import magna.composeapp.generated.resources.comissoes_see_all
+import magna.composeapp.generated.resources.section_ver_todos
 import magna.composeapp.generated.resources.ic_arrow_right
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -53,25 +52,13 @@ fun ComissoesPermanentesComponent(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MagnaSectionHeader(
-                modifier = Modifier.weight(1f),
-                title = stringResource(Res.string.comissoes_permanentes_section_title),
-                area = MagnaArea.COMISSOES,
-            )
-
-            // The carousel shows ten of thirty now, so there has to be a way to the rest.
-            TextButton(onClick = onVerTodasClick) {
-                Text(
-                    text = stringResource(Res.string.comissoes_see_all),
-                    style = typography.labelMedium.copy(color = colorScheme.primary),
-                )
-            }
-        }
+        // The carousel shows ten of thirty, so the header is the way to the rest.
+        MagnaSectionHeader(
+            title = stringResource(Res.string.comissoes_permanentes_section_title),
+            area = MagnaArea.COMISSOES,
+            onClick = onVerTodasClick,
+            actionLabel = stringResource(Res.string.section_ver_todos),
+        )
 
         LazyRow(
             modifier = Modifier.fillMaxWidth(),

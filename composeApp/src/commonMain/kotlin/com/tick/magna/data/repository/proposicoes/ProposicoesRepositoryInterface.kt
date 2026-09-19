@@ -36,7 +36,7 @@ interface ProposicoesRepositoryInterface {
     ): Flow<Resource<List<Proposicao>>>
 
     /**
-     * How many were filed in the window, which is what tells five-of-five from five-of-2479.
+     * How many were filed in the window, which is what tells four-of-four from four-of-11333.
      *
      * One request with `itens=1`: the `last` link carries the count and the body is a handful
      * of bytes. Null when the term has no window yet.

@@ -17,7 +17,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +36,7 @@ import magna.composeapp.generated.resources.ic_star_filled
 import magna.composeapp.generated.resources.partido_favorite_remove
 import magna.composeapp.generated.resources.partidos_deputados_suffix
 import magna.composeapp.generated.resources.partidos_section_title
-import magna.composeapp.generated.resources.partidos_see_all
+import magna.composeapp.generated.resources.section_ver_todos
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -56,7 +55,7 @@ fun PartidosComponent(
         modifier = modifier,
         partidos = partidos.value,
         sectionTitle = stringResource(Res.string.partidos_section_title),
-        seeAllText = stringResource(Res.string.partidos_see_all),
+        seeAllLabel = stringResource(Res.string.section_ver_todos),
         membersSuffix = stringResource(Res.string.partidos_deputados_suffix),
         onVerTodosClick = onVerTodosClick,
         onPartidoClick = { partidoId ->
@@ -71,7 +70,7 @@ private fun PartidosComponentContent(
     modifier: Modifier = Modifier,
     partidos: List<Partido>,
     sectionTitle: String,
-    seeAllText: String,
+    seeAllLabel: String,
     membersSuffix: String,
     onVerTodosClick: () -> Unit = {},
     onPartidoClick: (partidoId: String) -> Unit = {},
@@ -84,26 +83,12 @@ private fun PartidosComponentContent(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MagnaSectionHeader(
-                modifier = Modifier.weight(1f),
-                title = sectionTitle,
-                area = MagnaArea.PARTIDOS,
-            )
-
-            TextButton(onClick = onVerTodosClick) {
-                Text(
-                    text = seeAllText,
-                    style = typography.labelMedium.copy(
-                        color = colorScheme.primary,
-                    )
-                )
-            }
-        }
+        MagnaSectionHeader(
+            title = sectionTitle,
+            area = MagnaArea.PARTIDOS,
+            onClick = onVerTodosClick,
+            actionLabel = seeAllLabel,
+        )
 
         LazyRow(
             modifier = Modifier.fillMaxWidth().height(104.dp),
@@ -205,7 +190,7 @@ private fun PreviewPartidosComponent() {
         PartidosComponentContent(
             partidos = partidosMock.take(8),
             sectionTitle = "Partidos",
-            seeAllText = "Ver todos",
+            seeAllLabel = "Ver todos",
             membersSuffix = "membros",
         )
     }

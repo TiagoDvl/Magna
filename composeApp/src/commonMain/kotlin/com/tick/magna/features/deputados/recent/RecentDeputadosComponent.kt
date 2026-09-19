@@ -1,10 +1,8 @@
 package com.tick.magna.features.deputados.recent
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PersonSearch
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -45,7 +45,7 @@ import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.ic_person_hand_raised
 import magna.composeapp.generated.resources.recent_deputados_feature_discovery_title
 import magna.composeapp.generated.resources.recent_deputados_find_more
-import magna.composeapp.generated.resources.recent_deputados_more
+import magna.composeapp.generated.resources.deputados_search_title
 import magna.composeapp.generated.resources.recent_deputados_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -144,22 +144,16 @@ private fun RecentDeputados(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MagnaSectionHeader(
-                modifier = Modifier.weight(1f),
-                title = stringResource(Res.string.recent_deputados_title),
-                area = MagnaArea.DEPUTADOS,
-            )
-            Text(
-                modifier = Modifier.clickable(null, null, onClick = onSearchClick),
-                text = stringResource(Res.string.recent_deputados_more),
-                style = typography.titleSmall.copy(color = colorScheme.tertiary)
-            )
-        }
+        // Not a chevron: this one opens search, and it was labelled "Ver todos" while doing
+        // it. There is no list of all deputados behind this section — there is a way to look
+        // one up, which is a different promise.
+        MagnaSectionHeader(
+            title = stringResource(Res.string.recent_deputados_title),
+            area = MagnaArea.DEPUTADOS,
+            onClick = onSearchClick,
+            actionLabel = stringResource(Res.string.deputados_search_title),
+            actionIcon = Icons.Outlined.PersonSearch,
+        )
 
         LazyRow(
             modifier = Modifier.fillMaxSize(),
