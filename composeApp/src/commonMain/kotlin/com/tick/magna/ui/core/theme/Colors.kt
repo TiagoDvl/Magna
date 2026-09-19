@@ -104,3 +104,14 @@ val surfaceContainerLowDark = Color(0xFF222426)
 val surfaceContainerDark = Color(0xFF26282A)
 val surfaceContainerHighDark = Color(0xFF313335)
 val surfaceContainerHighestDark = Color(0xFF3B3D40)
+// Area accents — see MagnaArea. Only two are new: the other four areas reuse a role the theme
+// already had. Both of these stay inside the institutional range the palette above describes,
+// and neither is close to a party colour.
+
+/** Muted teal for Comissões: committee work, the least photogenic and most consequential part. */
+val comissoesLight = Color(0xFF2F6F68)
+val comissoesDark = Color(0xFF8FCFC4)
+
+/** Bronze for Votações: a record being struck, and the one hue in the app that is not cool. */
+val votacoesLight = Color(0xFF8A5A33)
+val votacoesDark = Color(0xFFE5B78F)

@@ -1046,6 +1046,39 @@ Os candidatos, pelo que cada um oferece como fonte:
 
 Escolhida a tela, o passo seguinte é **extrair**, não descrever: abrir o arquivo e anotar, valor por valor, qual padding de borda ela usa, qual papel tipográfico ela dá a cada função de texto, qual raio de canto, como separa seção, como trata estado vazio. Essa anotação é o sistema. As seções seguintes são as categorias que ela precisa cobrir, e o item 14.10 é como transformar isso em algo que a próxima feature herde de graça.
 
+### 14.1.1 Decidido — a Home é a referência
+
+Escolhida em 2026-09-19, por tocar quase todas as telas secundárias. A extração está em `documentation/design-system.md`.
+
+Medido antes de mexer, contra o que este plano dizia:
+
+| Item | Plano | Medido |
+|---|---|---|
+| `.dp` cru em `features/` e `ui/` | 58 em 13 arquivos | **31 em 11** |
+| `LocalDimensions` | 53 | 75 |
+| `shapes` no `MaterialTheme` | ausente | ausente — **corrigido** |
+| `RoundedCornerShape` à mão | 7 | 7 |
+| `MagnaLargeTopBar` | morto | morto, 0 usos |
+| `scrollBehavior` / `nestedScroll` | 0 | 0 |
+| `navigateBack` vs `onBack` | 5 vs 1 | 23 vs 11 |
+| `background` == `surface` | sim | sim, claro **e** escuro |
+
+Três achados que o plano não tinha:
+
+- **Cinco telas têm `CircularProgressIndicator` próprio** — Home, detalhe do deputado, detalhe do partido, `ProposicaoAutores` e o banner de legislatura — contra nove que usam `LoadingComponent`. É a quinta variante caseira que o item 14.10 mandava evitar, e ela já nasceu.
+- **`titleLarge` é o título de seção de facto** (12 usos) mas `titleMedium` faz o mesmo trabalho em 3 lugares, dois deles escritos nesta mesma sessão. A deriva não parou.
+- Quase todo título de seção é `titleLarge.copy(color = primary, fontWeight = Bold)`. Expressão repetida quatro vezes é token que ainda não foi nomeado.
+
+O inventário do item 14.2 também cresceu: faltam `ComissoesListScreen`, `VotacaoDetailScreen`, `LegislaturaSelector`, e duas telas ganharam abas.
+
+### 14.1.2 Identidade por área — FEITO
+
+Pedido do produto: cada parte do app com identidade própria, ícone por área, e cor indicando o domínio.
+
+**O ícone é o marcador, a cor é acento.** Seis ícones são inequívocos; seis cores não são, e num app sobre política cor é lida como filiação. A paleta atual diz isso nos próprios comentários — verde, dourado e azul, tirados da bandeira e descritos como não-partidários. Então quatro das seis áreas reusam um papel que o tema já tinha e só duas cores foram inventadas, as duas longe de paleta de partido.
+
+Tabela completa em `documentation/design-system.md`.
+
 ### 14.2 O inventário
 
 Todas as telas e componentes de tela que precisam passar pela revisão:

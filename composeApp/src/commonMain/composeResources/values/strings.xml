@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Magna</string>
-    <string name="something_went_wrong">Algo deu errado 😢</string>
+    <string name="something_went_wrong">Algo deu errado</string>
     <string name="cancel">Cancelar</string>
 
     <string name="action_back">Voltar</string>
@@ -40,9 +40,9 @@
     <string name="sync_step_orgaos">comissões</string>
     <string name="sync_step_legislaturas">lista de legislaturas</string>
 
-    <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes 👀</string>
+    <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes </string>
     <string name="recent_deputados_title">Deputados recentes</string>
-    <string name="recent_deputados_more">Ver todos 👀</string>
+    <string name="recent_deputados_more">Ver todos</string>
     <string name="recent_deputados_find_more">Ver todos</string>
 
     <string name="recent_proposicoes_section_title">Novas proposições</string>
@@ -56,8 +56,8 @@
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
     <string name="deputados_search_title">Pesquisar deputados</string>
     <string name="deputados_search_search_placeholder">Pesquisa por nome</string>
-    <string name="deputados_search_uf_label">📍 UF</string>
-    <string name="deputados_search_partido_label">💼 Partido</string>
+    <string name="deputados_search_uf_label">UF</string>
+    <string name="deputados_search_partido_label">Partido</string>
 
     <string name="deputado_details_loading_details">Buscando detalhes do deputado</string>
     <string name="deputado_details_loading_expenses">Buscando gastos do deputado</string>
@@ -78,6 +78,12 @@
     <string name="deputado_votos_nota">Só votações nominais, dos últimos três meses. A Câmara registra voto individual em 2% do que vota.</string>
     <string name="deputado_tab_despesas">Despesas</string>
     <string name="deputado_tab_votos">Como votou</string>
+    <string name="deputado_gabinete_predio">Prédio</string>
+    <string name="deputado_gabinete_sala">Sala</string>
+    <string name="deputado_gabinete_telefone">Telefone</string>
+    <string name="deputado_gabinete_email">E-mail</string>
+    <string name="votacao_aprovada">Aprovada</string>
+    <string name="votacao_rejeitada">Rejeitada</string>
     <string name="votacao_title">Votação</string>
     <string name="votacao_votos_title">Como cada um votou</string>
     <string name="votacao_nao_encontrada">Votação fora do período baixado</string>

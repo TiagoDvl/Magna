@@ -35,7 +35,9 @@ import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.search.DeputadosSearchArgs
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.shape.RoundedPentagonShape
+import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_right
@@ -146,12 +148,9 @@ private fun RecentDeputados(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = stringResource(Res.string.recent_deputados_title),
-                style = typography.titleLarge.copy(
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                )
+            MagnaSectionHeader(
+                title = stringResource(Res.string.recent_deputados_title),
+                area = MagnaArea.DEPUTADOS,
             )
             Text(
                 modifier = Modifier.clickable(null, null, onClick = onSearchClick),

@@ -94,6 +94,7 @@ fun MagnaTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = magnaTypography(),
+        shapes = magnaShapes,
         content = content
     )
 }

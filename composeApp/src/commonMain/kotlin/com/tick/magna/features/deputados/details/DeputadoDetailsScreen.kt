@@ -21,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.ShapeDefaults
@@ -47,6 +48,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Apartment
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.MailOutline
+import androidx.compose.material.icons.outlined.MeetingRoom
 import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.VotoDeputado
 import com.tick.magna.features.votacoes.detail.VotacaoDetailArgs
@@ -66,6 +72,10 @@ import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.deputado_details_expense_title
 import magna.composeapp.generated.resources.deputado_details_expenses_empty
+import magna.composeapp.generated.resources.deputado_gabinete_email
+import magna.composeapp.generated.resources.deputado_gabinete_predio
+import magna.composeapp.generated.resources.deputado_gabinete_sala
+import magna.composeapp.generated.resources.deputado_gabinete_telefone
 import magna.composeapp.generated.resources.deputado_tab_despesas
 import magna.composeapp.generated.resources.deputado_tab_votos
 import magna.composeapp.generated.resources.deputado_votos_empty
@@ -249,7 +259,7 @@ private fun DetailAvatar(
 
         deputado?.let {
             val metadata = listOfNotNull(
-                deputado.uf?.let { "\uD83D\uDCCD $it" },
+                deputado.uf,
                 deputado.partido
             ).joinToString("  ·  ")
 
@@ -310,18 +320,48 @@ private fun GabineteDetails(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
     ) {
+        // Emoji used to stand in for these four. They render differently on every device, they
+        // are announced out loud by a screen reader as their own name, and "building, door,
+        // telephone, envelope" is not what a gabinete is. A labelled icon says the same thing
+        // and says it the same way everywhere.
         deputadoDetails.gabineteBuilding?.let {
-            Text(text = "\uD83C\uDFE2 $it", style = gabineteDetailsStyle)
+            GabineteRow(Icons.Outlined.Apartment, stringResource(Res.string.deputado_gabinete_predio), it)
         }
         deputadoDetails.gabineteRoom?.let {
-            Text(text = "\uD83D\uDEAA $it", style = gabineteDetailsStyle)
+            GabineteRow(Icons.Outlined.MeetingRoom, stringResource(Res.string.deputado_gabinete_sala), it)
         }
         deputadoDetails.gabineteTelephone?.let {
-            Text(text = "\uD83D\uDCDE $it", style = gabineteDetailsStyle)
+            GabineteRow(Icons.Outlined.Call, stringResource(Res.string.deputado_gabinete_telefone), it)
         }
         deputadoDetails.gabineteEmail?.let {
-            Text(text = "✉\uFE0F $it", style = gabineteDetailsStyle, maxLines = 1)
+            GabineteRow(Icons.Outlined.MailOutline, stringResource(Res.string.deputado_gabinete_email), it)
         }
+    }
+}
+
+@Composable
+private fun GabineteRow(icon: ImageVector, label: String, value: String) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
+    ) {
+        Icon(
+            modifier = Modifier.size(dimensions.grid16),
+            imageVector = icon,
+            tint = colorScheme.onSurfaceVariant,
+            // The label carries the meaning for a screen reader; the icon repeating it would
+            // make every line of the gabinete read twice.
+            contentDescription = label,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurface),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

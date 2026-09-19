@@ -63,6 +63,8 @@ import magna.composeapp.generated.resources.comissao_votacoes_empty
 import magna.composeapp.generated.resources.comissao_votacoes_empty_description
 import magna.composeapp.generated.resources.comissoes_permanentes_votacoes_title
 import magna.composeapp.generated.resources.ic_arrow_back
+import magna.composeapp.generated.resources.votacao_aprovada
+import magna.composeapp.generated.resources.votacao_rejeitada
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -232,7 +234,10 @@ private fun VotacoesTab(
                                     )
                             ) {
                                 Text(
-                                    text = if (votacao.aprovacao) "✓ Aprovada" else "✗ Rejeitada",
+                                    text = stringResource(
+                                            if (votacao.aprovacao) Res.string.votacao_aprovada
+                                            else Res.string.votacao_rejeitada
+                                        ),
                                     style = typography.labelSmall.copy(
                                         color = if (votacao.aprovacao) {
                                             colorScheme.onPrimaryContainer

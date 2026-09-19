@@ -216,7 +216,7 @@ private fun DeputadosSearchContent(
                         AssistChip(
                             label = {
                                 val text = if (selectedUf.isNotEmpty()) {
-                                    "\uD83D\uDCCD $selectedUf"
+                                    selectedUf
                                 } else {
                                     stringResource(Res.string.deputados_search_uf_label)
                                 }
@@ -235,7 +235,7 @@ private fun DeputadosSearchContent(
                         AssistChip(
                             label = {
                                 val text = if (selectedPartido.isNotEmpty()) {
-                                    "\uD83D\uDCBC $selectedPartido"
+                                    selectedPartido
                                 } else {
                                     stringResource(Res.string.deputados_search_partido_label)
                                 }

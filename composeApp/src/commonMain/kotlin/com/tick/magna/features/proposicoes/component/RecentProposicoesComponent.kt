@@ -39,7 +39,9 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.proposicoesMock
 import com.tick.magna.ui.core.avatar.Avatar
+import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_right
@@ -95,13 +97,10 @@ private fun RecentProposicoesComponentContent(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        MagnaSectionHeader(
             modifier = Modifier.align(Alignment.Start),
-            text = stringResource(state.selectedProposicao.getProposicaoLabel()),
-            style = MaterialTheme.typography.titleLarge.copy(
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
+            title = stringResource(state.selectedProposicao.getProposicaoLabel()),
+            area = MagnaArea.PROPOSICOES,
         )
 
         Row(

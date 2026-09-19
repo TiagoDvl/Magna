@@ -27,7 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.partidosMock
+import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_star_filled
@@ -86,13 +88,7 @@ private fun PartidosComponentContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = sectionTitle,
-                style = typography.titleLarge.copy(
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                )
-            )
+            MagnaSectionHeader(title = sectionTitle, area = MagnaArea.PARTIDOS)
 
             TextButton(onClick = onVerTodosClick) {
                 Text(

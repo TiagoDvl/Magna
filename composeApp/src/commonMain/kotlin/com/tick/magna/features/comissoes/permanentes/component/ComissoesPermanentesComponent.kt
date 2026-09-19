@@ -25,7 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaArea
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_permanentes_section_title
 import magna.composeapp.generated.resources.comissoes_see_all
@@ -55,12 +57,9 @@ fun ComissoesPermanentesComponent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = stringResource(Res.string.comissoes_permanentes_section_title),
-                style = typography.titleLarge.copy(
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                )
+            MagnaSectionHeader(
+                title = stringResource(Res.string.comissoes_permanentes_section_title),
+                area = MagnaArea.COMISSOES,
             )
 
             // The carousel shows ten of thirty now, so there has to be a way to the rest.
