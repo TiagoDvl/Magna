@@ -44,6 +44,12 @@ class HomeViewModel(
     private var syncJob: Job? = null
     private var searchJob: Job? = null
 
+    /**
+     * Whether the sync currently running belongs to a term switch. Survives a retry on purpose
+     * and is only cleared once the switch finishes, because a retry of a switch is still one.
+     */
+    private var switchingLegislatura = false
+
     /** Feeds the analytics debounce only. The search itself still runs on every keystroke. */
     private val searchQuery = MutableStateFlow("")
 
@@ -86,6 +92,10 @@ class HomeViewModel(
      * Writing the row is not enough on its own. Reads react to it, but the term being switched
      * to has no local data yet, so the sync has to run again — and it is the sync that puts the
      * screen in a loading state instead of showing an empty Home as if that were the answer.
+     *
+     * The flag is set before the sync starts so that its very first emission is already read as
+     * a switch. A term that was downloaded before never reaches the network here: the use case
+     * finds the data locally and answers Done, which clears the flag on the spot.
      */
     private fun selectLegislatura(legislaturaId: String) {
         val current = _homeState.value.legislaturaId
@@ -95,6 +105,9 @@ class HomeViewModel(
         }
 
         viewModelScope.launch(dispatcher.io) {
+            switchingLegislatura = true
+            _homeState.update { it.copy(legislaturaSync = LegislaturaSyncState.Syncing) }
+
             userRepository.setLegislatura(legislaturaId)
             analytics.track(
                 AnalyticsEvent.LegislaturaChanged(from = current.orEmpty(), to = legislaturaId)
@@ -128,12 +141,18 @@ class HomeViewModel(
                 // outcome is how we tell "the Camara API is slow" from "it is failing".
                 when (state) {
                     SyncUserInformationState.Done -> trackSyncFinished(true, startedAt)
-                    SyncUserInformationState.Retry -> trackSyncFinished(false, startedAt)
+                    is SyncUserInformationState.Retry -> trackSyncFinished(false, startedAt)
                     SyncUserInformationState.Initial,
                     SyncUserInformationState.Downloading -> Unit
                 }
 
-                _homeState.update { it.copy(syncState = state) }
+                val legislaturaSync = legislaturaSyncStateFor(state, switchingLegislatura)
+
+                // Cleared only on success. A switch that failed keeps its own state so the
+                // retry button belongs to the term, not to the app as a whole.
+                if (state is SyncUserInformationState.Done) switchingLegislatura = false
+
+                _homeState.update { it.copy(syncState = state, legislaturaSync = legislaturaSync) }
             }
         }
     }

@@ -35,6 +35,8 @@ internal class OrgaosRepository(
     private val loggerInterface: AppLoggerInterface,
 ) : OrgaosRepositoryInterface {
 
+    override suspend fun hasComissoesPermanentes(): Boolean = orgaosDao.getOrgaos().isNotEmpty()
+
     override suspend fun syncComissoesPermanentes(): Boolean {
         return try {
             val comissoesPermanentes = orgaosApi.getComissoesPermanentes().dados

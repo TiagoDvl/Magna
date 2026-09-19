@@ -622,7 +622,29 @@ O caminho, então, é um só — não há trade-off real:
 
 Se o item 2 for grande demais para a 1.1, o recuo aceitável é esconder as seções de proposições e comissões fora da legislatura atual até que o cache esteja escopado. O que **não** é aceitável é deixar como está: dado da legislatura errada apresentado como se fosse do recorte escolhido é pior do que seção ausente.
 
-### 11.4 Re-sync ao trocar
+### 11.4 Re-sync ao trocar — FEITO
+
+**Estado: implementado.** O que foi feito, e onde:
+
+- `SyncUserInformationState.Retry` virou `data class Retry(val failedSteps: Set<SyncStep>)`. Antes ela dizia só que algo falhou; agora diz o quê. `SyncStep` é enum de domínio novo (`data/usecases/SyncStep.kt`) com mapeamento para `AnalyticsEvent.SyncStep`, para a tela não passar a ramificar no catálogo de analytics;
+- `HomeState` ganhou `legislaturaSync: LegislaturaSyncState?` (`Syncing` / `Incomplete(failedSteps)`), montado pela função pura `legislaturaSyncStateFor(syncState, switching)`. É ela que separa as duas leituras do mesmo estado: falha em cold start é app quebrado, a mesma falha logo depois da troca é uma legislatura que não baixou;
+- o diálogo modal passou a ser só do primeiro run. Durante a troca ele não aparece e o corpo continua renderizado (`HomeState.isBlockingSync`), porque o seletor mora nessa superfície e escondê-lo é esconder o caminho de volta para o recorte que funciona;
+- `LegislaturaSyncBanner` é o componente novo acima das seções: carregando, ou incompleto nomeando as seções que falharam, com botão de tentar de novo. Quando `failedSteps` vem vazio — nenhum passo chegou a rodar, tipicamente sem rede — a frase é outra;
+- **correção achada no caminho:** o teste de "já tenho dado local" perguntava `getComissoesPermanentes().first().isEmpty()`. Comissões não são escopadas por legislatura, são filtradas por `dataInicio`, então uma legislatura anterior a todas elas tem lista vazia com a tabela cheia — e re-sincronizava a cada abertura, para sempre, por dado que já estava lá. Passou a perguntar `hasComissoesPermanentes()`, que é sobre a tabela. É exatamente o "essa seção falhou" versus "essa legislatura não tem isso" do terceiro caso abaixo, do lado do dado.
+
+Os três casos de rede, como ficaram:
+
+| Caso | Comportamento |
+|---|---|
+| sem rede na troca | banner de incompleto com a frase de conexão e botão de tentar de novo; seletor continua na tela |
+| recorte já baixado | `Done` direto, zero requisição — coberto por teste que afirma `stepsRun` vazio |
+| sync parcial | banner nomeia as seções que falharam; o resto da tela continua funcionando |
+
+Não implementado de propósito: TTL por legislatura (segue sendo ganho, não requisito) e estado vazio por seção, que é o bloco 11.
+
+---
+
+O texto original do item, para contexto:
 
 As leituras reagem, os syncs não. `DeputadosRepository.kt:149` e `PartidosRepository.kt:168` têm o mesmo `private suspend fun legislaturaId(): String? = userDao.getUser().first()?.legislaturaId` — leitura de uma amostra só, usada pelos caminhos de `sync*`. Depois da troca, a tela nova fica vazia até alguém disparar um sync.
 

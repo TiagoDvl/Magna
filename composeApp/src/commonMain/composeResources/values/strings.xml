@@ -27,6 +27,18 @@
     <string name="home_legislatura_sheet_subtitle">Os dados de deputados, partidos e despesas mudam conforme o período escolhido.</string>
     <string name="home_legislatura_current">Atual</string>
     <string name="home_legislatura_period">%1$s a %2$s</string>
+    <string name="home_legislatura_syncing">Baixando os dados desta legislatura…</string>
+    <string name="home_legislatura_syncing_detail">As seções abaixo vão se preencher conforme os dados chegam.</string>
+    <string name="home_legislatura_incomplete">Esta legislatura não baixou por inteiro</string>
+    <string name="home_legislatura_incomplete_sections">Faltou baixar: %1$s.</string>
+    <string name="home_legislatura_incomplete_offline">Não deu para baixar nada desta legislatura. Confira a conexão e tente de novo.</string>
+    <string name="home_legislatura_incomplete_retry">Tentar de novo</string>
+
+    <string name="sync_step_partidos">partidos</string>
+    <string name="sync_step_sigla_tipos">tipos de proposição</string>
+    <string name="sync_step_deputados">deputados</string>
+    <string name="sync_step_orgaos">comissões</string>
+    <string name="sync_step_legislaturas">lista de legislaturas</string>
 
     <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes 👀</string>
     <string name="recent_deputados_title">Deputados recentes</string>

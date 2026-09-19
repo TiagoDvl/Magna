@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.tick.magna.data.usecases.SyncStep
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesComponent
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
@@ -99,10 +100,18 @@ private fun MagnaHomeContent(
     val scrollState = rememberScrollState()
     var showInitialSyncDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(homeState.syncState) {
+    // The dialog belongs to the first run only. During a term switch the same two states mean
+    // something narrower — one term did not download — and a modal over the whole app would
+    // both overstate it and take the selector away.
+    LaunchedEffect(homeState.syncState, homeState.legislaturaSync) {
+        if (homeState.legislaturaSync != null) {
+            showInitialSyncDialog = false
+            return@LaunchedEffect
+        }
+
         when (homeState.syncState) {
             SyncUserInformationState.Downloading -> showInitialSyncDialog = true
-            SyncUserInformationState.Retry -> showInitialSyncDialog = true
+            is SyncUserInformationState.Retry -> showInitialSyncDialog = true
             else -> Unit
         }
     }
@@ -155,7 +164,7 @@ private fun MagnaHomeContent(
                         }
                     }
 
-                    SyncUserInformationState.Retry -> {
+                    is SyncUserInformationState.Retry -> {
                         TextButton(onClick = { sendAction(HomeAction.RetrySync) }) {
                             Text(text = stringResource(Res.string.home_sync_dialog_retry_button))
                         }
@@ -263,8 +272,9 @@ private fun MagnaHomeContent(
         },
     ) { paddingValues ->
         // Before the sync finishes the screen used to render nothing at all, so a cold
-        // start showed a blank page until the dialog appeared.
-        if (homeState.syncState !is SyncUserInformationState.Done) {
+        // start showed a blank page until the dialog appeared. A term switch does not take
+        // this branch: see HomeState.isBlockingSync.
+        if (homeState.isBlockingSync) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center,
@@ -285,6 +295,13 @@ private fun MagnaHomeContent(
                     selected = homeState.selectedLegislatura,
                     onSelect = { sendAction(HomeAction.SelectLegislatura(it)) },
                 )
+
+                homeState.legislaturaSync?.let { legislaturaSync ->
+                    LegislaturaSyncBanner(
+                        state = legislaturaSync,
+                        onRetry = { sendAction(HomeAction.RetrySync) },
+                    )
+                }
 
                 HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
 
@@ -337,7 +354,33 @@ fun HomeRetryPreview() {
     MagnaTheme {
         MagnaHomeContent(
             homeState = HomeState(
-                syncState = SyncUserInformationState.Retry
+                syncState = SyncUserInformationState.Retry()
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+fun HomeLegislaturaSwitchingPreview() {
+    MagnaTheme {
+        MagnaHomeContent(
+            homeState = HomeState(
+                syncState = SyncUserInformationState.Downloading,
+                legislaturaSync = LegislaturaSyncState.Syncing,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+fun HomeLegislaturaIncompletePreview() {
+    MagnaTheme {
+        MagnaHomeContent(
+            homeState = HomeState(
+                syncState = SyncUserInformationState.Retry(setOf(SyncStep.ORGAOS)),
+                legislaturaSync = LegislaturaSyncState.Incomplete(setOf(SyncStep.ORGAOS)),
             ),
         )
     }

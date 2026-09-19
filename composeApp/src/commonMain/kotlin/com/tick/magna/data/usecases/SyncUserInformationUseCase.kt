@@ -37,20 +37,15 @@ class SyncUserInformationUseCase(
         return flow {
             try {
                 val userConfiguration = userRepository.getUserConfiguration()
-                val partidos = partidosRepository.getPartidos().first()
-                val deputados = deputadosRepository.getDeputados().first()
-                val orgaos = orgaosRepository.getComissoesPermanentes().first()
-                val legislaturas = legislaturasRepository.getLegislaturas().first()
 
                 when (userConfiguration) {
                     UserConfiguration.Configured -> {
-                        // Legislaturas is in this check for the sake of everyone upgrading from a
-                        // version that never had the table filled. They are Configured, so without
-                        // it the sync would be skipped and the table would stay empty forever.
-                        if (partidos.isEmpty() || deputados.isEmpty() || orgaos.isEmpty() || legislaturas.isEmpty()) {
+                        if (isLocalDataMissing()) {
                             logger.w("invoke: Configured but local data missing, re-syncing", TAG)
                             syncInitialDependencies()
                         } else {
+                            // The whole point of keeping the data of every term that was ever
+                            // downloaded: coming back to one is instant and needs no network.
                             logger.d("invoke: Configured and data present, skipping sync", TAG)
                             emit(SyncUserInformationState.Done)
                         }
@@ -71,9 +66,36 @@ class SyncUserInformationUseCase(
                 throw cancellation
             } catch (exception: Exception) {
                 logger.e("invoke: unexpected error", exception, TAG)
-                emit(SyncUserInformationState.Retry)
+                emit(SyncUserInformationState.Retry())
             }
         }
+    }
+
+    /**
+     * Whether anything the selected term needs is absent locally.
+     *
+     * Partidos and deputados are stored per term, so switching to one that was never
+     * downloaded leaves them empty, and that is the signal to sync.
+     *
+     * Comissoes are asked about differently, and the difference matters. They are not stored
+     * per term: the same thirty rows serve every term, filtered by the date each was created.
+     * A term that predates all of them has an empty list while the table is full, so asking
+     * the list would make those terms re-sync on every open, forever, for data already there.
+     * The question is whether the table was ever filled.
+     *
+     * Legislaturas is in this check for the sake of everyone upgrading from a version that
+     * never had the table filled. They are Configured, so without it the sync would be skipped
+     * and the table would stay empty forever.
+     */
+    private suspend fun isLocalDataMissing(): Boolean {
+        val partidos = partidosRepository.getPartidos().first()
+        val deputados = deputadosRepository.getDeputados().first()
+        val legislaturas = legislaturasRepository.getLegislaturas().first()
+
+        return partidos.isEmpty() ||
+            deputados.isEmpty() ||
+            legislaturas.isEmpty() ||
+            !orgaosRepository.hasComissoesPermanentes()
     }
 
     /**
@@ -109,27 +131,27 @@ class SyncUserInformationUseCase(
             val legislaturas = async { legislaturasRepository.syncLegislaturas() }
 
             mapOf(
-                AnalyticsEvent.SyncStep.PARTIDOS to partidos.await(),
-                AnalyticsEvent.SyncStep.SIGLA_TIPOS to siglaTipos.await(),
-                AnalyticsEvent.SyncStep.DEPUTADOS to deputados.await(),
-                AnalyticsEvent.SyncStep.ORGAOS to orgaos.await(),
-                AnalyticsEvent.SyncStep.LEGISLATURAS to legislaturas.await(),
+                SyncStep.PARTIDOS to partidos.await(),
+                SyncStep.SIGLA_TIPOS to siglaTipos.await(),
+                SyncStep.DEPUTADOS to deputados.await(),
+                SyncStep.ORGAOS to orgaos.await(),
+                SyncStep.LEGISLATURAS to legislaturas.await(),
             )
         }
 
-        results.forEach { (step, succeeded) -> logger.d("${step.value} > $succeeded", TAG) }
+        results.forEach { (step, succeeded) -> logger.d("$step > $succeeded", TAG) }
 
-        results.filterValues { succeeded -> !succeeded }.keys.forEach { step ->
-            analytics.track(AnalyticsEvent.SyncStepFailed(step))
+        val failed = results.filterValues { succeeded -> !succeeded }.keys
+        failed.forEach { step ->
+            analytics.track(AnalyticsEvent.SyncStepFailed(step.toAnalyticsStep()))
         }
 
-        if (results.values.all { succeeded -> succeeded }) {
+        if (failed.isEmpty()) {
             logger.i("syncInitialDependencies: all syncs completed successfully", TAG)
             emit(SyncUserInformationState.Done)
         } else {
-            val failed = results.filterValues { succeeded -> !succeeded }.keys.joinToString { it.value }
-            logger.w("syncInitialDependencies: failed steps: $failed", TAG)
-            emit(SyncUserInformationState.Retry)
+            logger.w("syncInitialDependencies: failed steps: ${failed.joinToString()}", TAG)
+            emit(SyncUserInformationState.Retry(failed))
         }
     }
 }
@@ -139,7 +161,11 @@ sealed interface SyncUserInformationState {
     data object Initial : SyncUserInformationState
     data object Downloading : SyncUserInformationState
     data object Done : SyncUserInformationState
-    data object Retry : SyncUserInformationState
+
+    /**
+     * Carries which steps failed rather than only that something did. Everything working
+     * except one step is a different screen from nothing working at all, and the empty set is
+     * the case where the failure happened before any step ran.
+     */
+    data class Retry(val failedSteps: Set<SyncStep> = emptySet()) : SyncUserInformationState
 }
-
-
