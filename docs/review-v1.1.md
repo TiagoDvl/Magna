@@ -1146,7 +1146,18 @@ Pelo que se entende do SQLDelight, esses arquivos são **pontos de partida** par
 
 **Correção estrutural, se um dia a validação local fizer falta:** `deriveSchemaFromMigrations = true` com um `0.sqm` carregando o schema original. As migrações viram a fonte da verdade e nada precisa abrir `.db`. Continua sendo mudança grande: os `CREATE TABLE` sairiam dos `.sq`, que passariam a conter apenas queries.
 
-### 16.4 O que continua sem verificação
+### 16.4 As migrações 2 e 3 rodaram em aparelho — VERIFICADO
+
+Instalação por cima de um banco existente, em 2026-09-19, sem desinstalar. As duas migrações escritas neste bloco aplicaram e o app abriu:
+
+- `2.sqm`, que derruba e recria `Proposicao` com `legislaturaId`;
+- `3.sqm`, o `ALTER TABLE Orgao ADD COLUMN dataInicio`.
+
+Isso responde na prática o que o item 16.3 não conseguia responder: a ausência de `3.db` e `4.db` **não impediu** nem a geração nem a execução das migrações. Continua sem resposta se ela reduz a cobertura da verificação quando alguém rodar o build em Linux — mas o caminho que quebra o usuário, que é a atualização, está verificado.
+
+Verificado junto, na mesma instalação: trocar de legislatura filtra proposições pela janela do mandato e remove a comissão criada depois do fim dele.
+
+### 16.5 O que continua sem verificação
 
 Os alvos iOS e o build de release com R8. Nenhum dos dois foi compilado ainda.
 
