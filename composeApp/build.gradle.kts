@@ -110,8 +110,11 @@ sqldelight {
             // in a forked worker that Gradle starts without TMP or TEMP. On Windows the JVM then
             // falls back to C:\WINDOWS and the native library cannot be extracted there, so the
             // whole build fails before reaching Kotlin. Generating the interfaces needs no
-            // connection, only verification does. CI runs on Linux, so migrations are still
-            // verified before anything ships — a migration written here is verified when pushed.
+            // connection, only verification does, so it is skipped on Windows alone.
+            //
+            // Where it does run is any Linux build, which today means whoever triggers the
+            // release workflow by hand. Nothing runs on push, so a migration written on Windows
+            // stays unverified until someone asks for a build.
             verifyMigrations.set(!isWindows)
         }
     }

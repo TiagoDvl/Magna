@@ -1128,7 +1128,11 @@ O SQLDelight abre os `.db` com sqlite-jdbc para validar as migrações, e faz is
 - o `SqlDelightWorkerTask` usa `processIsolation` e monta as `forkOptions` por conta própria, passando só o classpath. **Não há knob externo** para injetar argumento de JVM no worker;
 - **a conexão sqlite é aberta só pela verificação, não pela geração.** Com `verifyMigrations = false` o `generateCommonMainMagnaDatabaseInterface` passa com os `.db` e o `1.sqm` intactos.
 
-**A correção aplicada** é esse último ponto: `verifyMigrations` passa a ser `!isWindows` em `composeApp/build.gradle.kts`. A CI roda em Linux, então a verificação continua acontecendo antes de qualquer coisa ser publicada; no Windows ela é pulada e o build anda.
+**A correção aplicada** é esse último ponto: `verifyMigrations` passa a ser `!isWindows` em `composeApp/build.gradle.kts`. No Windows a verificação é pulada e o build anda; em Linux ela continua acontecendo.
+
+**Correção de uma afirmação errada feita aqui antes:** eu escrevi que "a CI verifica a migração quando ela é pushada". **Não verifica.** O `android-release.yml` é `workflow_dispatch` — só roda quando alguém aperta o botão. O `playstore-upload.yml` roda em tag. **Nada roda em push nem em pull request.** Ou seja, hoje uma migração escrita no Windows fica sem validação até alguém pedir um build à mão, e pode chegar numa tag sem nunca ter sido verificada.
+
+Isso é uma lacuna aberta, e é barata de fechar: adicionar `push` e `pull_request` como gatilho do job de teste, ou um workflow de CI separado só com os testes. Enquanto não for feito, **o combinado do bloco 0 ("CI rodando `:composeApp:jvmTest`") só vale sob demanda**, e a compensação que justifica pular a verificação no Windows não existe de verdade.
 
 Junto vai uma segunda linha: a task avulsa `verifyCommonMainMagnaDatabaseMigration` **ignora a flag** e abre a mesma conexão, então quebrava mesmo com ela desligada. Ela é desabilitada no Windows, porque nada depende dela (`check` não a inclui) e deixar uma task que quebra ao ser chamada pelo nome é armadilha.
 
