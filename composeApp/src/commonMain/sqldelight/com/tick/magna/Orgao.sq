@@ -2,14 +2,30 @@ CREATE TABLE Orgao (
     id TEXT PRIMARY KEY,
     sigla TEXT,
     nome TEXT,
-    nomeResumido TEXT
+    nomeResumido TEXT,
+    dataInicio TEXT
 );
 
+-- Deliberately not INSERT OR REPLACE. The list endpoint does not carry dataInicio, so
+-- replacing the row on every sync would erase the date that cost thirty requests to learn.
 insertOrgao:
-INSERT OR REPLACE INTO Orgao(id, sigla, nome, nomeResumido)
-VALUES (?, ?, ?, ?);
+INSERT INTO Orgao(id, sigla, nome, nomeResumido)
+VALUES (?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    sigla = excluded.sigla,
+    nome = excluded.nome,
+    nomeResumido = excluded.nomeResumido;
+
+setOrgaoDataInicio:
+UPDATE Orgao SET dataInicio = :dataInicio WHERE id = :id;
 
 selectOrgaosByIds:
 SELECT *
 FROM Orgao
 WHERE id IN ?;
+
+selectAllOrgaos:
+SELECT * FROM Orgao;
+
+countOrgaosWithoutDataInicio:
+SELECT count(*) FROM Orgao WHERE dataInicio IS NULL;

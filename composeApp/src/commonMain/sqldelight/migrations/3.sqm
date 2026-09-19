@@ -1,0 +1,15 @@
+-- Records when each comissão permanente was created.
+--
+-- Not a legislaturaId, which is what the plan first assumed. A permanent committee does not
+-- belong to a term: none of the thirty has a dataFim, and they carry on across mandates. What
+-- they do have is a start, and five of them only started on 2023-02-15 — the opening of the
+-- 57th — so showing those five while an earlier term is selected is the same kind of wrong
+-- the propositions had.
+--
+-- Nullable because the list endpoint does not return it. It is filled in from the detail of
+-- each committee, and a row with no date yet is shown rather than hidden: not knowing when
+-- something started is not evidence that it had not.
+--
+-- A plain ALTER, unlike the previous two migrations: the existing columns are untouched and
+-- nothing stored has to be thrown away.
+ALTER TABLE Orgao ADD COLUMN dataInicio TEXT;

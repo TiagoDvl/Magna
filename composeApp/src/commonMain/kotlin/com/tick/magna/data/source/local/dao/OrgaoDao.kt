@@ -19,6 +19,17 @@ class OrgaoDao(
 
     override suspend fun getOrgaosFromIds(siglaIds: List<String>): List<Orgao> {
         return orgaoQueries.selectOrgaosByIds(siglaIds).executeAsList()
+    }
 
+    override suspend fun getOrgaos(): List<Orgao> {
+        return orgaoQueries.selectAllOrgaos().executeAsList()
+    }
+
+    override suspend fun setDataInicio(id: String, dataInicio: String) {
+        orgaoQueries.setOrgaoDataInicio(dataInicio = dataInicio, id = id)
+    }
+
+    override suspend fun countWithoutDataInicio(): Long {
+        return orgaoQueries.countOrgaosWithoutDataInicio().executeAsOne()
     }
 }

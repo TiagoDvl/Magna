@@ -1140,6 +1140,10 @@ Verificado depois da mudança, com `1.sqm` e os dois `.db` no lugar: `:composeAp
 
 **O que isso custa, explicitamente:** uma migração escrita no Windows não é validada localmente — o erro aparece na CI, não na máquina de quem escreveu. É trabalho a mais no ciclo, e é muito melhor que o estado anterior, onde o projeto simplesmente não compilava. O destravamento temporário que existia antes (mutilar o `1.sqm`) **não é mais necessário e não deve ser usado** — ele produzia APK com migração errada.
 
+**Consequência que só apareceu ao escrever a segunda e a terceira migração:** o `.db` que acompanha cada migração **também não pode ser gerado no Windows**. O `generateCommonMainMagnaDatabaseSchema` abre a mesma conexão e falha igual. Hoje a pasta tem `1.db`, `1.sqm`, `2.db`, `2.sqm` e `3.sqm` — faltam `3.db` e `4.db`.
+
+Pelo que se entende do SQLDelight, esses arquivos são **pontos de partida** para a verificação, não pré-requisitos dela: a validação parte de cada `.db` existente e aplica as migrações seguintes. Menos snapshots é menos cobertura, não erro. **Isso não foi verificado**, porque a máquina que escreveu as migrações é a que não consegue rodar a verificação. Rodar o `generateCommonMainMagnaDatabaseSchema` em Linux resolve, e é mais um argumento para fechar a lacuna de CI acima.
+
 **Correção estrutural, se um dia a validação local fizer falta:** `deriveSchemaFromMigrations = true` com um `0.sqm` carregando o schema original. As migrações viram a fonte da verdade e nada precisa abrir `.db`. Continua sendo mudança grande: os `CREATE TABLE` sairiam dos `.sq`, que passariam a conter apenas queries.
 
 ### 16.4 O que continua sem verificação
