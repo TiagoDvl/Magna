@@ -25,9 +25,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.supervisorScope
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
+import com.tick.magna.data.repository.today
 import com.tick.magna.Proposicao as ProposicaoEntity
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -184,7 +182,7 @@ internal class ProposicoesRepository(
      */
     private suspend fun window(legislaturaId: String): ProposicaoWindow? {
         val legislatura = legislaturaDao.getLegislaturaById(legislaturaId) ?: return null
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val today = today()
 
         return proposicaoWindow(
             startDate = legislatura.startDate,

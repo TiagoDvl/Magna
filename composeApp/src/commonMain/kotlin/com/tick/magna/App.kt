@@ -27,6 +27,8 @@ import com.tick.magna.features.home.HomeArgs
 import com.tick.magna.features.home.MagnaHomeScreen
 import com.tick.magna.features.partidos.details.PartidoDetailsArgs
 import com.tick.magna.features.partidos.details.PartidoDetailsScreen
+import com.tick.magna.features.comissoes.permanentes.list.ComissoesListArgs
+import com.tick.magna.features.comissoes.permanentes.list.ComissoesListScreen
 import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.partidos.list.PartidosListScreen
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
@@ -89,6 +91,13 @@ fun App() {
                     ComissaoPermanenteDetailScreen(
                         viewModel = koinViewModel { parametersOf(args.comissaoPermanenteId) },
                         navController = navController
+                    )
+                }
+
+                composable<ComissoesListArgs> {
+                    ComissoesListScreen(
+                        navController = navController,
+                        onComissaoClick = { navController.navigate(ComissaoPermanenteDetailArgs(it)) },
                     )
                 }
 

@@ -1,0 +1,14 @@
+-- Adds OrgaoAtividade, which replaces the six hardcoded committee ids with a measured order.
+--
+-- Plain CREATE, nothing dropped. The table fills in the first time a term is synced, and until
+-- it does the list is alphabetical rather than wrong.
+--
+-- Keyed by term because activity is a fact about a term: the CCTI was the third busiest
+-- committee of the 56th legislature and is the twenty-ninth of the 57th, which is exactly how
+-- a list frozen in 2023 went stale.
+CREATE TABLE OrgaoAtividade (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    votacoes INTEGER NOT NULL,
+    PRIMARY KEY (orgaoId, legislaturaId)
+);

@@ -1,0 +1,37 @@
+-- How many votes a committee held during a legislature, which is what orders the list.
+--
+-- Scoped by term because activity is: the CCTI was the third busiest committee of the 56th and
+-- is the twenty-ninth of the 57th. A single stored number would have frozen one of the two.
+--
+-- It is a sample, not a census. /votacoes refuses any window wider than three months, so
+-- counting a whole mandate takes fifteen requests per committee — 450 for the thirty. Four
+-- windows, one per year of the term, reproduce eight of the top ten and every extreme, for
+-- 120. See atividadeWindows for which four.
+CREATE TABLE OrgaoAtividade (
+    orgaoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    votacoes INTEGER NOT NULL,
+    PRIMARY KEY (orgaoId, legislaturaId)
+);
+
+insertOrgaoAtividade:
+INSERT OR REPLACE INTO OrgaoAtividade(orgaoId, legislaturaId, votacoes)
+VALUES (?, ?, ?);
+
+-- -1 for a committee that has not been measured yet, which sorts it below every measured one
+-- while leaving the alphabet to order them among themselves. Before the first measurement
+-- every row is -1, so the list starts alphabetical and rearranges itself once it arrives.
+selectOrgaosByAtividade:
+SELECT
+    Orgao.*,
+    COALESCE(OrgaoAtividade.votacoes, -1) AS votacoes
+FROM Orgao
+LEFT JOIN OrgaoAtividade
+    ON OrgaoAtividade.orgaoId = Orgao.id
+    AND OrgaoAtividade.legislaturaId = :legislaturaId
+ORDER BY votacoes DESC, Orgao.sigla ASC;
+
+countOrgaosWithoutAtividade:
+SELECT count(*)
+FROM Orgao
+WHERE id NOT IN (SELECT orgaoId FROM OrgaoAtividade WHERE legislaturaId = :legislaturaId);

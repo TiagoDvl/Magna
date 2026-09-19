@@ -76,6 +76,11 @@
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
     <string name="comissoes_permanentes_votacoes_title">Votações recentes</string>
+    <string name="comissoes_list_title">Comissões Permanentes</string>
+    <string name="comissoes_see_all">Ver todas</string>
+    <string name="comissoes_votacoes_count">%1$d votações no período</string>
+    <string name="comissoes_list_empty">Nenhuma comissão nesta legislatura</string>
+    <string name="comissoes_list_empty_description">As comissões permanentes de hoje foram criadas depois do fim deste mandato.</string>
     <string name="comissao_votacoes_empty">Nenhuma votação registrada</string>
     <string name="comissao_votacoes_empty_description">A Câmara não publicou votações desta comissão. Isso acontece: nem toda comissão vota com frequência.</string>
 

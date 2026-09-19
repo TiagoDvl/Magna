@@ -10,6 +10,7 @@ import com.tick.magna.DeputadoLastSeenQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
+import com.tick.magna.OrgaoAtividadeQueries
 import com.tick.magna.OrgaoQueries
 import com.tick.magna.PartidoFavoritoQueries
 import com.tick.magna.PartidoQueries
@@ -72,6 +73,7 @@ import com.tick.magna.data.source.remote.api.VotacoesApi
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
 import com.tick.magna.data.usecases.SyncUserInformationUseCase
 import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesViewModel
+import com.tick.magna.features.comissoes.permanentes.list.ComissoesListViewModel
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailViewModel
 import com.tick.magna.features.deputados.details.DeputadoDetailsViewModel
 import com.tick.magna.features.deputados.recent.RecentDeputadosViewModel
@@ -103,6 +105,7 @@ val databaseModule = module {
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
     single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }
+    single<OrgaoAtividadeQueries> { get<MagnaDatabase>().orgaoAtividadeQueries }
     single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
@@ -110,7 +113,7 @@ val databaseModule = module {
     single<DeputadoBioDaoInterface> { DeputadoBioDao(get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get(), get()) }
-    single<OrgaoDaoInterface> { OrgaoDao(get(), get()) }
+    single<OrgaoDaoInterface> { OrgaoDao(get(), get(), get()) }
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }
     single<ProposicaoDaoInterface> { ProposicaoDao(get(), get()) }
@@ -161,6 +164,7 @@ val viewModelModule = module {
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
+    viewModel { ComissoesListViewModel(get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get(), get()) }
     viewModel { PartidosComponentViewModel(get(), get(), get(), get()) }
     viewModel { PartidosListViewModel(get(), get(), get(), get()) }

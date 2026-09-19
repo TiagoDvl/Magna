@@ -2,14 +2,15 @@ package com.tick.magna.data.repository.orgaos
 
 import com.tick.magna.Legislatura
 import com.tick.magna.Orgao
+import com.tick.magna.SelectOrgaosByAtividade
 import com.tick.magna.User
 import com.tick.magna.data.logger.AppLoggerInterface
-import com.tick.magna.data.repository.orgaos.params.MagnaComissaoPermanente
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
+import com.tick.magna.data.source.remote.dto.LinkDto
 import com.tick.magna.data.source.remote.dto.OrgaoDetalheDto
 import com.tick.magna.data.source.remote.dto.OrgaoDto
 import com.tick.magna.data.source.remote.response.OrgaoDetalheResponse
@@ -32,10 +33,13 @@ import kotlinx.coroutines.test.runTest
  * A permanent committee does not belong to a legislature — none of the thirty has an end date.
  * What it has is a start, and five of them only start in 2023, so an earlier term should not
  * be shown them. These cover that rule and the cost of learning the dates.
+ *
+ * They also cover the activity count that replaced the six hardcoded ids: what it costs, that
+ * it is paid once per term, and that failing it does not fail the sync.
  */
 class ComissaoDataInicioTest {
 
-    private val firstTwo = MagnaComissaoPermanente.entries.take(2).map { it.idOrgao }
+    private val firstTwo = listOf("2003", "539385")
 
     @Test
     fun a_committee_created_after_the_term_ended_is_left_out() = runTest {
@@ -103,15 +107,59 @@ class ComissaoDataInicioTest {
         assertTrue(repository(dao = dao, api = api, on = "56").syncComissoesPermanentes())
     }
 
+    @Test
+    fun activity_is_measured_once_per_term_and_then_never_again() = runTest {
+        val votacoesApi = CountingVotacoesApi()
+        val dao = FakeOrgaoDao(orgao(firstTwo[0], null), orgao(firstTwo[1], null))
+        val repository = repository(dao = dao, on = "57", votacoesApi = votacoesApi)
+
+        assertTrue(repository.syncComissoesPermanentes())
+
+        // Two committees over four windows of the 57th: one per year from 2023 to 2026.
+        assertEquals(8, votacoesApi.countCalls)
+
+        assertTrue(repository.syncComissoesPermanentes())
+        assertEquals(8, votacoesApi.countCalls)
+    }
+
+    @Test
+    fun switching_terms_measures_the_new_one() = runTest {
+        val votacoesApi = CountingVotacoesApi()
+        val dao = FakeOrgaoDao(orgao(firstTwo[0], null))
+        val user = UserOn("57")
+
+        val repository = repository(dao = dao, on = "57", userDao = user, votacoesApi = votacoesApi)
+        assertTrue(repository.syncComissoesPermanentes())
+        val onCurrentTerm = votacoesApi.countCalls
+
+        // A committee busy in one term is not busy in another — the CCTI was third in the 56th
+        // and is twenty-ninth in the 57th — so the count cannot carry over.
+        user.setUserLegislatura("56")
+        assertTrue(repository.syncComissoesPermanentes())
+
+        assertTrue(votacoesApi.countCalls > onCurrentTerm)
+    }
+
+    @Test
+    fun a_count_that_fails_does_not_fail_the_sync() = runTest {
+        val votacoesApi = CountingVotacoesApi(failCounts = true)
+        val dao = FakeOrgaoDao(orgao(firstTwo[0], null))
+
+        // An unmeasured committee sorts alphabetically. It does not vanish, and the sync that
+        // saved the list is not reported as broken because an ordering hint is missing.
+        assertTrue(repository(dao = dao, on = "57", votacoesApi = votacoesApi).syncComissoesPermanentes())
+    }
+
     private fun repository(
         dao: OrgaoDaoInterface,
         api: OrgaosApiInterface = CountingApi(),
         on: String,
         userDao: UserDaoInterface = UserOn(on),
+        votacoesApi: VotacoesApiInterface = CountingVotacoesApi(),
     ) = OrgaosRepository(
         orgaosApi = api,
         orgaosDao = dao,
-        votacoesApi = UnusedVotacoesApi(),
+        votacoesApi = votacoesApi,
         userDao = userDao,
         legislaturaDao = Legislaturas(),
         loggerInterface = SilentLogger(),
@@ -123,18 +171,36 @@ class ComissaoDataInicioTest {
     /** Backed by a state flow so a write reaches an open reader, the way the table does. */
     private class FakeOrgaoDao(vararg rows: Orgao) : OrgaoDaoInterface {
         private val rows = MutableStateFlow(rows.toList())
+        private val atividade = MutableStateFlow(emptyMap<Pair<String, String>, Long>())
 
         override suspend fun insertOrgaos(orgaos: List<Orgao>) = Unit
-        override suspend fun getOrgaosFromIds(siglaIds: List<String>) = rows.value.filter { it.id in siglaIds }
         override suspend fun getOrgaos(): List<Orgao> = rows.value
         override suspend fun countWithoutDataInicio(): Long = rows.value.count { it.dataInicio == null }.toLong()
 
-        override fun observeOrgaosFromIds(siglaIds: List<String>): Flow<List<Orgao>> =
-            rows.map { all -> all.filter { it.id in siglaIds } }
+        override fun observeOrgaosByAtividade(legislaturaId: String): Flow<List<SelectOrgaosByAtividade>> =
+            rows.map { all ->
+                all.map { orgao ->
+                    SelectOrgaosByAtividade(
+                        id = orgao.id,
+                        sigla = orgao.sigla,
+                        nome = orgao.nome,
+                        nomeResumido = orgao.nomeResumido,
+                        dataInicio = orgao.dataInicio,
+                        votacoes = atividade.value[orgao.id to legislaturaId] ?: -1L,
+                    )
+                }
+            }
 
         override suspend fun setDataInicio(id: String, dataInicio: String) {
             rows.value = rows.value.map { if (it.id == id) it.copy(dataInicio = dataInicio) else it }
         }
+
+        override suspend fun setAtividade(orgaoId: String, legislaturaId: String, votacoes: Long) {
+            atividade.value = atividade.value + ((orgaoId to legislaturaId) to votacoes)
+        }
+
+        override suspend fun countWithoutAtividade(legislaturaId: String): Long =
+            rows.value.count { (it.id to legislaturaId) !in atividade.value }.toLong()
     }
 
     private class CountingApi(private val failDetails: Boolean = false) : OrgaosApiInterface {
@@ -147,6 +213,30 @@ class ComissaoDataInicioTest {
             if (failDetails) throw IllegalStateException("detail $id is down")
             return OrgaoDetalheResponse(OrgaoDetalheDto(id = id, dataInicio = "2011-03-02"))
         }
+    }
+
+    private class CountingVotacoesApi(private val failCounts: Boolean = false) : VotacoesApiInterface {
+        var countCalls = 0
+
+        override suspend fun countVotacoesFromOrgao(
+            idOrgao: String,
+            dataInicio: String,
+            dataFim: String,
+        ): VotacoesResponse {
+            countCalls++
+            if (failCounts) throw IllegalStateException("counting $idOrgao is down")
+
+            return VotacoesResponse(
+                dados = emptyList(),
+                links = listOf(LinkDto(rel = "last", href = "votacoes?pagina=42&itens=1")),
+            )
+        }
+
+        override suspend fun getVotacoesFromOrgao(idOrgao: String): VotacoesResponse =
+            throw UnsupportedOperationException("not part of this test")
+
+        override suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse =
+            throw UnsupportedOperationException("not part of this test")
     }
 
     private class UserOn(legislaturaId: String) : UserDaoInterface {
@@ -169,14 +259,6 @@ class ComissaoDataInicioTest {
         override fun getLegislaturas(): Flow<List<Legislatura>> = flowOf(rows)
         override fun getLegislaturaById(legislaturaId: String) = rows.find { it.id == legislaturaId }
         override suspend fun insertLegislaturas(legislaturas: List<Legislatura>) = Unit
-    }
-
-    private class UnusedVotacoesApi : VotacoesApiInterface {
-        override suspend fun getVotacoesFromOrgao(idOrgao: String): VotacoesResponse =
-            throw UnsupportedOperationException("not part of this test")
-
-        override suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse =
-            throw UnsupportedOperationException("not part of this test")
     }
 
     private class SilentLogger : AppLoggerInterface {

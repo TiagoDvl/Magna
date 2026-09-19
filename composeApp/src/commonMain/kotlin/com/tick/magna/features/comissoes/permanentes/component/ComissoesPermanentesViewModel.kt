@@ -20,24 +20,23 @@ class ComissoesPermanentesViewModel(
 
     companion object {
         private const val TAG = "ComissoesPermanentesViewModel"
+
+        /**
+         * A shortlist, not a cut: the other twenty are one tap away on the full list.
+         *
+         * The repository answers busiest first, so this takes the ten that matter most in the
+         * selected term rather than the six an enum named in 2023 — among which the CCTI has
+         * since fallen to twenty-ninth of thirty.
+         */
+        private const val PREVIEW_COUNT = 10
     }
 
     val state: StateFlow<List<ComissaoPermanente>> = orgaosRepository
         .getComissoesPermanentes()
-        .map { listaOrgaos ->
-            listaOrgaos.mapNotNull { orgao ->
-                if (orgao.nome != null && orgao.nomeResumido != null) {
-                    ComissaoPermanente(
-                        comissaoPermanenteId = orgao.id,
-                        nomeResumido = orgao.nomeResumido,
-                        nome = orgao.nome
-                    )
-                } else {
-                    null
-                }
-            }.also { comissoes ->
-                loggerInterface.d("comissoesPermanentes: ${comissoes.size} loaded", TAG)
-            }
+        .map { orgaos ->
+            orgaos.toComissoesPermanentes()
+                .take(PREVIEW_COUNT)
+                .also { comissoes -> loggerInterface.d("comissoesPermanentes: ${comissoes.size} loaded", TAG) }
         }
         .flowOn(dispatcherInterface.io)
         .stateIn(

@@ -17,6 +17,19 @@ class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
         }.body()
     }
 
+    override suspend fun countVotacoesFromOrgao(
+        idOrgao: String,
+        dataInicio: String,
+        dataFim: String,
+    ): VotacoesResponse {
+        return httpClient.get("votacoes") {
+            parameter("idOrgao", idOrgao)
+            parameter("dataInicio", dataInicio)
+            parameter("dataFim", dataFim)
+            parameter("itens", "1")
+        }.body()
+    }
+
     override suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse {
         return httpClient.get("votacoes/$idVotacao").body()
     }

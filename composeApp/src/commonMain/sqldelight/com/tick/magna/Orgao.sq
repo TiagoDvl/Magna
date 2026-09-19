@@ -19,11 +19,6 @@ ON CONFLICT(id) DO UPDATE SET
 setOrgaoDataInicio:
 UPDATE Orgao SET dataInicio = :dataInicio WHERE id = :id;
 
-selectOrgaosByIds:
-SELECT *
-FROM Orgao
-WHERE id IN ?;
-
 selectAllOrgaos:
 SELECT * FROM Orgao;
 

@@ -41,6 +41,7 @@ import com.tick.magna.data.usecases.SyncStep
 import com.tick.magna.data.usecases.SyncUserInformationState
 import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanentesComponent
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
+import com.tick.magna.features.comissoes.permanentes.list.ComissoesListArgs
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.partidos.component.PartidosComponent
@@ -321,7 +322,8 @@ private fun MagnaHomeContent(
 
                 ComissoesPermanentesComponent(
                     modifier = sectionsBaseModifier,
-                    onComissaoClick = { navigateTo(ComissaoPermanenteDetailArgs(it)) }
+                    onComissaoClick = { navigateTo(ComissaoPermanenteDetailArgs(it)) },
+                    onVerTodasClick = { navigateTo(ComissoesListArgs) },
                 )
 
                 HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)

@@ -43,7 +43,8 @@ Data e escopo de cada medição estão junto do número. Onde não houver legisl
 | `GET /proposicoes/{id}/autores` | — | `ProposicoesRepository.kt:88,112` | campo de texto em `Proposicao` | 1 por proposição |
 | `GET /proposicoes/{id}/votacoes` | — | declarado, sem uso hoje | — | — |
 | `GET /referencias/proposicoes/siglaTipo` | — | `ProposicoesRepository.kt:34` | `SiglaTipo` | 1 |
-| `GET /orgaos` | `codTipoOrgao=2` | `OrgaosRepository.kt:29` | `Orgao` (**sem** `legislaturaId`) | 1 |
+| `GET /orgaos` | `codTipoOrgao=2` | `OrgaosRepository.syncComissoesPermanentes` | `Orgao` (**sem** `legislaturaId`) | 1 |
+| `GET /votacoes` (contagem) | `idOrgao`, `dataInicio`, `dataFim`, `itens=1` | `OrgaosRepository.syncAtividadeIfNeeded` | `OrgaoAtividade` (com `legislaturaId`) | 120, uma vez por legislatura |
 | `GET /votacoes` | `idOrgao`, `ordenarPor`, `itens=20` | `OrgaosRepository.kt:58` | não persiste | 1 |
 | `GET /votacoes/{id}` | — | `OrgaosRepository.kt:62` | não persiste | 1 por votação |
 | `GET /legislaturas` | — | **nenhum** (removido no bloco 5) | `Legislatura` (tabela vazia) | — |
@@ -55,7 +56,7 @@ O número acima é por chamada. O que a tela gasta é a soma, e três delas faze
 | Tela | Requisições | Conta |
 |---|---|---|
 | Proposições recentes | **31** | 1 lista + 15 × (detalhe + autores) — `ProposicoesRepository.kt:104-113` |
-| Detalhe da comissão | **21** | 1 lista de votações + 20 detalhes — `OrgaosRepository.kt:58-63` |
+| Detalhe da comissão | **21** | 1 lista de votações + 20 detalhes |
 | Detalhe do partido, 1ª visita | **146** no PL | 1 partido + 2 páginas de membros + 143 × `deputados/{id}`, limitado por `Semaphore` |
 | Detalhe do partido, revisita | **3** | 1 partido + 2 páginas de membros; a biografia sai de `DeputadoBio` |
 | Lista de deputados | 1 | — |
@@ -73,7 +74,7 @@ Esta é a pergunta que o bloco 8 depende, e a resposta não é uniforme.
 | `/deputados/{id}/despesas` | **sim** | — (usa `ano`) | `idLegislatura` + `ano` |
 | `/partidos` | **sim** | — | `idLegislatura` |
 | `/partidos/{id}/membros` | **sim** | — | `idLegislatura` |
-| `/proposicoes` | **HTTP 400** | sim, mas filtram **tramitação** — ver item 3.7 | `dataApresentacaoInicio`/`dataApresentacaoFim`, janela de 3 meses |
+| `/proposicoes` | **HTTP 400** | sim, mas filtram **tramitação** — ver item 3.8 | `dataApresentacaoInicio`/`dataApresentacaoFim`, janela de 3 meses |
 | `/orgaos` | **HTTP 400** | sim, mas ver item 3.3 | não dá pelo endpoint |
 | `/orgaos/{id}/membros` | **HTTP 400** | sim | cada registro traz `idLegislatura`; filtrar no cliente |
 | `/votacoes` | **HTTP 400** | sim, **máximo 3 meses** | ver item 3.2 |
@@ -118,7 +119,15 @@ Consequência direta: **não existe "votações da legislatura" em uma chamada.*
 
 Ou seja: dá para filtrar por tipo, dá para filtrar por data, e as duas juntas não devolvem nada. **Escopar comissões por legislatura via `/orgaos` não funciona.** O caminho é `/orgaos/{id}/membros`, onde cada registro traz `idLegislatura`, `dataInicio` e `dataFim` próprios.
 
-### 3.4 Paginação: cada endpoint tem um padrão diferente
+### 3.4 `/votacoes` sem datas devolve uma janela recente, não a série toda
+
+`/votacoes?idOrgao=2003` sem `dataInicio`/`dataFim` responde com votações de **2026-07-01 a 2026-09-01** — um trimestre, não o histórico. Nenhuma mensagem diz isso; só olhar as datas que voltam.
+
+Custou uma tabela inteira deste documento, que contava votações por comissão sem janela e apresentava o resultado como "toda a série". Ver o item 4.3.
+
+Mesmo erro de forma do item 3.8: supor o recorte de um endpoint em vez de conferir o que ele devolveu.
+
+### 3.5 Paginação: cada endpoint tem um padrão diferente
 
 | Endpoint | `itens` padrão | Exemplo real |
 |---|---|---|
@@ -131,11 +140,11 @@ Ou seja: dá para filtrar por tipo, dá para filtrar por data, e as duas juntas 
 
 O link `rel="last"` de cada resposta carrega o número da última página. É a forma barata de medir custo sem baixar tudo.
 
-### 3.5 `Accept-Charset` derruba tudo com 403
+### 3.6 `Accept-Charset` derruba tudo com 403
 
 Já registrado no plano (seção 16.1) e corrigido em `3897905`, mas pertence a este documento: o gateway responde **403 em qualquer requisição** que carregue o header `Accept-Charset`, com qualquer valor. O Ktor instala `HttpPlainText` por padrão e o carimba sozinho; a remoção tem que acontecer no send pipeline.
 
-### 3.6 Voto nominal: a relação só existe num sentido, e `itens` a esconde
+### 3.7 Voto nominal: a relação só existe num sentido, e `itens` a esconde
 
 `GET /deputados/{id}/votos` e `GET /deputados/{id}/votacoes` devolvem **405**. Não existe caminho deputado → votos. O único acesso é `GET /votacoes/{id}/votos`.
 
@@ -143,7 +152,7 @@ E esse endpoint **recusa `itens` com HTTP 400**. Sem parâmetro nenhum ele devol
 
 Vale saber a proporção antes de desenhar em cima: em 2026, de **7.360 votações, só 152 têm voto nominal** (2%), concentradas em 44 dias do ano. Detalhes e a estratégia de sincronização estão no bloco 10 do plano (seção 13).
 
-### 3.7 `dataInicio`/`dataFim` em `/proposicoes` não filtram por apresentação
+### 3.8 `dataInicio`/`dataFim` em `/proposicoes` não filtram por apresentação
 
 Esta corrige uma afirmação errada das primeiras versões deste documento e do plano.
 
@@ -245,39 +254,64 @@ Era o bug que o bloco 8 destravaria no dia em que a troca de legislatura entrass
 
 **Corrigido** seguindo o link `rel="next"` em vez de contar itens — os endpoints não concordam num tamanho de página padrão, então comparar o tamanho com o que foi pedido erra para algum deles. A coleta acumula tudo antes de gravar, para que uma legislatura entre inteira ou não entre: gravar a primeira página e reportar falha deixaria o mesmo estado que o bug original. Há um teto de 10 páginas, que existe só para o caso de um `next` que nunca some.
 
-### 4.3 [MÉDIO] As seis comissões fixas contra as 30 que a API devolve
+### 4.3 [MÉDIO] As seis comissões fixas contra as 30 que a API devolve — CORRIGIDO
 
-`/orgaos?codTipoOrgao=2` devolve **30 comissões permanentes**. `MagnaComissaoPermanente` (`data/repository/orgaos/params/`) fixa seis `idOrgao` na mão.
+`/orgaos?codTipoOrgao=2` devolve **30 comissões permanentes**. `MagnaComissaoPermanente` fixava seis `idOrgao` na mão, dentro de `data/`.
 
-**A curadoria é decisão de produto, e é deliberada:** as seis foram escolhidas por serem reconhecíveis pelo nome e por serem, à época, as que tinham mais votações — o objetivo era não encher a tela de comissão vazia. O problema não é a decisão; é ela estar codificada como se fosse dado, dentro de `data/`, sem o critério escrito em lugar nenhum (ver também o item 4.6 do plano).
+**A curadoria era decisão de produto, e deliberada:** as seis foram escolhidas por serem reconhecíveis pelo nome e por serem, à época, as que tinham mais votações — o objetivo era não encher a tela de comissão vazia. O problema não era a decisão; era ela estar codificada como se fosse dado, sem o critério escrito em lugar nenhum.
 
-O critério foi medido em 2026-09-19, contando votações por órgão via `/votacoes?idOrgao={id}&itens=1` e lendo o total no link `rel="last"`:
+#### A primeira medição estava errada
 
-| Comissão | Votações | Está no app? |
-|---|---|---|
-| CCJC — Constituição e Justiça | **410** | sim |
-| CCOM — Comunicação | **271** | sim |
-| CSPCCO — Segurança Pública | **83** | sim |
-| CPOVOS — Amazônia e Povos Originários | 45 | não |
-| CSAUDE — Saúde | 42 | sim |
-| CCULT — Cultura | 38 | não |
-| CVT — Viação e Transportes | 37 | não |
-| CE — Educação | 35 | não |
-| CPD — Pessoas com Deficiência | 33 | não |
-| CFT — Finanças e Tributação | 32 | não |
-| CREDN — Relações Exteriores | 32 | não |
-| CCTI — Ciência, Tecnologia e Inovação | 16 | **sim** |
-| CAPADR — Agricultura | 7 | **sim** |
-| … | … | … |
-| CASP — Administração e Serviço Público | **0** | não |
+> **`/votacoes` sem `dataInicio`/`dataFim` não devolve a série toda — devolve uma janela recente.** Medido em 2026-09-19: `/votacoes?idOrgao=2003` volta com datas entre 2026-07-01 e 2026-09-01.
+>
+> Isto invalidou a tabela que estava aqui, que dizia contar "toda a série disponível". Os 410 da CCJC eram de **um trimestre**. É outro caso do mesmo erro do item 3.8: supor o recorte de um endpoint em vez de olhar as datas que voltaram.
 
-A intuição original acertou o topo: as três primeiras do app são as três primeiras da lista. As duas últimas envelheceram — **CCTI (16) e CAPADR (7) hoje estão atrás de oito comissões que o app não mostra**, entre elas CPOVOS (45) e CCULT (38).
+#### Remedido por legislatura
 
-E o medo que motivou a curadoria é real e mensurável: CASP tem **zero** votações, e várias outras ficam abaixo de dez.
+Legislatura 57, de 2023-02-01 a 2026-09-19, somando 15 janelas de 3 meses por comissão:
 
-A conclusão não é "mostrar as 30". É que **o critério pode ser dado em vez de constante**: ordenar por atividade e cortar por limiar mantém a intenção de produto e para de congelar um retrato de 2023 dentro do código.
+| # | Comissão | Votações | Estava no app? |
+|---|---|---|---|
+| 1 | CCJC — Constituição e Justiça | 5673 | sim |
+| 2 | CCOM — Comunicação | 2500 | sim |
+| 3 | CSPCCO — Segurança Pública | 2239 | sim |
+| 4 | CSAUDE — Saúde | 1902 | sim |
+| 5 | **CPD — Pessoas com Deficiência** | 1692 | **não** |
+| 6 | **CE — Educação** | 1202 | **não** |
+| 7 | CAPADR — Agricultura | 1113 | sim |
+| … | … | … | |
+| 22 | CASP — Administração e Serviço Público | 593 | não |
+| 29 | **CCTI — Ciência e Tecnologia** | 311 | **sim** |
+| 30 | CTUR — Turismo | 282 | não |
 
-(Contagem de toda a série disponível, não só da legislatura 57 — é o que explica a distância da CCJC.)
+Duas conclusões, e as duas mudam o que fazer:
+
+- **A intuição original acertou os quatro primeiros, exatamente.** CAPADR em 7º é defensável. CCTI é **29º de 30** — essa envelheceu.
+- **Não existe comissão vazia na 57.** A menor tem 282 votações, e o CASP que este documento dizia ter zero tem **593**. O medo que motivou a curadoria era artefato da janela de 3 meses.
+
+Na legislatura 56 aparecem zeros — CPOVOS, CICS, CCOM, CASP — mas são as cinco criadas em 2023-02-15, que o filtro por `dataInicio` do bloco 8 já remove. O menor real da 56 é CDU, com 153.
+
+O que torna a tela sem graça, então, não é quantidade: é a qualidade das votações (seção 5).
+
+#### Como ficou
+
+`MagnaComissaoPermanente` foi apagado. A ordem passou a ser medida e guardada em `OrgaoAtividade`, escopada por legislatura — porque atividade é: a CCTI foi a **3ª** da legislatura 56 e é a 29ª da 57.
+
+**A medição é amostra, não censo.** O mandato inteiro são 15 janelas × 30 comissões = **450 requisições**. Quatro janelas, uma por ano, custam 120 e reproduzem **8 dos 10 primeiros** e todos os extremos:
+
+| | mandato inteiro | 4 janelas | 1 janela recente |
+|---|---|---|---|
+| requisições | 450 | **120** | 30 |
+| acerto no top 10 | — | 8 | 7 |
+| CAPADR (7º real) | 7º | 7º | **23º** |
+| CPOVOS (27º real) | 27º | 23º | **4º** |
+| comissões com zero | 0 | 0 | **1 (CASP)** |
+
+As janelas vão de **março a junho** de cada ano, fora dos recessos de janeiro e julho — é o que o item 3.2 obriga e o que explica o erro da janela única.
+
+Medido uma vez por legislatura e guardado. Enquanto não há medida, a lista é **alfabética**, não uma ordem arbitrária fingindo ser ranking.
+
+A Home mostra as 10 primeiras, com "Ver todas" para a lista completa — mesmo modelo dos partidos, e nada fica inacessível.
 
 ### 4.3.1 [ALTO] Comissão sem votação carrega para sempre — CORRIGIDO
 

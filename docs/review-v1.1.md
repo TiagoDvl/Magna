@@ -623,7 +623,7 @@ Aqui está a razão técnica, e ela foi verificada contra a API de produção (s
 
 O caminho, então, é um só — não há trade-off real:
 
-1. **Escopar por data de apresentação.** ~~Mandar `startDate`/`endDate` como `dataInicio`/`dataFim`~~ — **esses dois filtram tramitação, não apresentação** (item 3.7 do mapa). Os certos são `dataApresentacaoInicio`/`dataApresentacaoFim`, e como o teto de intervalo é de 3 meses, uma legislatura inteira não cabe numa chamada: a janela fica no fim do mandato, que é onde moram as proposições mais novas dele. As datas vêm da API (item 10.2 do bloco 7), então nada é hardcoded.
+1. **Escopar por data de apresentação.** ~~Mandar `startDate`/`endDate` como `dataInicio`/`dataFim`~~ — **esses dois filtram tramitação, não apresentação** (item 3.8 do mapa). Os certos são `dataApresentacaoInicio`/`dataApresentacaoFim`, e como o teto de intervalo é de 3 meses, uma legislatura inteira não cabe numa chamada: a janela fica no fim do mandato, que é onde moram as proposições mais novas dele. As datas vêm da API (item 10.2 do bloco 7), então nada é hardcoded.
 2. **Adicionar `legislaturaId` a `Proposicao` e `Orgao`** para que o cache local seja escopado igual ao resto. É migração nova (`2.sqm`) — ver o item 16.3 antes, porque migração é justamente o que não compila no Windows hoje.
 
 Se o item 2 for grande demais para a 1.1, o recuo aceitável é esconder as seções de proposições e comissões fora da legislatura atual até que o cache esteja escopado. O que **não** é aceitável é deixar como está: dado da legislatura errada apresentado como se fosse do recorte escolhido é pior do que seção ausente.

@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_permanentes_section_title
+import magna.composeapp.generated.resources.comissoes_see_all
 import magna.composeapp.generated.resources.ic_arrow_right
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -36,7 +38,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ComissoesPermanentesComponent(
     modifier: Modifier = Modifier,
     viewModel: ComissoesPermanentesViewModel = koinViewModel(),
-    onComissaoClick: (String) -> Unit
+    onComissaoClick: (String) -> Unit,
+    onVerTodasClick: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val comissoes = viewModel.state.collectAsStateWithLifecycle()
@@ -47,13 +50,27 @@ fun ComissoesPermanentesComponent(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
-        Text(
-            text = stringResource(Res.string.comissoes_permanentes_section_title),
-            style = typography.titleLarge.copy(
-                color = colorScheme.primary,
-                fontWeight = FontWeight.Bold,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(Res.string.comissoes_permanentes_section_title),
+                style = typography.titleLarge.copy(
+                    color = colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
             )
-        )
+
+            // The carousel shows ten of thirty now, so there has to be a way to the rest.
+            TextButton(onClick = onVerTodasClick) {
+                Text(
+                    text = stringResource(Res.string.comissoes_see_all),
+                    style = typography.labelMedium.copy(color = colorScheme.primary),
+                )
+            }
+        }
 
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
