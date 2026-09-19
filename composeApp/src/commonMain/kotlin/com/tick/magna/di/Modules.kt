@@ -71,8 +71,6 @@ import com.tick.magna.data.source.local.dao.VotoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.platformModule
 import com.tick.magna.data.source.remote.HttpClientFactory
-import com.tick.magna.data.source.remote.api.ArquivosApi
-import com.tick.magna.data.source.remote.api.ArquivosApiInterface
 import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.LegislaturasApi
@@ -164,9 +162,7 @@ val dataModule = module {
     }
     single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
-    single<ArquivosApiInterface> { ArquivosApi(get()) }
-
-    single<VotosRepositoryInterface> { VotosRepository(get(), get(), get(), get(), get(), get()) }
+    single<VotosRepositoryInterface> { VotosRepository(get(), get(), get(), get(), get()) }
 
     single<OrgaosRepositoryInterface> {
         OrgaosRepository(get(), get(), get(), get(), get(), get(), get(), get())

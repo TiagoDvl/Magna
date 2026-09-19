@@ -15,7 +15,6 @@ import com.tick.magna.data.repository.votos.VotosRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,9 +35,6 @@ class DeputadoDetailsViewModel(
     private val deputadoIdArgs: String = savedStateHandle.toRoute<DeputadoDetailsArgs>().deputadoId
 
     private var trackedEmptyExpenses = false
-
-    /** Held so the cancel button has something to cancel. */
-    private var importJob: Job? = null
 
     private val _state = MutableStateFlow(DeputadoDetailsState())
     val state: StateFlow<DeputadoDetailsState> = _state.asStateFlow()
@@ -114,10 +110,6 @@ class DeputadoDetailsViewModel(
                 .onFailure { e -> logger.e("votos: falhou para deputadoId=$deputadoIdArgs", e, TAG) }
 
             _state.update { it.copy(votosState = votosStateFor(result)) }
-
-            // Two HEAD requests and no transfer, so it can run beside the votes rather than
-            // waiting for a tab to be opened.
-            refreshImportacao()
         }
     }
 
@@ -125,63 +117,6 @@ class DeputadoDetailsViewModel(
         _state.update { it.copy(selectedTab = tab) }
     }
 
-    /**
-     * Starts the full-year download.
-     *
-     * Only ever from a tap: nothing here runs on its own, and the size was on the button
-     * before it was pressed.
-     */
-    fun onImportarClick() {
-        if (_state.value.importacao is ImportacaoState.Baixando) return
-
-        val anterior = _state.value.importacao
-        _state.update { it.copy(importacao = ImportacaoState.Baixando(0f)) }
-
-        importJob = viewModelScope.launch(dispatcher.io) {
-            val result = votosRepository.importarAno { progresso ->
-                _state.update { it.copy(importacao = ImportacaoState.Baixando(progresso)) }
-            }
-
-            result
-                .onSuccess { votos ->
-                    logger.i("importarAno: $votos votos gravados", TAG)
-                    refreshImportacao()
-                    reloadVotos()
-                }
-                .onFailure { e ->
-                    logger.e("importarAno: falhou", e, TAG)
-                    _state.update { it.copy(importacao = ImportacaoState.Falhou(bytesDe(anterior))) }
-                }
-        }
-    }
-
-    /**
-     * Cancels the transfer. Nothing has been written at this point — the import writes once,
-     * at the end — so the only thing lost is the bytes.
-     */
-    fun onCancelarImportacao() {
-        importJob?.cancel()
-        importJob = null
-
-        viewModelScope.launch(dispatcher.io) { refreshImportacao() }
-    }
-
-    private fun bytesDe(state: ImportacaoState): Long = when (state) {
-        is ImportacaoState.Disponivel -> state.bytes
-        is ImportacaoState.Completa -> state.bytes
-        is ImportacaoState.Falhou -> state.bytes
-        else -> 0L
-    }
-
-    private suspend fun refreshImportacao() {
-        val importacao = importacaoStateFor(votosRepository.getImportacao())
-        _state.update { it.copy(importacao = importacao) }
-    }
-
-    private suspend fun reloadVotos() {
-        val result = votosRepository.getVotosDoDeputado(deputadoIdArgs)
-        _state.update { it.copy(votosState = votosStateFor(result)) }
-    }
 
     /**
      * Whether the record carries a document decides how useful the sheet is: an expense

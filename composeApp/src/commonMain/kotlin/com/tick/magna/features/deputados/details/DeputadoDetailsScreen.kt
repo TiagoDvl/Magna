@@ -19,9 +19,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -30,7 +28,6 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -70,15 +67,6 @@ import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.deputado_details_expense_title
 import magna.composeapp.generated.resources.deputado_details_expenses_empty
 import magna.composeapp.generated.resources.deputado_tab_despesas
-import magna.composeapp.generated.resources.votos_atualizar
-import magna.composeapp.generated.resources.votos_baixando
-import magna.composeapp.generated.resources.votos_baixar_botao
-import magna.composeapp.generated.resources.votos_baixar_descricao
-import magna.composeapp.generated.resources.votos_baixar_erro
-import magna.composeapp.generated.resources.votos_baixar_titulo
-import magna.composeapp.generated.resources.votos_cancelar
-import magna.composeapp.generated.resources.votos_completo_ate
-import magna.composeapp.generated.resources.votos_desatualizado
 import magna.composeapp.generated.resources.deputado_tab_votos
 import magna.composeapp.generated.resources.deputado_votos_empty
 import magna.composeapp.generated.resources.deputado_votos_empty_description
@@ -112,8 +100,6 @@ fun DeputadoDetailScreen(
         onSocialOpened = viewModel::onSocialOpened,
         onTabSelected = viewModel::onTabSelected,
         onVotacaoClick = { id -> navController.navigate(VotacaoDetailArgs(id)) },
-        onImportarClick = viewModel::onImportarClick,
-        onCancelarImportacao = viewModel::onCancelarImportacao,
     )
 }
 
@@ -126,8 +112,6 @@ private fun DeputadoDetails(
     onSocialOpened: () -> Unit = {},
     onTabSelected: (DeputadoTab) -> Unit = {},
     onVotacaoClick: (String) -> Unit = {},
-    onImportarClick: () -> Unit = {},
-    onCancelarImportacao: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -218,10 +202,7 @@ private fun DeputadoDetails(
 
                     DeputadoTab.VOTOS -> DeputadoVotos(
                         state = state.votosState,
-                        importacao = state.importacao,
                         onVotacaoClick = onVotacaoClick,
-                        onImportarClick = onImportarClick,
-                        onCancelarImportacao = onCancelarImportacao,
                     )
                 }
             }
@@ -525,13 +506,7 @@ private val DeputadoTab.label: StringResource
     }
 
 @Composable
-private fun DeputadoVotos(
-    state: VotosState,
-    importacao: ImportacaoState,
-    onVotacaoClick: (String) -> Unit,
-    onImportarClick: () -> Unit,
-    onCancelarImportacao: () -> Unit,
-) {
+private fun DeputadoVotos(state: VotosState, onVotacaoClick: (String) -> Unit) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
@@ -548,12 +523,6 @@ private fun DeputadoVotos(
                 color = colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
             ),
-        )
-
-        ImportacaoCard(
-            importacao = importacao,
-            onImportarClick = onImportarClick,
-            onCancelarImportacao = onCancelarImportacao,
         )
 
         when (state) {
@@ -604,120 +573,6 @@ private fun DeputadoVotos(
                         text = stringResource(Res.string.deputado_votos_nota),
                         style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
                     )
-                }
-            }
-        }
-    }
-}
-
-/**
- * The download offer, and afterwards what it produced.
- *
- * Above the list rather than inside it, because it has to be visible when the list is empty —
- * which is the state it most exists to fix.
- */
-@Composable
-private fun ImportacaoCard(
-    importacao: ImportacaoState,
-    onImportarClick: () -> Unit,
-    onCancelarImportacao: () -> Unit,
-) {
-    if (importacao is ImportacaoState.Escondida) return
-
-    val dimensions = LocalDimensions.current
-    val colorScheme = MaterialTheme.colorScheme
-    val typography = MaterialTheme.typography
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = dimensions.grid16),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(dimensions.grid12),
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-        ) {
-            when (importacao) {
-                ImportacaoState.Escondida -> Unit
-
-                is ImportacaoState.Disponivel -> {
-                    Text(
-                        text = stringResource(Res.string.votos_baixar_titulo),
-                        style = typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                    )
-                    Text(
-                        text = stringResource(Res.string.votos_baixar_descricao),
-                        style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
-                    )
-                    // The size is on the button, not in the fine print. Nothing transfers
-                    // until this is pressed.
-                    Button(onClick = onImportarClick) {
-                        Text(
-                            text = stringResource(
-                                Res.string.votos_baixar_botao,
-                                formatarBytes(importacao.bytes),
-                            )
-                        )
-                    }
-                }
-
-                is ImportacaoState.Baixando -> {
-                    Text(
-                        text = stringResource(
-                            Res.string.votos_baixando,
-                            (importacao.progresso * 100).toInt(),
-                        ),
-                        style = typography.bodySmall,
-                    )
-                    LinearProgressIndicator(
-                        progress = { importacao.progresso },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    TextButton(onClick = onCancelarImportacao) {
-                        Text(text = stringResource(Res.string.votos_cancelar))
-                    }
-                }
-
-                is ImportacaoState.Completa -> {
-                    // The file's own publication date, not when it was fetched: these files
-                    // are rebuilt nightly, so a vote cast this afternoon is in neither.
-                    Text(
-                        text = stringResource(
-                            Res.string.votos_completo_ate,
-                            importacao.completoAte.orEmpty(),
-                        ),
-                        style = typography.bodySmall,
-                    )
-
-                    if (importacao.desatualizada) {
-                        Text(
-                            text = stringResource(Res.string.votos_desatualizado),
-                            style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
-                        )
-                        Button(onClick = onImportarClick) {
-                            Text(
-                                text = stringResource(
-                                    Res.string.votos_atualizar,
-                                    formatarBytes(importacao.bytes),
-                                )
-                            )
-                        }
-                    }
-                }
-
-                is ImportacaoState.Falhou -> {
-                    Text(
-                        text = stringResource(Res.string.votos_baixar_erro),
-                        style = typography.bodySmall.copy(color = colorScheme.error),
-                    )
-                    Button(onClick = onImportarClick) {
-                        Text(
-                            text = stringResource(
-                                Res.string.votos_baixar_botao,
-                                formatarBytes(importacao.bytes),
-                            )
-                        )
-                    }
                 }
             }
         }

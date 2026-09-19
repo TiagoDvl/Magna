@@ -252,7 +252,6 @@ class ComissaoCacheFallbackTest {
             throw UnsupportedOperationException("not part of this test")
 
         override suspend fun getVotacoesPage(
-            idOrgao: String,
             dataInicio: String,
             dataFim: String,
             pagina: Int,

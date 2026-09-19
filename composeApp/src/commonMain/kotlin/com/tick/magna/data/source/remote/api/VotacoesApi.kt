@@ -51,13 +51,11 @@ class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
     }
 
     override suspend fun getVotacoesPage(
-        idOrgao: String,
         dataInicio: String,
         dataFim: String,
         pagina: Int,
     ): VotacoesResponse {
         return httpClient.get("votacoes") {
-            parameter("idOrgao", idOrgao)
             parameter("dataInicio", dataInicio)
             parameter("dataFim", dataFim)
             parameter("pagina", pagina)

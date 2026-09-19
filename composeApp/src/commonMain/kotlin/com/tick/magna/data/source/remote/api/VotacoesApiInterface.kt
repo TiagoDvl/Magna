@@ -30,14 +30,13 @@ interface VotacoesApiInterface {
     suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse
 
     /**
-     * Every votacao of an orgao in a window, paged, in the order the Camara stores them.
+     * Every votacao in a window, paged, in the order the Camara stores them.
      *
-     * Separate from [getVotacoesFromOrgao], which asks for twenty sorted by date to fill a
-     * committee screen. This one is a sweep: it has to see all of them, because what it is
-     * looking for is the 2% that are nominal.
+     * Separate from [getVotacoesFromOrgao], which asks for twenty of one orgao sorted by
+     * date to fill a committee screen. This one is a sweep across every orgao: it has to see
+     * all of them, because what it is looking for is the 2% that are nominal.
      */
     suspend fun getVotacoesPage(
-        idOrgao: String,
         dataInicio: String,
         dataFim: String,
         pagina: Int,

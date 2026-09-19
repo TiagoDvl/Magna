@@ -976,39 +976,42 @@ Migração `10.sqm`: três colunas novas e nulas em `VotacaoNominal`. Linhas gra
 ### 13.6 O que precisa existir no código
 
 - ~~**tabela nova** para o voto~~ — **feito**: `Voto`, `VotacaoNominal` e `VotoSync` na migração `9.sqm`, com índice `(legislaturaId, deputadoId)`;
+- ~~**parser de CSV**~~ / ~~**download com progresso**~~ — **construídos e removidos da 1.1**, ver 13.5.3;
 - ~~**`/votacoes/{id}/votos` sem `itens`**, com um teste que trave isso~~ — **feito**, e documentado na interface da API;
 - ~~**escrita em lote no SQLDelight**~~ — **feito**, uma transação por janela;
 - ~~**estados**~~ — **feito**: carregando, vazio, erro, conteúdo. O vazio é o ramo comum, não o raro, e a tela diz **por quê**: voto simbólico não tem registro individual, então lista vazia não é ausência;
-- **ainda falta:** parser de CSV, download com progresso e cancelamento, e a tela de permissão com o peso.
+- **fora da 1.1:** a importação anual inteira. Volta quando tiver onde morar.
 - **parser de CSV** em `commonMain`. É a primeira vez que o app lê algo que não é JSON da API; o arquivo usa `;` como separador e vem com BOM;
 - **download com progresso e cancelamento**, que também é novo. Ktor dá o `ByteReadChannel`; o que falta é a tela e o cancelamento decente (o bloco 4 já ensinou a tratar cancelamento como cancelamento);
 - **escrita em lote no SQLDelight** — 52 mil linhas não entram uma a uma;
 - **`/votacoes/{id}/votos` sem `itens`**, com um teste que trave isso, porque é o erro que a próxima pessoa vai repetir;
 - **estados**: nunca baixado, baixando, completo até X, desatualizado, sem rede. São cinco, e o componente de estado vazio do bloco 11 é pré-requisito.
 
-### 13.5.3 O download — feito, e sem WorkManager
+### 13.5.3 O download saiu da 1.1 — decidido em 2026-09-19
 
-Medido antes de decidir: **2,4 MB/s**, arquivo inteiro em **~7s**; em rede móvel ruim (0,3 MB/s), ~55s. Com parse e gravação, o total é ~15s em rede boa e ~90s em rede ruim.
+Foi construído e removido no mesmo dia. O que derrubou não foi o código, foi o desenho:
 
-Isso derrubou o WorkManager com notificação de progresso. O custo não é o código, é o resto: `POST_NOTIFICATIONS` em runtime, `FOREGROUND_SERVICE` com tipo declarado no Android 14+, `expect/actual` porque WorkManager é Android-only, e **uma justificativa de foreground service no Play Console** — terceiro bloqueante do bloco 12, para um download de 7 segundos que o Google costuma recusar.
+1. **Os arquivos são regerados toda madrugada**, então `last-modified` muda todo dia. O botão de atualizar, ligado a esse header, apareceria **diariamente pedindo 20,7 MB**. Isso é um vazamento de dados do usuário disfarçado de feature — e o próprio item 13.2 já dizia que os arquivos mudam todo dia. A regra foi escrita ignorando a medição que estava duas seções acima.
+2. **O card ficava dentro do perfil de um deputado**, e o que ele baixa é a Câmara inteira: 51.832 votos de 566 pessoas, 7.360 votações. Dos votos importados no perfil do Cabo Gilberto, **11 são dele**. Escopo da ação não batia com escopo da tela.
 
-Ficou: barra de progresso na tela, botão de cancelar, zero permissão nova.
+O dado é do app, não do deputado. Quando voltar, precisa de casa própria — e o app ainda não tem tela de ajustes.
 
-**São dois arquivos, não um.** O de votos não tem `descricao` — dá os votos, não o que foi votado:
+**Como recuperar:** está inteiro em `c8ed64c` (download, progresso, cancelamento, os dois parsers de CSV com 21 testes) e `dfa0263` (o parser de votos). `git revert` do commit de remoção traz de volta.
 
-| Arquivo | Peso | O que traz |
+**O que ficou no banco de propósito:** a tabela `VotoImport` e a migração `11.sqm`. Remover a migração faria a versão do schema andar para trás, e um SQLite que vê `oldVersion > newVersion` chama `onDowngrade`, que por padrão estoura. Uma tabela vazia sem uso custa nada; quebrar a instalação de quem já testou a branch custa.
+
+### 13.5.4 O sweep passou a varrer a Câmara inteira
+
+Compensação parcial pela saída do arquivo, e medido:
+
+| Varredura do trimestre | Listagem | Nominais achadas |
 |---|---|---|
-| `votacoes-2026.csv` | 4,28 MB | descrição, órgão, aprovação, `votosSim/Nao/Outros`, `idProposicao` |
-| `votacoesVotos-2026.csv` | 16,4 MB | o voto de cada deputado |
-| **total** | **20,7 MB** | |
+| Só PLEN | 4 req | 14 |
+| **Câmara inteira** | 17 req | **17** |
 
-O menor vai primeiro de propósito: conexão que vai falhar tende a falhar antes da metade cara.
+Treze requisições a mais, e só na primeira varredura de cada legislatura — o refresh pula votação já conhecida. O que elas compram são as votações de comissão, que são a maior parte do trabalho de um deputado. Sem elas a tela era uma folha de presença do Plenário.
 
-O índice é melhor que a API em dois pontos: traz o discriminador `votosSim/votosNao/votosOutros`, preenchido nas **152 nominais de 2026 e em nenhuma das 7.208 simbólicas** — sem adivinhar por texto — e cobre **todos os órgãos**, então as 29 nominais de comissão entram junto das 123 do Plenário. O sweep trimestral pega 14.
-
-`idProposicao` vem preenchido em **84 das 152**; o resto fica nulo e o card simplesmente não tem proposição para abrir.
-
-**Atômico:** tudo em memória e uma transação no fim. Fechar o app no meio não deixa índice pela metade — perde só os bytes. O preço é ~52 mil linhas de quatro strings curtas na memória durante a importação.
+Continua sendo uma janela de três meses, e a tela diz isso.
 
 ### 13.7 O que este bloco não promete
 
