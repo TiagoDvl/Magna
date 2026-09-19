@@ -457,7 +457,7 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 4 | ~~Remover `factory<CoroutineScope>`; repositórios sem `launch`; `Resource<T>` unificado~~ **FEITO** | `Resource.kt`, `Modules.kt`, `repository/**` | 2, 3 |
 | 5 | ~~Decisão e remoção de código morto (Votações do deputado, Eventos, Legislatura)~~ **FEITO** | ver 4.5 | nenhum |
 | 6 | ~~Split de telas, `contentDescription`, strings, splash/dark window, `dataExtractionRules`~~ **FEITO** | `features/**/*Screen.kt`, `ui/component/chart/`, `strings.xml`, manifest | nenhum |
-| 7 | Revisão do modelo de dados e das APIs; `docs/api-map.md`. Ver seção 10 | leitura de `source/remote/api/**`, `repository/**`, `sqldelight/**`; nenhum código de feature | nenhum |
+| 7 | Revisão do modelo de dados e das APIs; `documentation/api-map.md`. Ver seção 10 | leitura de `source/remote/api/**`, `repository/**`, `sqldelight/**`; nenhum código de feature | nenhum |
 | 8 | Legislatura selecionável e persistida; escopo de dados por legislatura. Ver seção 11 | `User.sq`, `UserDao.kt`, `LegislaturasApi`, repositórios, Home, `AnalyticsEvent.kt` | 0, 1, 2, 7 |
 | 9 | Passada de design em todas as telas a partir de uma tela de referência; `docs/design-system.md`. Ver seção 12 | `ui/core/theme/**`, `ui/component/**`, `features/**/*Screen.kt`, `App.kt` | 8 |
 | 10 | **Último bloco, já com tudo pronto para publicar:** Data Safety, política de privacidade, `whatsnew`, bump de versão. Ver seção 13 | Play Console, `distribution/whatsnew/`, `androidApp/build.gradle.kts` | todos |
@@ -480,21 +480,25 @@ O diagnóstico que originou o bloco é honesto e vale registrar: partes do app f
 
 **A premissa da 1.0 sobre a API está revista.** Não se trata de dados não confiáveis para trás; a API entrega. O que precisa ser tratado é **conexão** — a experiência de quem está offline, com rede ruim ou no meio de um sync. Isso muda o item 11.2 e muda o desenho de estados do bloco 9.
 
-### 10.1 O que já foi verificado contra a API de produção
+### 10.1 A varredura — FEITA
 
-Verificado em 2026-09-19, contra `https://dadosabertos.camara.leg.br/api/v2`:
+Concluída em 2026-09-19 contra `https://dadosabertos.camara.leg.br/api/v2`, com requisição real em todos os quinze endpoints que o app usa. O resultado está em **[`documentation/api-map.md`](../documentation/api-map.md)** e não é repetido aqui.
 
-| Chamada | `idLegislatura` | `dataInicio`/`dataFim` | Observação |
-|---|---|---|---|
-| `GET /legislaturas` | — | — | devolve `id`, `dataInicio`, `dataFim` por legislatura |
-| `GET /proposicoes` | **HTTP 400** | **200** | não aceita legislatura; a janela é por data |
-| `GET /orgaos` | **HTTP 400** | a confirmar | idem |
-| `GET /deputados` | usado hoje pelo app | — | funciona |
-| `GET /partidos` | usado hoje pelo app | — | funciona desde o bloco 3 |
-| `GET /partidos/{id}/membros` | usado hoje pelo app | — | funciona |
-| `GET /deputados/{id}/despesas` | usado hoje pelo app | — | com `ano`, desde o bloco 2 |
+O que ele responde, e que o plano assumia sem saber:
 
-O que falta verificar da mesma forma: `/orgaos/{id}/membros`, `/votacoes`, `/proposicoes/{id}/autores` e a paginação de cada um deles.
+- **`/proposicoes`, `/orgaos`, `/orgaos/{id}/membros` e `/votacoes` recusam `idLegislatura` com HTTP 400.** O 400 nomeia o parâmetro recusado no campo `instance`, o que torna a verificação barata de repetir.
+- **`/legislaturas?itens=100` devolve as 57 legislaturas com `dataInicio` e `dataFim` numa página só.** As datas saem daí; nada precisa ser hardcoded.
+- **`/votacoes` recusa intervalo maior que 3 meses** (`A diferença entre as datas não pode ser maior que 3 meses`). Uma legislatura inteira custa 16 janelas.
+- **`codTipoOrgao` e faixa de datas não convivem em `/orgaos`**: juntos devolvem zero itens. Comissão por legislatura tem que sair de `/orgaos/{id}/membros`, onde cada registro traz o seu `idLegislatura`.
+- **`ano` em despesas é ignorado sem `idLegislatura` junto** — devolve zero em vez de erro.
+
+E três achados que viram trabalho, detalhados no item 4 do mapa:
+
+- **[ALTO]** `getPartidoMembros` não manda `itens` e o padrão do endpoint é 15: a tela de partido mostra 15 de ~90 membros, **em produção, na legislatura atual**;
+- **[ALTO]** `getDeputados` não pagina. A 57 cabe numa página (879 de 1000), a **55 tem 1138** e a segunda página seria descartada em silêncio — o bug que a troca de legislatura destravaria;
+- **[MÉDIO]** `/orgaos?codTipoOrgao=2` devolve **30** comissões permanentes; `MagnaComissaoPermanente` fixa seis.
+
+O custo por tela também foi medido: proposições recentes **31 requisições**, detalhe da comissão **21**, detalhe do partido **17**.
 
 ### 10.2 A resposta para "de onde vêm as datas sem hardcode"
 
@@ -520,7 +524,7 @@ Ou seja, a regra fica:
 
 ### 10.3 O entregável: uma tabela de referência
 
-O produto deste bloco é um documento curto — `docs/api-map.md` — com uma linha por endpoint que o app usa, e quatro colunas:
+**Escrito:** [`documentation/api-map.md`](../documentation/api-map.md). Uma linha por endpoint que o app usa, com quatro colunas:
 
 - **endpoint e parâmetros aceitos** (verificados, não presumidos);
 - **quem chama no app** (arquivo e função);
