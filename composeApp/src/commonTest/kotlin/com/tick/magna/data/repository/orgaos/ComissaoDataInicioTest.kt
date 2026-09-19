@@ -20,8 +20,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
 /**
@@ -103,11 +107,12 @@ class ComissaoDataInicioTest {
         dao: OrgaoDaoInterface,
         api: OrgaosApiInterface = CountingApi(),
         on: String,
+        userDao: UserDaoInterface = UserOn(on),
     ) = OrgaosRepository(
         orgaosApi = api,
         orgaosDao = dao,
         votacoesApi = UnusedVotacoesApi(),
-        userDao = UserOn(on),
+        userDao = userDao,
         legislaturaDao = Legislaturas(),
         loggerInterface = SilentLogger(),
     )
@@ -115,17 +120,20 @@ class ComissaoDataInicioTest {
     private fun orgao(id: String, dataInicio: String?) =
         Orgao(id = id, sigla = "S$id", nome = "Comissao $id", nomeResumido = "C$id", dataInicio = dataInicio)
 
+    /** Backed by a state flow so a write reaches an open reader, the way the table does. */
     private class FakeOrgaoDao(vararg rows: Orgao) : OrgaoDaoInterface {
-        private val rows = rows.toMutableList()
+        private val rows = MutableStateFlow(rows.toList())
 
         override suspend fun insertOrgaos(orgaos: List<Orgao>) = Unit
-        override suspend fun getOrgaosFromIds(siglaIds: List<String>) = rows.filter { it.id in siglaIds }
-        override suspend fun getOrgaos(): List<Orgao> = rows.toList()
-        override suspend fun countWithoutDataInicio(): Long = rows.count { it.dataInicio == null }.toLong()
+        override suspend fun getOrgaosFromIds(siglaIds: List<String>) = rows.value.filter { it.id in siglaIds }
+        override suspend fun getOrgaos(): List<Orgao> = rows.value
+        override suspend fun countWithoutDataInicio(): Long = rows.value.count { it.dataInicio == null }.toLong()
+
+        override fun observeOrgaosFromIds(siglaIds: List<String>): Flow<List<Orgao>> =
+            rows.map { all -> all.filter { it.id in siglaIds } }
 
         override suspend fun setDataInicio(id: String, dataInicio: String) {
-            val index = rows.indexOfFirst { it.id == id }
-            if (index >= 0) rows[index] = rows[index].copy(dataInicio = dataInicio)
+            rows.value = rows.value.map { if (it.id == id) it.copy(dataInicio = dataInicio) else it }
         }
     }
 
@@ -141,10 +149,15 @@ class ComissaoDataInicioTest {
         }
     }
 
-    private class UserOn(private val legislaturaId: String) : UserDaoInterface {
+    private class UserOn(legislaturaId: String) : UserDaoInterface {
+        private val user = MutableStateFlow(User(0, legislaturaId))
+
         override fun setupInitialUser() = Unit
-        override fun getUser(): Flow<User?> = flowOf(User(0, legislaturaId))
-        override fun setUserLegislatura(legislaturaId: String) = Unit
+        override fun getUser(): Flow<User?> = user
+
+        override fun setUserLegislatura(legislaturaId: String) {
+            user.value = User(0, legislaturaId)
+        }
     }
 
     private class Legislaturas : LegislaturaDaoInterface {
@@ -171,5 +184,44 @@ class ComissaoDataInicioTest {
         override fun i(message: String, tag: String?) = Unit
         override fun w(message: String, tag: String?) = Unit
         override fun e(message: String, throwable: Throwable?, tag: String?) = Unit
+    }
+
+    @Test
+    fun the_list_follows_the_term_instead_of_freezing_on_the_first_read() = runTest {
+        val user = UserOn("57")
+        val dao = FakeOrgaoDao(
+            orgao(firstTwo[0], dataInicio = "2011-03-02"),
+            orgao(firstTwo[1], dataInicio = "2023-02-15"),
+        )
+        val repository = repository(dao = dao, on = "57", userDao = user)
+
+        val seen = mutableListOf<Int>()
+        val job = launch { repository.getComissoesPermanentes().collect { seen += it.size } }
+        runCurrent()
+
+        user.setUserLegislatura("56")
+        runCurrent()
+        job.cancel()
+
+        // Two emissions, not one: this read used to happen once and hold that answer for the
+        // life of the ViewModel, so switching terms changed nothing on screen.
+        assertEquals(listOf(2, 1), seen)
+    }
+
+    @Test
+    fun a_date_arriving_later_reaches_a_reader_that_is_already_open() = runTest {
+        val dao = FakeOrgaoDao(orgao(firstTwo[0], dataInicio = null))
+        val repository = repository(dao = dao, on = "56")
+
+        val seen = mutableListOf<Int>()
+        val job = launch { repository.getComissoesPermanentes().collect { seen += it.size } }
+        runCurrent()
+
+        // What the thirty requests do when they come back.
+        dao.setDataInicio(firstTwo[0], "2023-02-15")
+        runCurrent()
+        job.cancel()
+
+        assertEquals(listOf(1, 0), seen)
     }
 }

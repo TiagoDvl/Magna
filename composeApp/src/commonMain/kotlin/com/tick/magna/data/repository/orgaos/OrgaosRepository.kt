@@ -16,12 +16,16 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class OrgaosRepository(
     private val orgaosApi: OrgaosApiInterface,
     private val orgaosDao: OrgaoDaoInterface,
@@ -96,26 +100,29 @@ internal class OrgaosRepository(
      * A committee with no stored date is kept. Not knowing when something started is not
      * evidence that it had not.
      */
-    override fun getComissoesPermanentes(): Flow<List<Orgao>> = flow {
+    override fun getComissoesPermanentes(): Flow<List<Orgao>> {
         val ids = MagnaComissaoPermanente.entries.map { it.idOrgao }
-        val endOfTerm = endOfSelectedLegislatura()
 
-        val orgaos = orgaosDao.getOrgaosFromIds(ids)
-            .filter { orgao -> existedDuring(orgao.dataInicio, endOfTerm) }
-            .map { it.toDomain() }
+        // Reacts to two things, and used to react to neither. It re-runs when the term
+        // changes, like the deputado and partido lists do, and it re-emits when a row
+        // changes, which is what carries a dataInicio that only arrives after the request
+        // for it comes back. As a one-shot flow this read happened once per screen and the
+        // answer was frozen for the life of the ViewModel.
+        return userDao.getUser().flatMapLatest { user ->
+            val endOfTerm = user?.legislaturaId?.let { legislaturaDao.getLegislaturaById(it)?.endDate }
 
-        loggerInterface.d("getComissoesPermanentes: ${orgaos.size} orgaos", TAG)
-        emit(orgaos)
+            orgaosDao.observeOrgaosFromIds(ids).map { orgaos ->
+                orgaos
+                    .filter { orgao -> existedDuring(orgao.dataInicio, endOfTerm) }
+                    .map { it.toDomain() }
+                    .also { loggerInterface.d("getComissoesPermanentes: ${it.size} orgaos", TAG) }
+            }
+        }
     }
 
     private fun existedDuring(dataInicio: String?, endOfTerm: String?): Boolean {
         if (dataInicio == null || endOfTerm == null) return true
         return dataInicio.take(DATE_LENGTH) <= endOfTerm.take(DATE_LENGTH)
-    }
-
-    private suspend fun endOfSelectedLegislatura(): String? {
-        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return null
-        return legislaturaDao.getLegislaturaById(legislaturaId)?.endDate
     }
 
     /**

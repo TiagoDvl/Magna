@@ -1,8 +1,11 @@
 package com.tick.magna.data.source.local.dao
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import com.tick.magna.Orgao
 import com.tick.magna.OrgaoQueries
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import kotlinx.coroutines.flow.Flow
 
 class OrgaoDao(
     private val orgaoQueries: OrgaoQueries,
@@ -19,6 +22,13 @@ class OrgaoDao(
 
     override suspend fun getOrgaosFromIds(siglaIds: List<String>): List<Orgao> {
         return orgaoQueries.selectOrgaosByIds(siglaIds).executeAsList()
+    }
+
+    override fun observeOrgaosFromIds(siglaIds: List<String>): Flow<List<Orgao>> {
+        return orgaoQueries
+            .selectOrgaosByIds(siglaIds)
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
     }
 
     override suspend fun getOrgaos(): List<Orgao> {
