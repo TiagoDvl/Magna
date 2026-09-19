@@ -32,6 +32,8 @@ import com.tick.magna.features.comissoes.permanentes.list.ComissoesListScreen
 import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.partidos.list.PartidosListScreen
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
+import com.tick.magna.features.proposicoes.list.ProposicoesListArgs
+import com.tick.magna.features.proposicoes.list.ProposicoesListScreen
 import com.tick.magna.features.votacoes.detail.VotacaoDetailArgs
 import com.tick.magna.features.votacoes.detail.VotacaoDetailScreen
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsScreen
@@ -116,6 +118,10 @@ fun App() {
 
                 composable<VotacaoDetailArgs> {
                     VotacaoDetailScreen(navController = navController)
+                }
+
+                composable<ProposicoesListArgs> {
+                    ProposicoesListScreen(navController = navController)
                 }
 
                 composable<ProposicaoDetailsArgs> {

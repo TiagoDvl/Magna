@@ -20,8 +20,10 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
         siglaTipo: String?,
         dataApresentacaoInicio: String,
         dataApresentacaoFim: String,
+        itens: Int,
     ): ProposicoesResponse {
         return httpClient.get("proposicoes") {
+            parameter("itens", itens)
             // Not dataInicio/dataFim: those filter by tramitação, and asking them for late
             // 2018 returns propositions filed in 1991. These two filter by filing date, which
             // is what a legislatura window means here. The endpoint refuses idLegislatura

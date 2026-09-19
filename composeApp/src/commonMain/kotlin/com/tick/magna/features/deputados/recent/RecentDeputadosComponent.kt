@@ -150,6 +150,7 @@ private fun RecentDeputados(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             MagnaSectionHeader(
+                modifier = Modifier.weight(1f),
                 title = stringResource(Res.string.recent_deputados_title),
                 area = MagnaArea.DEPUTADOS,
             )

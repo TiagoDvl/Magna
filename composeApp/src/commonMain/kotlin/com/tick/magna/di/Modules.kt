@@ -96,6 +96,7 @@ import com.tick.magna.features.partidos.details.PartidoDetailsViewModel
 import com.tick.magna.features.partidos.list.PartidosListViewModel
 import com.tick.magna.features.proposicoes.component.RecentProposicoesViewModel
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsViewModel
+import com.tick.magna.features.proposicoes.list.ProposicoesListViewModel
 import com.tick.magna.features.votacoes.detail.VotacaoDetailViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -189,6 +190,7 @@ val viewModelModule = module {
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> VotacaoDetailViewModel(handle, get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get(), get()) }
+    viewModel { ProposicoesListViewModel(get(), get(), get(), get()) }
     viewModel { ComissoesPermanentesViewModel(get(), get(), get()) }
     viewModel { ComissoesListViewModel(get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> ComissaoPermanenteDetailViewModel(handle, get(), get(), get(), get()) }

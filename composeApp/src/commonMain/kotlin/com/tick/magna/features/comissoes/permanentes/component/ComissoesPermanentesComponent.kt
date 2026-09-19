@@ -59,6 +59,7 @@ fun ComissoesPermanentesComponent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             MagnaSectionHeader(
+                modifier = Modifier.weight(1f),
                 title = stringResource(Res.string.comissoes_permanentes_section_title),
                 area = MagnaArea.COMISSOES,
             )

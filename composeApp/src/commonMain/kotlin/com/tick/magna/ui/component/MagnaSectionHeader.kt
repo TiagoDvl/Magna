@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.accent
@@ -51,7 +52,12 @@ fun MagnaSectionHeader(
         )
 
         Text(
+            // Takes the room that is left rather than all of it: in a Row with a "Ver todas"
+            // beside it, a long title used to push the button into wrapping onto two lines.
+            modifier = Modifier.weight(1f, fill = false),
             text = title,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             style = typography.titleLarge.copy(
                 color = area.accent,
                 fontWeight = FontWeight.Bold,

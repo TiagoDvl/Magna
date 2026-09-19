@@ -13,12 +13,21 @@ CREATE TABLE Proposicao (
 insertProposicao:
 INSERT OR REPLACE INTO Proposicao VALUES ?;
 
+-- Every type mixed, most recent first.
+--
+-- The Home used to ask for one type at a time, and that turned out to be the section's whole
+-- problem: measured over the window it covers, PEC has 1 proposicao, MPV 24 and PLP 62, while
+-- PL alone has 2074 and was not one of the three. Opening on PEC meant opening on a list of
+-- one, and switching tabs meant re-entering loading to find out.
+--
+-- The limit is a parameter because five was written into this file, and a screen that wants
+-- twenty should not need a second query to get it.
 getProposicoes:
 SELECT * FROM Proposicao
 WHERE legislaturaId = :legislaturaId
-ORDER BY dataApresentacao DESC LIMIT 5;
+ORDER BY dataApresentacao DESC LIMIT :limite;
 
 getProposicoesByCodTipo:
 SELECT * FROM Proposicao
 WHERE legislaturaId = :legislaturaId AND codTipo = :codTipo
-ORDER BY dataApresentacao DESC LIMIT 5;
+ORDER BY dataApresentacao DESC LIMIT :limite;

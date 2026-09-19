@@ -14,7 +14,13 @@ interface ProposicoesApiInterface {
         siglaTipo: String?,
         dataApresentacaoInicio: String,
         dataApresentacaoFim: String,
+        itens: Int = DEFAULT_ITENS,
     ): ProposicoesResponse
+
+    companion object {
+        /** Enough to fill the Home and the list screen without a second page. */
+        const val DEFAULT_ITENS = 20
+    }
 
     suspend fun getProposicaoDetail(idProposicao: String): ProposicaoDetailResponse
 

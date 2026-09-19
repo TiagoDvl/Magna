@@ -126,8 +126,15 @@ Removidos dos 13 pontos onde estavam. Eles renderizam diferente em cada aparelho
 - `MagnaSection` — regra de separação entre seções
 - Aplicar `MagnaScreen` nas telas que faltam: Home, busca, detalhe do deputado (usa `BottomSheetScaffold`) e detalhe do partido
 - Transições de navegação: o `NavHost` usa o padrão, e não há nenhuma
-- O buraco vertical na Home entre a seção de proposições e a de comissões: é altura reservada, não cor
 - Aplicar o inventário do §14.2, tela por tela
+
+## Regra de seção
+
+Título por `MagnaSectionHeader`, com o ícone da área. Quando a seção tem um "Ver todas", o cabeçalho leva `Modifier.weight(1f)` no Row externo: sem isso um título longo empurra o botão para duas linhas.
+
+**Seção nunca reserva altura.** A de proposições usava `Box(height = 380.dp)` para caber cinco cards; o filtro padrão tinha **uma** proposição na janela, então a Home abria com um card e 250 dp de nada. Altura fixa é aposta sobre quantos itens existem, e a Câmara não coopera: na mesma janela de três meses PEC teve 1, MPV 24, PLP 62 e PL 2074.
+
+**Quando o número varia assim, ele vai para a tela.** A seção diz quantas existem contra as cinco que mostra. Lista de cinco sem número ao lado parece a mesma coisa sendo tudo o que há ou um vigésimo de um por cento.
 
 ## O teste de que o bloco funcionou
 

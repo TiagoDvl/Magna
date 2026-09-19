@@ -20,17 +20,19 @@ class ProposicaoDao(
         }
     }
 
-    override fun getProposicoes(legislaturaId: String, siglaTipo: String): Flow<List<Proposicao>> {
-        return if (siglaTipo.isNotEmpty()) {
-            proposicaoQueries
-                .getProposicoesByCodTipo(legislaturaId, siglaTipo)
-                .asFlow()
-                .mapToList(dispatcherInterface.io)
-        } else {
-            proposicaoQueries
-                .getProposicoes(legislaturaId)
-                .asFlow()
-                .mapToList(dispatcherInterface.io)
-        }
+    override fun getProposicoes(
+        legislaturaId: String,
+        siglaTipo: String,
+        limite: Long,
+    ): Flow<List<Proposicao>> {
+        return proposicaoQueries.getProposicoesByCodTipo(legislaturaId, siglaTipo, limite)
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
+    }
+
+    override fun getProposicoes(legislaturaId: String, limite: Long): Flow<List<Proposicao>> {
+        return proposicaoQueries.getProposicoes(legislaturaId, limite)
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
     }
 }

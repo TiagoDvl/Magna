@@ -5,6 +5,8 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Proposicao
 import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.domain.ProposicoesNaJanela
+import com.tick.magna.data.source.remote.response.totalFromLastPage
 import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.cachedList
 import com.tick.magna.data.repository.networkResource
@@ -66,21 +68,61 @@ internal class ProposicoesRepository(
      * cache is keyed by legislatura now, so the previous term's rows stop leaking into the
      * next one's Home.
      */
-    override fun observeRecentProposicoes(siglaTipo: String?): Flow<Resource<List<Proposicao>>> {
+    override fun observeRecentProposicoes(limite: Int): Flow<Resource<List<Proposicao>>> {
         return userDao.getUser().flatMapLatest { user ->
             val legislaturaId = user?.legislaturaId
                 ?: return@flatMapLatest flowOf(Resource.Content(emptyList()))
 
-            recentProposicoes(legislaturaId, siglaTipo)
+            recentProposicoes(legislaturaId, siglaTipo = null, limite = limite)
+        }
+    }
+
+    override fun observeProposicoes(siglaTipo: String, limite: Int): Flow<Resource<List<Proposicao>>> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId
+                ?: return@flatMapLatest flowOf(Resource.Content(emptyList()))
+
+            recentProposicoes(legislaturaId, siglaTipo = siglaTipo, limite = limite)
+        }
+    }
+
+    override suspend fun contarNaJanela(siglaTipo: String?): ProposicoesNaJanela? {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return null
+        val window = window(legislaturaId) ?: return null
+
+        return try {
+            val response = proposicoesApi.getProposicoes(
+                siglaTipo = siglaTipo,
+                dataApresentacaoInicio = window.start,
+                dataApresentacaoFim = window.end,
+                itens = 1,
+            )
+
+            // No `last` link means everything fitted in the single record asked for.
+            val total = response.links.totalFromLastPage() ?: response.dados.size
+            ProposicoesNaJanela(total = total, meses = WINDOW_MONTHS)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            // The list is still worth showing without the number beside it.
+            loggerInterface.w("contarNaJanela: falhou para siglaTipo=$siglaTipo", TAG)
+            null
         }
     }
 
     private fun recentProposicoes(
         legislaturaId: String,
         siglaTipo: String?,
+        limite: Int,
     ): Flow<Resource<List<Proposicao>>> {
+        val cache = if (siglaTipo == null) {
+            proposicoesDao.getProposicoes(legislaturaId, limite.toLong())
+        } else {
+            proposicoesDao.getProposicoes(legislaturaId, siglaTipo, limite.toLong())
+        }
+
         return cachedList(
-            cache = proposicoesDao.getProposicoes(legislaturaId, siglaTipo.orEmpty()).map { proposicoes ->
+            cache = cache.map { proposicoes ->
                 proposicoes.map { proposicao ->
                     val autores = proposicao.autores
                         ?.split(AUTHOR_SEPARATOR)
@@ -193,6 +235,9 @@ internal class ProposicoesRepository(
 
     private companion object {
         const val TAG = "ProposicoesRepository"
+
+        /** The width of proposicaoWindow, said out loud so the screen can name it. */
+        const val WINDOW_MONTHS = 3
 
         /** How the author ids are packed into the single autores column. */
         const val AUTHOR_SEPARATOR = ", "

@@ -13,6 +13,7 @@ import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.PartidoDetail
 import com.tick.magna.data.domain.Proposicao
 import com.tick.magna.data.domain.ProposicaoDetail
+import com.tick.magna.data.domain.ProposicoesNaJanela
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
@@ -217,7 +218,13 @@ class SyncUserInformationUseCaseTest {
 
         val proposicoesRepository = object : ProposicoesRepositoryInterface {
             override suspend fun syncSiglaTipos() = run(SyncStep.SIGLA_TIPOS)
-            override fun observeRecentProposicoes(siglaTipo: String?): Flow<Resource<List<Proposicao>>> =
+            override fun observeRecentProposicoes(limite: Int): Flow<Resource<List<Proposicao>>> =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override fun observeProposicoes(siglaTipo: String, limite: Int): Flow<Resource<List<Proposicao>>> =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override suspend fun contarNaJanela(siglaTipo: String?): ProposicoesNaJanela? =
                 throw UnsupportedOperationException("not part of the sync")
 
             override fun getProposicaoDetail(id: String): Flow<Resource<ProposicaoDetail>> =

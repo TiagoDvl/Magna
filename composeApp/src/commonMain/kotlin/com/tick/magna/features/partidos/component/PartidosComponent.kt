@@ -89,7 +89,11 @@ private fun PartidosComponentContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MagnaSectionHeader(title = sectionTitle, area = MagnaArea.PARTIDOS)
+            MagnaSectionHeader(
+                modifier = Modifier.weight(1f),
+                title = sectionTitle,
+                area = MagnaArea.PARTIDOS,
+            )
 
             TextButton(onClick = onVerTodosClick) {
                 Text(

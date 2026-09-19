@@ -1,5 +1,14 @@
 package com.tick.magna.data.domain
 
+/**
+ * How many propositions were filed in the window, which is not how many are on the screen.
+ *
+ * The Home shows five. The window they come from had 2479 in September 2026, and the three
+ * types the section used to filter by had 1, 24 and 62 of them. Without this number a list of
+ * five looks the same whether it is all there is or a twentieth of one percent.
+ */
+data class ProposicoesNaJanela(val total: Int, val meses: Int)
+
 data class Proposicao(
     val id: String,
     val type: String,

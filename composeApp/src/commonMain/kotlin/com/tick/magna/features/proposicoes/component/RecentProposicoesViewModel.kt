@@ -8,68 +8,53 @@ import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class RecentProposicoesViewModel(
-    proposicoesRepository: ProposicoesRepositoryInterface,
-    dispatcherInterface: DispatcherInterface,
+    private val proposicoesRepository: ProposicoesRepositoryInterface,
+    private val dispatcher: DispatcherInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "RecentProposicoesViewModel"
+
+        /** What fits on the Home without the section becoming the screen. */
+        private const val HOME_LIMIT = 5
     }
 
-    private val _proposicaoFilter = MutableStateFlow(ProposicaoType.PEC)
+    private val _state = MutableStateFlow(RecentProposicoesState())
+    val state: StateFlow<RecentProposicoesState> = _state.asStateFlow()
 
-    val state: StateFlow<RecentProposicoesState> = _proposicaoFilter
-        .flatMapLatest { param ->
-            logger.d("filter → $param", TAG)
-            proposicoesRepository.observeRecentProposicoes(param.name).map { resource ->
-                RecentProposicoesState(
-                    isLoading = resource is Resource.Loading,
-                    isError = resource is Resource.Error,
-                    proposicoes = (resource as? Resource.Content)?.data.orEmpty(),
-                    selectedProposicao = param
-                )
+    init {
+        // The list and the count are two different questions and arrive separately. The list
+        // is cached and usually instant; the count is one tiny request and may never arrive,
+        // in which case the section shows the list with no number beside it.
+        viewModelScope.launch(dispatcher.io) {
+            proposicoesRepository.observeRecentProposicoes(HOME_LIMIT).collect { resource ->
+                _state.update { current ->
+                    current.copy(
+                        isLoading = resource is Resource.Loading,
+                        isError = resource is Resource.Error,
+                        proposicoes = (resource as? Resource.Content)?.data.orEmpty(),
+                    )
+                }
             }
         }
-        .flowOn(dispatcherInterface.io)
-        .stateIn(
-            viewModelScope,
-            SharingStarted.Lazily,
-            RecentProposicoesState()
-        )
+
+        viewModelScope.launch(dispatcher.io) {
+            val janela = proposicoesRepository.contarNaJanela()
+            logger.d("contarNaJanela: $janela", TAG)
+            _state.update { it.copy(janela = janela) }
+        }
+    }
 
     fun onProposicaoOpened() {
         analytics.track(AnalyticsEvent.ProposicaoOpened)
     }
-
-    fun processAction(action: Action) {
-        logger.d("processAction: $action", TAG)
-        when (action) {
-            is Action.ChooseFilter -> updateFilter(action.proposicao)
-        }
-    }
-
-    fun updateFilter(proposicao: ProposicaoType) {
-        if (_proposicaoFilter.value != proposicao) {
-            logger.d("updateFilter → $proposicao", TAG)
-            analytics.track(AnalyticsEvent.ProposicaoFilterChanged(proposicao.name))
-            _proposicaoFilter.value = proposicao
-        }
-    }
-}
-
-sealed interface Action {
-    data class ChooseFilter(val proposicao: ProposicaoType) : Action
 }

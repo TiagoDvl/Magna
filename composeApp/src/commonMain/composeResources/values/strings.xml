@@ -45,7 +45,6 @@
     <string name="recent_deputados_more">Ver todos</string>
     <string name="recent_deputados_find_more">Ver todos</string>
 
-    <string name="recent_proposicoes_section_title">Novas proposições</string>
     <string name="recent_proposicoes_section_filter_1">PEC</string>
     <string name="recent_proposicoes_section_filter_1_label">Propostas de Emenda à Constituição</string>
     <string name="recent_proposicoes_section_filter_2">MPV</string>
@@ -78,6 +77,13 @@
     <string name="deputado_votos_nota">Só votações nominais, dos últimos três meses. A Câmara registra voto individual em 2% do que vota.</string>
     <string name="deputado_tab_despesas">Despesas</string>
     <string name="deputado_tab_votos">Como votou</string>
+    <string name="recent_proposicoes_section_title">Apresentadas recentemente</string>
+    <string name="recent_proposicoes_janela">%1$d apresentadas nos últimos %2$d meses</string>
+    <string name="proposicoes_see_all">Ver todas</string>
+    <string name="proposicoes_list_title">Proposições</string>
+    <string name="proposicoes_filtro_todas">Todas</string>
+    <string name="proposicoes_list_empty">Nenhuma proposição deste tipo</string>
+    <string name="proposicoes_list_empty_description">Nada deste tipo foi apresentado nos últimos três meses da legislatura selecionada.</string>
     <string name="deputado_gabinete_predio">Prédio</string>
     <string name="deputado_gabinete_sala">Sala</string>
     <string name="deputado_gabinete_telefone">Telefone</string>
