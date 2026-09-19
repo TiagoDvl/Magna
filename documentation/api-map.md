@@ -134,9 +134,43 @@ Efeito colateral bom: o leque de 15 `deputados/{id}` da tela de detalhe existe p
 
 ### 4.3 [MÉDIO] As seis comissões fixas contra as 30 que a API devolve
 
-`/orgaos?codTipoOrgao=2` devolve **30 comissões permanentes**. `MagnaComissaoPermanente` (`data/repository/orgaos/params/`) fixa seis `idOrgao` na mão, com um comentário que diz de onde vieram.
+`/orgaos?codTipoOrgao=2` devolve **30 comissões permanentes**. `MagnaComissaoPermanente` (`data/repository/orgaos/params/`) fixa seis `idOrgao` na mão.
 
-Se a curadoria é decisão de produto, ela deveria estar declarada como tal (e fora de `data/`, ver item 4.6 do plano). Se é acidente de implementação, o app está escondendo 24 comissões. Hoje o código não deixa claro qual das duas.
+**A curadoria é decisão de produto, e é deliberada:** as seis foram escolhidas por serem reconhecíveis pelo nome e por serem, à época, as que tinham mais votações — o objetivo era não encher a tela de comissão vazia. O problema não é a decisão; é ela estar codificada como se fosse dado, dentro de `data/`, sem o critério escrito em lugar nenhum (ver também o item 4.6 do plano).
+
+O critério foi medido em 2026-09-19, contando votações por órgão via `/votacoes?idOrgao={id}&itens=1` e lendo o total no link `rel="last"`:
+
+| Comissão | Votações | Está no app? |
+|---|---|---|
+| CCJC — Constituição e Justiça | **410** | sim |
+| CCOM — Comunicação | **271** | sim |
+| CSPCCO — Segurança Pública | **83** | sim |
+| CPOVOS — Amazônia e Povos Originários | 45 | não |
+| CSAUDE — Saúde | 42 | sim |
+| CCULT — Cultura | 38 | não |
+| CVT — Viação e Transportes | 37 | não |
+| CE — Educação | 35 | não |
+| CPD — Pessoas com Deficiência | 33 | não |
+| CFT — Finanças e Tributação | 32 | não |
+| CREDN — Relações Exteriores | 32 | não |
+| CCTI — Ciência, Tecnologia e Inovação | 16 | **sim** |
+| CAPADR — Agricultura | 7 | **sim** |
+| … | … | … |
+| CASP — Administração e Serviço Público | **0** | não |
+
+A intuição original acertou o topo: as três primeiras do app são as três primeiras da lista. As duas últimas envelheceram — **CCTI (16) e CAPADR (7) hoje estão atrás de oito comissões que o app não mostra**, entre elas CPOVOS (45) e CCULT (38).
+
+E o medo que motivou a curadoria é real e mensurável: CASP tem **zero** votações, e várias outras ficam abaixo de dez.
+
+A conclusão não é "mostrar as 30". É que **o critério pode ser dado em vez de constante**: ordenar por atividade e cortar por limiar mantém a intenção de produto e para de congelar um retrato de 2023 dentro do código.
+
+(Contagem de toda a série disponível, não só da legislatura 57 — é o que explica a distância da CCJC.)
+
+### 4.3.1 [ALTO] Comissão sem votação carrega para sempre
+
+`ComissaoPermanenteDetailScreen.kt:73` usa `if (state.votacoes.isEmpty())` para decidir mostrar `LoadingComponent`. Não existe estado de lista vazia: uma comissão sem votação nenhuma fica girando indefinidamente.
+
+Hoje isso não aparece porque as seis fixas todas têm votação. **Qualquer mexida na curadoria expõe o bug na hora** — CASP tem zero. É o mesmo erro do item 5.1 do plano, e o componente de estado vazio que o bloco 9 vai criar é o que resolve.
 
 ### 4.4 [MÉDIO] 31 requisições para 15 proposições
 
@@ -154,14 +188,65 @@ Declarado em `ProposicoesApiInterface`, sem chamador. Ou vira feature, ou sai ju
 
 ---
 
-## 5. O que este documento ainda não cobre
+## 5. Comissões: por que a tela é sem graça, medido
+
+A tela de detalhe da comissão é a menos interessante do app, e o motivo não é de design — é de dado. Medido na CCJC (`idOrgao=2003`), que é a comissão com mais votações de todas, em 2026-09-19.
+
+### 5.1 As vinte votações dizem duas frases
+
+Buscando exatamente como o app busca (`ordenarPor=idProposicaoObjeto`, `itens=20`) e lendo o detalhe das vinte:
+
+- **todas as vinte** têm `descricao` igual a `"Aprovado o Parecer."` ou `"Aprovada a Redação Final."`;
+- **todas as vinte** têm `aprovacao = 1`;
+- todas têm exatamente uma `proposicoesAfetadas`.
+
+A tela mostra, então, vinte cartões com uma de duas frases, todos com a mesma tarja verde, e um cabeçalho que diz `20 total · 20 aprovadas · 0 rejeitadas`. O contador é sempre o mesmo número. Não há o que comparar, ordenar ou notar — a informação não varia.
+
+Isso não é ruído de amostra: votação de parecer em comissão é aprovada na esmagadora maioria das vezes. O dado é assim.
+
+### 5.2 As vinte não são as mais recentes
+
+`ordenarPor=idProposicaoObjeto` ordena por id de proposição, não por data. A página 1 dessa ordenação devolve votações de julho a setembro de 2026 — um recorte arbitrário de um total de **410**. O repositório depois ordena o que recebeu por `dataHoraRegistro` decrescente, o que faz o resultado *parecer* "as mais recentes" sem ser.
+
+Sem `ordenarPor`, as mesmas vinte vêm todas de um único dia (2026-09-01). Nenhuma das duas opções é "as vinte últimas votações da comissão" de forma honesta, e o cabeçalho de contagem descreve esse recorte como se fosse o todo.
+
+### 5.3 O que a API tem e a tela ignora
+
+O detalhe da votação (`/votacoes/{id}`) devolve bem mais do que o app lê. `VotacaoDetailDto` mapeia cinco campos; a resposta traz:
+
+| Campo | O que é | Usado? |
+|---|---|---|
+| `ultimaApresentacaoProposicao` | **o parecer em si**: nome do relator, partido, UF e o texto do voto | **não** |
+| `proposicoesAfetadas` | a proposição votada | sim |
+| `objetosPossiveis` | o que estava em pauta naquela votação | não |
+| `efeitosRegistrados` | efeito da votação sobre a tramitação | não |
+| `idEvento` / `uriEvento` | a reunião onde aconteceu | mapeado, não exibido |
+
+`ultimaApresentacaoProposicao.descricao` é o campo que contém a frase de verdade — quem relatou e o que defendeu — enquanto `descricao` é o carimbo processual. **O app já paga as 21 requisições e joga fora justamente a parte que teria conteúdo.**
+
+E há um recurso inteiro sem uso: `GET /orgaos/{id}/membros` devolve a composição, com `titulo` e `codTitulo` (Presidente, Vice-Presidente, Titular, Suplente), `siglaPartido`, `urlFoto`, `idLegislatura` e as datas de entrada e saída de cada membro. É a ponte natural entre comissões e as telas de deputado e partido que o app já tem, e hoje ela não existe.
+
+`GET /orgaos/{id}` também não é chamado — o app acha o órgão na lista que já baixou. Ele traz `dataInstalacao`, `sala`, `urlWebsite` e as datas de funcionamento.
+
+### 5.4 Direções que essa medição sustenta
+
+Não é decisão tomada, é o que o dado permite:
+
+- **mostrar o parecer, não o carimbo** — ler `ultimaApresentacaoProposicao` e exibir relator e voto no lugar de "Aprovado o Parecer";
+- **mostrar quem compõe a comissão** — `/orgaos/{id}/membros`, com presidente em destaque e ligação para as telas de deputado e partido;
+- **escolher as votações por data**, com paginação honesta, em vez de uma página arbitrária apresentada como recente;
+- **curadoria por atividade em vez de constante** (item 4.3), lembrando que isso exige o estado vazio do item 4.3.1.
+
+---
+
+## 6. O que este documento ainda não cobre
 
 - **Ordenação padrão de cada endpoint.** Só foi verificada onde o app passa `ordenarPor` explicitamente.
 - **Comportamento de `/orgaos/{id}/membros` com datas.** Com faixa de datas ele devolve *mais* registros do que sem, o que sugere que o filtro seleciona vínculos históricos em vez de restringir. Precisa ser entendido antes de virar base do escopo de comissões.
 - **Limites de intervalo nos outros endpoints.** Só `/votacoes` foi testado até o erro; `/proposicoes` aceitou um mês e um ano sem reclamar, mas o teto não foi procurado.
 - **`/legislaturas/{id}`** individual, que provavelmente evita baixar as 57.
 
-## 6. Como refazer esta verificação
+## 7. Como refazer esta verificação
 
 O método que produziu a tabela, para quando a API mudar:
 
