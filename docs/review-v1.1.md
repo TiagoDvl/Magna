@@ -1110,22 +1110,33 @@ Duas consequências, e as duas corrompem justamente o que os blocos 1 e 4 constr
 
 Verificado no aparelho: abrir e sair em um segundo não produz mais nenhum passo reportado como falha.
 
-### 16.3 O build não roda no Windows — EM ABERTO
+### 16.3 O build não roda no Windows — CORRIGIDO
 
-`generateCommonMainMagnaDatabaseInterface` falha antes de chegar no Kotlin. A mensagem do SQLDelight (`Failed to compile 1.sqm:482: DeputadoExpense`) é embrulho; embaixo está:
+`generateCommonMainMagnaDatabaseInterface` falhava antes de chegar no Kotlin. A mensagem do SQLDelight (`Failed to compile 1.sqm:482: DeputadoExpense`) era embrulho; embaixo estava:
 
 ```
 java.nio.file.AccessDeniedException: C:\WINDOWS\sqlite-3.49.1.0-...-sqlitejdbc.dll.lck
 Caused by: java.lang.UnsatisfiedLinkError: 'void org.sqlite.core.NativeDB._open_utf8(byte[], int)'
 ```
 
-Para resolver as referências do `1.sqm`, o SQLDelight abre o `1.db` com sqlite-jdbc. O **worker process** que o Gradle lança vai com ambiente raspado — sem `TMP`, `TEMP` nem `USERPROFILE` — então o JVM cai no fallback `C:\WINDOWS` e a DLL nativa não pode ser extraída ali.
+O SQLDelight abre os `.db` com sqlite-jdbc para validar as migrações, e faz isso num **worker process** que o Gradle lança com ambiente raspado — sem `TMP`, `TEMP` nem `USERPROFILE`. O JVM cai no fallback `C:\WINDOWS` e a biblioteca nativa não pode ser extraída ali. Valia desde `eb2e2fd`, quando o `1.sqm` entrou.
 
-Descartado por medição, não por suposição: daemon reaproveitado (`--stop` e daemon novo falham igual), shell (PowerShell falha igual), `JAVA_TOOL_OPTIONS` com `org.sqlite.tmpdir` (o launcher pega, o worker não) e o próprio daemon (sondado: `java.io.tmpdir` correto). Vale desde `eb2e2fd`, quando o `1.sqm` entrou. A CI em Linux não é afetada.
+**O que a investigação acrescentou ao diagnóstico original:**
 
-**Destravamento temporário**, para compilar localmente: tirar os `.db` do diretório de migrações e reduzir o `1.sqm` ao `CREATE` sem `DROP` e sem as cláusulas `FOREIGN KEY`. Só afeta a validação da migração; o Kotlin gerado vem dos `.sq` e sai idêntico. **Um APK produzido assim carrega uma migração errada** — faria `CREATE TABLE DeputadoExpense` sem o `DROP` — e só pode ser instalado em banco zerado. Restaurar os dois arquivos logo em seguida.
+- o daemon do Gradle tem `java.io.tmpdir` correto, sondado por init script. Quem está errado é só o worker;
+- `org.gradle.jvmargs` com `-Dorg.sqlite.tmpdir` **não chega no worker** — testado, falha idêntica. Junta-se ao `JAVA_TOOL_OPTIONS` que já havia sido descartado;
+- o `SqlDelightWorkerTask` usa `processIsolation` e monta as `forkOptions` por conta própria, passando só o classpath. **Não há knob externo** para injetar argumento de JVM no worker;
+- **a conexão sqlite é aberta só pela verificação, não pela geração.** Com `verifyMigrations = false` o `generateCommonMainMagnaDatabaseInterface` passa com os `.db` e o `1.sqm` intactos.
 
-**Correção de verdade, a decidir:** `deriveSchemaFromMigrations = true` com um `0.sqm` carregando o schema original. As migrações viram a fonte da verdade e o codegen para de precisar abrir `.db`. É mudança estrutural: os `CREATE TABLE` sairiam dos `.sq`, que passariam a conter apenas queries.
+**A correção aplicada** é esse último ponto: `verifyMigrations` passa a ser `!isWindows` em `composeApp/build.gradle.kts`. A CI roda em Linux, então a verificação continua acontecendo antes de qualquer coisa ser publicada; no Windows ela é pulada e o build anda.
+
+Junto vai uma segunda linha: a task avulsa `verifyCommonMainMagnaDatabaseMigration` **ignora a flag** e abre a mesma conexão, então quebrava mesmo com ela desligada. Ela é desabilitada no Windows, porque nada depende dela (`check` não a inclui) e deixar uma task que quebra ao ser chamada pelo nome é armadilha.
+
+Verificado depois da mudança, com `1.sqm` e os dois `.db` no lugar: `:composeApp:jvmTest` e `:androidApp:testDebugUnitTest` passam, **74 testes, 0 falhas**.
+
+**O que isso custa, explicitamente:** uma migração escrita no Windows não é validada localmente — o erro aparece na CI, não na máquina de quem escreveu. É trabalho a mais no ciclo, e é muito melhor que o estado anterior, onde o projeto simplesmente não compilava. O destravamento temporário que existia antes (mutilar o `1.sqm`) **não é mais necessário e não deve ser usado** — ele produzia APK com migração errada.
+
+**Correção estrutural, se um dia a validação local fizer falta:** `deriveSchemaFromMigrations = true` com um `0.sqm` carregando o schema original. As migrações viram a fonte da verdade e nada precisa abrir `.db`. Continua sendo mudança grande: os `CREATE TABLE` sairiam dos `.sq`, que passariam a conter apenas queries.
 
 ### 16.4 O que continua sem verificação
 

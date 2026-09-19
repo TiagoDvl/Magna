@@ -11,6 +11,8 @@ plugins {
     alias(libs.plugins.sqldelight)
 }
 
+val isWindows = System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
+
 kotlin {
     androidLibrary {
         namespace = "com.tick.magna"
@@ -103,9 +105,23 @@ sqldelight {
             srcDirs.setFrom("src/commonMain/sqldelight")
             dialect(libs.sqldelight.dialect)
             schemaOutputDirectory.set(file("src/commonMain/sqldelight/migrations"))
-            verifyMigrations.set(true)
+            // Verification opens the .db schema files with sqlite-jdbc, and SQLDelight does that
+            // in a forked worker that Gradle starts without TMP or TEMP. On Windows the JVM then
+            // falls back to C:\WINDOWS and the native library cannot be extracted there, so the
+            // whole build fails before reaching Kotlin. Generating the interfaces needs no
+            // connection, only verification does. CI runs on Linux, so migrations are still
+            // verified before anything ships — a migration written here is verified when pushed.
+            verifyMigrations.set(!isWindows)
         }
     }
+}
+
+// The standalone verify task ignores the flag above and opens the same connection, so invoking it
+// on Windows fails even though nothing depends on it. Disable it there rather than leave a task
+// that crashes when someone runs it by name.
+if (isWindows) {
+    tasks.matching { it.name.startsWith("verify") && it.name.endsWith("MagnaDatabaseMigration") }
+        .configureEach { enabled = false }
 }
 
 
