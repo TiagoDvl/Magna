@@ -112,7 +112,15 @@ O link `rel="last"` de cada resposta carrega o número da última página. É a 
 
 ### 3.5 `Accept-Charset` derruba tudo com 403
 
-Já registrado no plano (seção 14.1) e corrigido em `3897905`, mas pertence a este documento: o gateway responde **403 em qualquer requisição** que carregue o header `Accept-Charset`, com qualquer valor. O Ktor instala `HttpPlainText` por padrão e o carimba sozinho; a remoção tem que acontecer no send pipeline.
+Já registrado no plano (seção 16.1) e corrigido em `3897905`, mas pertence a este documento: o gateway responde **403 em qualquer requisição** que carregue o header `Accept-Charset`, com qualquer valor. O Ktor instala `HttpPlainText` por padrão e o carimba sozinho; a remoção tem que acontecer no send pipeline.
+
+### 3.6 Voto nominal: a relação só existe num sentido, e `itens` a esconde
+
+`GET /deputados/{id}/votos` e `GET /deputados/{id}/votacoes` devolvem **405**. Não existe caminho deputado → votos. O único acesso é `GET /votacoes/{id}/votos`.
+
+E esse endpoint **recusa `itens` com HTTP 400**. Sem parâmetro nenhum ele devolve todos os votos de uma vez, sem paginação (`links` só traz `self`). Quem tenta paginar leva erro ou lista vazia e conclui que não há voto nominal registrado — é a armadilha mais cara do mapa inteiro.
+
+Vale saber a proporção antes de desenhar em cima: em 2026, de **7.360 votações, só 152 têm voto nominal** (2%), concentradas em 44 dias do ano. Detalhes e a estratégia de sincronização estão no bloco 10 do plano (seção 13).
 
 ---
 
@@ -250,14 +258,31 @@ Não é decisão tomada, é o que o dado permite:
 
 ---
 
-## 6. O que este documento ainda não cobre
+## 6. Fora da API: os arquivos anuais
+
+O portal publica arquivos por ano em `dadosabertos.camara.leg.br/arquivos/{recurso}/{formato}/{recurso}-{ano}.{formato}`, e eles têm dado que a API não expõe.
+
+- **`votacoesVotos-{ano}.csv`** é a relação voto → deputado que falta na API: `idVotacao;dataHoraVoto;voto;deputado_id;…`. 2026 até setembro tem 51.832 linhas e 16,4 MB; a legislatura 57 inteira daria ~150 MB em CSV e ~277 MB em JSON.
+- **`votacoes-{ano}.csv`** traz `votosSim`/`votosNao`/`votosOutros`, colunas que **a API não devolve nem na listagem nem no detalhe**.
+
+Três propriedades que mudam como usá-los:
+
+- **são regerados toda madrugada**, não são estáticos — o arquivo de 2025 e o de 2026 tinham o mesmo `Last-Modified` da manhã do dia da verificação. O dado atrasa até ~24h;
+- **não há compressão**: `Accept-Encoding: gzip` devolve os mesmos bytes, então o `content-length` é a transferência real. Um `HEAD` diz o peso antes de baixar;
+- **`Range` é aceito mas inútil**: o arquivo não está em ordem cronológica, então não dá para baixar só o que é novo.
+
+Usar CSV e não JSON: mesma informação, quase metade do peso.
+
+---
+
+## 7. O que este documento ainda não cobre
 
 - **Ordenação padrão de cada endpoint.** Só foi verificada onde o app passa `ordenarPor` explicitamente.
 - **Comportamento de `/orgaos/{id}/membros` com datas.** Com faixa de datas ele devolve *mais* registros do que sem, o que sugere que o filtro seleciona vínculos históricos em vez de restringir. Precisa ser entendido antes de virar base do escopo de comissões.
 - **Limites de intervalo nos outros endpoints.** Só `/votacoes` foi testado até o erro; `/proposicoes` aceitou um mês e um ano sem reclamar, mas o teto não foi procurado.
 - **`/legislaturas/{id}`** individual, que provavelmente evita baixar as 57.
 
-## 7. Como refazer esta verificação
+## 8. Como refazer esta verificação
 
 O método que produziu a tabela, para quando a API mudar:
 

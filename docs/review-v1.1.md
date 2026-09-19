@@ -27,7 +27,7 @@ Duas ressalvas concretas, porque "largar iOS e Desktop" tem um limite técnico:
 - **O alvo `jvm()` não pode sair do Gradle.** O job de teste da CI roda `./gradlew :composeApp:jvmTest` (`.github/workflows/android-release.yml:27`), e é ele que executa `commonTest`. O que está descontinuado é o *app* desktop (`composeApp/src/jvmMain/kotlin/com/tick/magna/main.kt`, alvo `:composeApp:run`), não o alvo de compilação JVM. Tirar `jvm()` do `composeApp/build.gradle.kts` derruba a suíte inteira.
 - **`iosArm64()`, `iosSimulatorArm64()` e `iosMain` ficam onde estão.** Remover dá trabalho, não dá ganho nenhum na Play Store e fecha a porta à toa. Eles simplesmente não são compilados nem verificados, e podem quebrar sem que isso bloqueie nada.
 
-Consequência direta no item 15.4: dos dois pendentes de verificação, só o **build de release com R8 continua obrigatório** — é o binário que vai para a loja. iOS deixa de ser pendência e passa a ser não-objetivo declarado.
+Consequência direta no item 16.4: dos dois pendentes de verificação, só o **build de release com R8 continua obrigatório** — é o binário que vai para a loja. iOS deixa de ser pendência e passa a ser não-objetivo declarado.
 
 ---
 
@@ -364,7 +364,7 @@ Regras: nomes `snake_case`, até 25 parâmetros, nunca texto livre (o termo de b
 
 **Validação:** `adb shell setprop debug.firebase.analytics.app com.tick.magna` e olhar o DebugView no console. Eventos custom aparecem em relatórios em até 24h.
 
-**Play Console:** ao publicar a 1.1, o formulário Data Safety precisa ser atualizado. Isso é o último bloco do plano — ver seção 14.
+**Play Console:** ao publicar a 1.1, o formulário Data Safety precisa ser atualizado. Isso é o último bloco do plano — ver seção 15.
 
 ### 8.3 Perguntas que essa instrumentação responde
 
@@ -460,8 +460,9 @@ Cada bloco cabe numa sessão isolada e foi pensado para não conflitar com o out
 | 7 | Revisão do modelo de dados e das APIs; `documentation/api-map.md`. Ver seção 10 | leitura de `source/remote/api/**`, `repository/**`, `sqldelight/**`; nenhum código de feature | nenhum |
 | 8 | Legislatura selecionável e persistida; escopo de dados por legislatura. Ver seção 11 | `User.sq`, `UserDao.kt`, `LegislaturasApi`, repositórios, Home, `AnalyticsEvent.kt` | 0, 1, 2, 7 |
 | 9 | Comissões com conteúdo: composição, presidência, relator da votação, curadoria por atividade. Ver seção 12 | `OrgaosApi.kt`, `VotacoesApi.kt`, `VotacaoDetailDto`, `OrgaosRepository.kt`, `Orgao.sq`, telas de comissão | 7, 8 |
-| 10 | Passada de design em todas as telas a partir de uma tela de referência; `documentation/design-system.md`. Ver seção 13 | `ui/core/theme/**`, `ui/component/**`, `features/**/*Screen.kt`, `App.kt` | 9 |
-| 11 | **Último bloco, já com tudo pronto para publicar:** Data Safety, política de privacidade, `whatsnew`, bump de versão. Ver seção 14 | Play Console, `distribution/whatsnew/`, `androidApp/build.gradle.kts` | todos |
+| 10 | Votos do deputado: arquivo anual do ano corrente sob permissão, validade explícita, incremental pela API. Ver seção 13 | tabela nova de voto + migração, parser de CSV, download com progresso, `VotacoesApi.kt`, tela do deputado | 7, 8 |
+| 11 | Passada de design em todas as telas a partir de uma tela de referência; `documentation/design-system.md`. Ver seção 14 | `ui/core/theme/**`, `ui/component/**`, `features/**/*Screen.kt`, `App.kt` | 10 |
+| 12 | **Último bloco, já com tudo pronto para publicar:** Data Safety, política de privacidade, `whatsnew`, bump de versão. Ver seção 15 | Play Console, `distribution/whatsnew/`, `androidApp/build.gradle.kts` | todos |
 
 Blocos 0, 1 e 2 são os únicos que eu não deixaria para depois da feature: 0 porque sem ele a 1.1 crasha na atualização, 1 porque sem ele a 1.1 sai sem dado nenhum, e 2 porque é o bug visível para quem usa hoje.
 
@@ -469,9 +470,11 @@ O bloco 7 é novo e não entrega feature nenhuma: ele mapeia o que cada endpoint
 
 O bloco 9 é a única feature de produto da 1.1 que não é a legislatura. Ele existe porque o mapa do bloco 7 mostrou que a tela de comissão tem conteúdo disponível e não usado — inclusive dado que o app já baixa e descarta. Depende do 8 porque composição de comissão é escopada por legislatura.
 
-O bloco 10 vem depois do 9 de propósito: as telas novas — seletor de legislatura e comissões — têm que entrar na mesma passada de design, senão nascem fora do padrão que o bloco acabou de estabelecer.
+O bloco 10 é a feature que o app sempre quis e nunca conseguiu: os votos de cada deputado. O mapa do bloco 7 mostrou por que a tentativa anterior não tinha como dar certo, e onde o dado realmente está.
 
-O bloco 11 é o único que tem que ser literalmente o último: ele descreve o app como ele ficou, então só faz sentido quando o resto parou de mudar — incluindo a aparência, de onde saem as capturas da loja.
+O bloco 11 vem depois do 10 de propósito: as telas novas — seletor de legislatura, comissões e votos — têm que entrar na mesma passada de design, senão nascem fora do padrão que o bloco acabou de estabelecer.
+
+O bloco 12 é o único que tem que ser literalmente o último: ele descreve o app como ele ficou, então só faz sentido quando o resto parou de mudar — incluindo a aparência, de onde saem as capturas da loja.
 
 ---
 
@@ -481,7 +484,7 @@ Este bloco não entrega feature. Ele existe porque o bloco 8 (legislatura seleci
 
 O diagnóstico que originou o bloco é honesto e vale registrar: partes do app foram modeladas de forma mais complicada do que precisavam, porque as relações entre entidades da API são difíceis de manter na cabeça no meio de tantos ids e formas de query diferentes. A resposta para isso não é mais um refactor às cegas — é escrever o mapa uma vez e passar a decidir olhando para ele.
 
-**A premissa da 1.0 sobre a API está revista.** Não se trata de dados não confiáveis para trás; a API entrega. O que precisa ser tratado é **conexão** — a experiência de quem está offline, com rede ruim ou no meio de um sync. Isso muda o item 11.2 e muda o desenho de estados do bloco 10.
+**A premissa da 1.0 sobre a API está revista.** Não se trata de dados não confiáveis para trás; a API entrega. O que precisa ser tratado é **conexão** — a experiência de quem está offline, com rede ruim ou no meio de um sync. Isso muda o item 11.2 e muda o desenho de estados do bloco 11.
 
 ### 10.1 A varredura — FEITA
 
@@ -555,7 +558,7 @@ Como a preocupação real não é a qualidade do dado e sim a rede, o mapa tem q
 - **a chamada é do sync inicial ou sob demanda?** O `SyncUserInformationUseCase` já orquestra o primeiro; o resto é caso a caso;
 - **o que a tela mostra enquanto não tem resposta**, e o que mostra quando a resposta nunca vem.
 
-Isso alimenta direto o bloco 10: os estados de carregando, vazio, offline e erro só podem ser padronizados depois que estiver escrito quais telas podem cair em cada um.
+Isso alimenta direto o bloco 11: os estados de carregando, vazio, offline e erro só podem ser padronizados depois que estiver escrito quais telas podem cair em cada um.
 
 ### 10.6 Escopo — e o limite dele
 
@@ -613,7 +616,7 @@ Aqui está a razão técnica, e ela foi verificada contra a API de produção (s
 O caminho, então, é um só — não há trade-off real:
 
 1. **Escopar por data.** Ler `startDate`/`endDate` da legislatura escolhida na tabela `Legislatura` e mandar como `dataInicio`/`dataFim`. As datas vêm da API (item 10.2 do bloco 7), então nada é hardcoded.
-2. **Adicionar `legislaturaId` a `Proposicao` e `Orgao`** para que o cache local seja escopado igual ao resto. É migração nova (`2.sqm`) — ver o item 15.3 antes, porque migração é justamente o que não compila no Windows hoje.
+2. **Adicionar `legislaturaId` a `Proposicao` e `Orgao`** para que o cache local seja escopado igual ao resto. É migração nova (`2.sqm`) — ver o item 16.3 antes, porque migração é justamente o que não compila no Windows hoje.
 
 Se o item 2 for grande demais para a 1.1, o recuo aceitável é esconder as seções de proposições e comissões fora da legislatura atual até que o cache esteja escopado. O que **não** é aceitável é deixar como está: dado da legislatura errada apresentado como se fosse do recorte escolhido é pior do que seção ausente.
 
@@ -646,7 +649,7 @@ Não existe tela de configurações hoje. Duas opções:
 
 **Recomendação: as duas, em ordem.** Seletor na Home para a 1.1, porque é a feature da release e esconder a feature da release num menu é desperdício. A tela de ajustes vem quando houver um segundo ajuste.
 
-Se o seletor entrar na Home, ele entra também no bloco 10 (design) — é componente novo numa tela que vai ser revisada de qualquer jeito.
+Se o seletor entrar na Home, ele entra também no bloco 11 (design) — é componente novo numa tela que vai ser revisada de qualquer jeito.
 
 ### 11.6 Instrumentação
 
@@ -751,7 +754,7 @@ Duas mudanças, e a segunda depende da primeira:
 1. **mover o critério para onde ele é decisão**, fora de `data/`, com o porquê escrito junto (nome reconhecível + atividade). Isso resolve o item 4.6 do plano de quebra;
 2. **ordenar por atividade em vez de fixar ids** — o app já baixa as 30 de `/orgaos?codTipoOrgao=2` e pode rankear. Mantém a intenção e para de precisar de revisão manual a cada legislatura.
 
-**Pré-requisito do item 2, e não é opcional:** `ComissaoPermanenteDetailScreen.kt:73` usa `if (state.votacoes.isEmpty())` para decidir mostrar o `LoadingComponent`. Não existe estado de vazio, e **CASP tem zero votações**. Além disso, `OrgaosRepository.kt:81` filtra votações sem `proposicoesAfetadas`, então uma comissão pode esvaziar depois do filtro mesmo tendo votações. Nos dois casos a tela gira para sempre. O componente de estado vazio do bloco 10 é o que destrava abrir a curadoria.
+**Pré-requisito do item 2, e não é opcional:** `ComissaoPermanenteDetailScreen.kt:73` usa `if (state.votacoes.isEmpty())` para decidir mostrar o `LoadingComponent`. Não existe estado de vazio, e **CASP tem zero votações**. Além disso, `OrgaosRepository.kt:81` filtra votações sem `proposicoesAfetadas`, então uma comissão pode esvaziar depois do filtro mesmo tendo votações. Nos dois casos a tela gira para sempre. O componente de estado vazio do bloco 11 é o que destrava abrir a curadoria.
 
 ### 12.5 Custo e cache
 
@@ -765,7 +768,7 @@ O que este bloco acrescenta, medido:
 | histórico de passagens da legislatura | 10 | 902 registros, agrupar por deputado |
 | linha do tempo de presidentes | 0 extra | sai do histórico acima |
 
-A composição vigente é barata e vale a pena; o histórico só se a tela de fato o usar. **Nada disso deveria ser feito sem cache**: composição de comissão muda uma vez por ano, e é o tipo de dado que pertence ao banco. As tabelas precisam de `legislaturaId`, o que conecta este bloco ao item 11.3 e a uma migração — ver o item 15.3 antes, porque migração é o que não compila no Windows hoje.
+A composição vigente é barata e vale a pena; o histórico só se a tela de fato o usar. **Nada disso deveria ser feito sem cache**: composição de comissão muda uma vez por ano, e é o tipo de dado que pertence ao banco. As tabelas precisam de `legislaturaId`, o que conecta este bloco ao item 11.3 e a uma migração — ver o item 16.3 antes, porque migração é o que não compila no Windows hoje.
 
 Aproveitar para resolver as 21 requisições: buscar votações por data com paginação honesta em vez de `ordenarPor=idProposicaoObjeto&itens=20`, e considerar se o detalhe de cada votação precisa ser buscado na lista ou só quando a pessoa abre uma.
 
@@ -777,7 +780,124 @@ Aproveitar para resolver as 21 requisições: buscar votações por data com pag
 
 ---
 
-## 13. Bloco 10 — passada de design
+## 13. Bloco 10 — votos do deputado
+
+A tela de detalhe do deputado sempre quis mostrar como ele votou, e a tentativa anterior foi abandonada. O bloco 5 removeu o `getDeputadoVotacoes`, que fazia 21 requisições para procurar o voto de um deputado nas vinte votações mais recentes da Casa.
+
+**Não foi falta de jeito: era a direção da busca.** Medido em 2026: a Câmara registrou **7.360 votações no ano, e só 152 têm voto nominal** — 2%. Buscar deputado a deputado nas votações recentes é garimpar num palheiro em que quase nada é agulha, e por isso a tela vinha quase sempre vazia.
+
+Este bloco inverte: sincroniza **votação → votos** e deixa o índice local responder "votos do deputado X". Tudo medido em 2026-09-19.
+
+### 13.1 A API não tem a relação invertida
+
+Verificado endpoint por endpoint (o swagger é renderizado por JavaScript e não pôde ser lido; o que existe abaixo veio de requisição real):
+
+| Chamada | Resultado |
+|---|---|
+| `GET /deputados/{id}/votos` | **405** — não existe |
+| `GET /deputados/{id}/votacoes` | **405** — não existe |
+| `GET /votacoes/{id}/votos` | **200** — é o único caminho |
+
+`GET /votacoes/{id}/votos` devolve `tipoVoto`, `dataRegistroVoto` e o deputado inteiro (id, nome, partido, UF, foto). Numa votação de plenário medida vieram 62 votos.
+
+**Armadilha que provavelmente matou a tentativa anterior: esse endpoint recusa `itens` com HTTP 400.** Quem tenta paginar leva erro ou lista vazia e conclui que não há dado. Sem parâmetro nenhum ele devolve tudo de uma vez, sem paginação — o `links` só traz `self`.
+
+### 13.2 Os arquivos anuais, e por que eles são o caminho do histórico
+
+Fora da API REST, o portal publica arquivo por ano:
+
+```
+https://dadosabertos.camara.leg.br/arquivos/votacoesVotos/csv/votacoesVotos-{ano}.csv
+```
+
+Colunas: `idVotacao;uriVotacao;dataHoraVoto;voto;deputado_id;deputado_nome;deputado_siglaPartido;deputado_uriPartido;deputado_siglaUf;deputado_idLegislatura;deputado_urlFoto`. É exatamente a relação que falta na API.
+
+Medido em 2026 (até setembro):
+
+| | |
+|---|---|
+| Linhas de voto | 51.832 |
+| Votações nominais | 152 |
+| Deputados distintos | 566 |
+| Votos por deputado | mediana **102**, máximo 145 |
+| Tipos de voto | Sim, Não, Abstenção, Obstrução, Artigo 17 |
+| Dias do ano com votação nominal | **44** |
+
+**Os arquivos não são estáticos: são regerados toda madrugada.** Conferido pelos headers — o arquivo de 2026 e o de 2025 tinham ambos `Last-Modified` da manhã do mesmo dia. Consequências:
+
+- **o dado atrasa até ~24h**: votação da tarde só entra no arquivo da madrugada seguinte;
+- **não há delta**: mudou, baixa tudo de novo — e muda todo dia, então `If-None-Match` quase nunca devolve 304;
+- **`Range` não ajuda**: o servidor aceita (`accept-ranges: bytes`), mas o arquivo não está em ordem cronológica — a primeira linha do de 2026 é uma votação de junho. Não dá para baixar só o fim;
+- **não há compressão**: pedir `Accept-Encoding: gzip` devolve os mesmos bytes. O tamanho anunciado é o tamanho real da transferência.
+
+### 13.3 Tamanho — o que decide a regra de produto
+
+| Ano | CSV | JSON |
+|---|---|---|
+| 2023 | 40,8 MB | 75,4 MB |
+| 2024 | 36,9 MB | 68,2 MB |
+| 2025 | 55,5 MB | 102,6 MB |
+| 2026 (até setembro) | **16,4 MB** | 30,4 MB |
+| **Legislatura 57 inteira** | **~150 MB** | ~277 MB |
+
+Baixar uma legislatura completa está fora de questão num celular. **Usar CSV e não JSON** — mesma informação, quase metade do peso.
+
+O que vai para o banco é muito menor que o download. O arquivo repete nome, URI, partido e URL da foto em toda linha; guardando só `idVotacao`, `deputadoId`, `voto` e a data, as 51.832 linhas de 2026 ficam na casa de **2 a 3 MB** de tabela. O custo é a transferência, não o armazenamento.
+
+### 13.4 As regras de produto
+
+Decididas com o peso na mão:
+
+1. **Só o ano corrente.** O download é oferecido apenas para o ano em curso, e portanto só quando a legislatura selecionada é a atual. Legislatura antiga mostra um estado explicando que o histórico de votos não está disponível ali — não uma tela vazia sem motivo. *(Interpretação da regra: "ano corrente", não "legislatura corrente inteira". A legislatura 57 cobre cinco arquivos anuais e ~150 MB; o ano corrente é um arquivo e 16 MB.)*
+2. **Pedir permissão antes, com o peso na tela.** Nunca baixar por conta própria, nem no sync inicial. A tela diz quantos megabytes são antes de qualquer transferência, e o download só começa depois do toque. O tamanho não é chute: `HEAD` no arquivo devolve `content-length` antes de baixar um byte.
+3. **Validade explícita.** Depois de baixado, a tela declara **"dados completos até \<data\>"**, usando o `Last-Modified` do arquivo que foi baixado — não a hora do download.
+4. **Desatualizado com botão de atualizar.** Passada essa data, o estado vira "desatualizado" e aparece o botão. **Um `HEAD` diz de graça se existe snapshot mais novo** — compara `Last-Modified`/`ETag` sem baixar nada. O botão só aparece se de fato houver o que baixar.
+
+Isso resolve a parte desconfortável: o usuário decide, sabe o preço e sabe o que tem na mão.
+
+### 13.5 Manter atualizado sem baixar de novo — segunda etapa, opcional
+
+O item 4 acima já entrega uma feature honesta. Mas dá para mover a data de validade para frente sem transferir 16 MB, porque o incremental pela API é **muito** barato — desde que se saiba quais votações têm voto nominal sem chamar `/votos` nas 7.360.
+
+O sinal está na `descricao`, que a API já devolve na listagem: votação nominal traz a contagem embutida no texto (`Aprovado o Requerimento de Urgência (Art. 155 do RICD). Sim: …`). Testado contra as 152 nominais de 2026:
+
+| Filtro | Acerta | Falso-positivo | Perde |
+|---|---|---|---|
+| `descricao` contém `"Sim:"` ou `"Resultado:"` | **147 / 152** | **2** | 5 |
+| `descricao` contém só `"Sim:"` | 122 / 152 | 2 | 30 |
+| órgão é `PLEN` | 123 / 152 | 1.233 | 29 |
+
+97% de cobertura com dois falsos positivos, usando campo que já vem de graça. O sync incremental fica:
+
+1. `/votacoes` com `dataInicio`/`dataFim` desde o último sync — 1 chamada, respeitando o **teto de 3 meses** do item 3.2 do mapa;
+2. filtrar por `"Sim:"` / `"Resultado:"`;
+3. `/votos` só nas que passaram — **cerca de 3 por semana**.
+
+E é raro de verdade: só 44 dias do ano tiveram votação nominal. A maior parte das semanas não tem nenhuma.
+
+Os 3% que o filtro perde não somem para sempre: o botão de atualizar do item 13.4 rebaixa o arquivo e reconcilia. **O incremental mantém fresco, o arquivo mantém correto.**
+
+*(Detalhe que explica o filtro: o arquivo `votacoes-{ano}.csv` tem as colunas `votosSim`/`votosNao`/`votosOutros`, e elas são discriminador perfeito — 151 das 152 nominais preenchidas, zero das 7.208 simbólicas. A API não devolve esse campo em lugar nenhum, nem na listagem nem no detalhe. O `"Sim:"` na descrição é o mesmo dado vazando pelo texto.)*
+
+### 13.6 O que precisa existir no código
+
+- **tabela nova** para o voto, com `idVotacao`, `deputadoId`, `voto`, data e `legislaturaId` — migração, então ver o item **16.3** antes;
+- **parser de CSV** em `commonMain`. É a primeira vez que o app lê algo que não é JSON da API; o arquivo usa `;` como separador e vem com BOM;
+- **download com progresso e cancelamento**, que também é novo. Ktor dá o `ByteReadChannel`; o que falta é a tela e o cancelamento decente (o bloco 4 já ensinou a tratar cancelamento como cancelamento);
+- **escrita em lote no SQLDelight** — 52 mil linhas não entram uma a uma;
+- **`/votacoes/{id}/votos` sem `itens`**, com um teste que trave isso, porque é o erro que a próxima pessoa vai repetir;
+- **estados**: nunca baixado, baixando, completo até X, desatualizado, sem rede. São cinco, e o componente de estado vazio do bloco 11 é pré-requisito.
+
+### 13.7 O que este bloco não promete
+
+- **Legislatura antiga não tem a feature.** É consequência direta da regra do ano corrente, e a tela precisa dizer isso, não fingir que não há votos.
+- **Voto nominal é minoria.** Mesmo com tudo sincronizado, a lista de um deputado tem ordem de **100 votos por ano**, não milhares. Isso é o que a Câmara registra nominalmente — o resto é simbólico e não tem nome atrelado.
+- **Nada de atribuir voto simbólico a deputado.** Se a votação não é nominal, não existe registro individual. A tela precisa ser explícita quanto a isso, senão sugere ausência onde houve presença.
+- **O atraso de ~24h continua** para quem só usa o arquivo. Só o incremental do item 13.5 encosta no tempo real, e mesmo ele depende de a Câmara publicar.
+
+---
+
+## 14. Bloco 11 — passada de design
 
 O app foi montado tela a tela, à mão, ao longo do tempo. Isso funciona para chegar até aqui e cobra o preço exatamente agora: a 1.1 vai adicionar uma feature nova a um conjunto de telas que nunca foi olhado como conjunto.
 
@@ -785,11 +905,11 @@ O objetivo deste bloco não é redesenhar o Magna. É o contrário: **o app já 
 
 E tem um segundo objetivo, que é o que faz este bloco valer mais do que uma faxina: sair dele com **um sistema no qual a próxima feature se encaixa sem decisão de design nova**. Hoje, cada feature nova custa uma rodada de escolhas de padding, papel tipográfico e raio de canto. Depois deste bloco, não deveria custar.
 
-Ele vem depois do bloco 9 (as telas de comissão entram na mesma passada, e a do seletor de legislatura também) e antes da publicação (as capturas da loja saem daqui).
+Ele vem depois do bloco 10 (as telas de comissão e de votos entram na mesma passada, e a do seletor de legislatura também) e antes da publicação (as capturas da loja saem daqui).
 
 O bloco 6 já fez a parte estrutural — quebrou os arquivos grandes, pôs `contentDescription`, moveu strings. Este é o passo seguinte, e é de aparência, não de arquitetura.
 
-### 13.1 A tela de referência
+### 14.1 A tela de referência
 
 **Primeira decisão do bloco, e ela é de gosto, não técnica: qual tela é a referência.** Nada abaixo começa antes disso, porque "unificar" sem um alvo vira média de tudo — e média de decisões inconsistentes dá um resultado pior do que a melhor delas.
 
@@ -799,9 +919,9 @@ Os candidatos, pelo que cada um oferece como fonte:
 - **Detalhe do deputado** (`DeputadoDetailsScreen.kt`) — cabeçalho com avatar, blocos de metadado, sheet de despesas. É a favorita se a identidade está na forma como a informação densa é apresentada;
 - **Detalhe do partido** (`PartidoDetailsScreen.kt`) — é a única com gráficos, e portanto a única que já teve que decidir cor de série e escala.
 
-Escolhida a tela, o passo seguinte é **extrair**, não descrever: abrir o arquivo e anotar, valor por valor, qual padding de borda ela usa, qual papel tipográfico ela dá a cada função de texto, qual raio de canto, como separa seção, como trata estado vazio. Essa anotação é o sistema. As seções seguintes são as categorias que ela precisa cobrir, e o item 13.10 é como transformar isso em algo que a próxima feature herde de graça.
+Escolhida a tela, o passo seguinte é **extrair**, não descrever: abrir o arquivo e anotar, valor por valor, qual padding de borda ela usa, qual papel tipográfico ela dá a cada função de texto, qual raio de canto, como separa seção, como trata estado vazio. Essa anotação é o sistema. As seções seguintes são as categorias que ela precisa cobrir, e o item 14.10 é como transformar isso em algo que a próxima feature herde de graça.
 
-### 13.2 O inventário
+### 14.2 O inventário
 
 Todas as telas e componentes de tela que precisam passar pela revisão:
 
@@ -820,7 +940,7 @@ Todas as telas e componentes de tela que precisam passar pela revisão:
 | Compartilhados | `ui/component/LoadingComponent.kt`, `ui/component/SomethingWentWrongComponent.kt`, `ui/component/chart/PartidoCharts.kt`, `ui/core/avatar/Avatar.kt`, `ui/core/image/MagnaImage.kt` |
 | Seletor de legislatura | novo, vindo do bloco 8 |
 
-### 13.3 Spacing — a régua existe, metade do app a ignora
+### 14.3 Spacing — a régua existe, metade do app a ignora
 
 `ui/core/theme/Dimensions.kt` define a escala (`grid0` a `grid40`) e a expõe por `LocalDimensions`. A adoção é parcial: **53 usos de `LocalDimensions` contra 58 valores `.dp` crus** espalhados por 13 arquivos de `features/` e `ui/`. Os piores: `ui/component/chart/PartidoCharts.kt` (9), `deputados/recent/RecentDeputadosComponent.kt` (8), `partidos/details/PartidoDetailsScreen.kt` (5).
 
@@ -831,7 +951,7 @@ O que fazer:
 - fixar um padding de borda de tela único e aplicar nas dez telas. Hoje cada uma escolheu o seu.
 - fixar o espaçamento vertical entre seções da Home, que hoje é somatório de `Spacer` avulsos.
 
-### 13.4 Cor e background
+### 14.4 Cor e background
 
 Esta é a parte mais saudável do tema. `Colors.kt` tem o conjunto M3 completo em claro e escuro, e **não há um único `Color(0x...)` hardcoded dentro de `features/`** — tudo passa por `MaterialTheme.colorScheme`. Não mexer no que está funcionando.
 
@@ -842,19 +962,19 @@ O que revisar:
 - padronizar como as seções se separam: por cor de superfície, por divider, ou por espaço. Hoje provavelmente convivem os três;
 - `ui/core/shape/RoundedPentagonShape.kt` e os gráficos de `PartidoCharts.kt` são onde a cor mais foge do sistema — conferir se as cores de série dos gráficos saem do `colorScheme` ou de uma lista própria.
 
-### 13.5 Tipografia
+### 14.5 Tipografia
 
 `Typography.kt` tem 144 linhas e `MagnaTheme.kt:96` aplica `magnaTypography()` no `MaterialTheme`. A parte de base está feita.
 
 O que revisar é o uso: quais papéis (`headlineSmall`, `titleMedium`, `bodyLarge`…) cada tela usa para a mesma coisa. Título de tela, título de seção, nome de deputado, rótulo de metadado e valor monetário devem ter **um** papel cada, e o mesmo em todas as telas. Fazer a lista antes de editar, porque é aqui que a inconsistência "feita à mão" mais aparece e menos se percebe editando uma tela por vez.
 
-### 13.6 Cantos e shape
+### 14.6 Cantos e shape
 
 `MagnaTheme.kt:94` chama `MaterialTheme(...)` passando `colorScheme` e `typography` — **e não passa `shapes`**. Ou seja, todo raio de canto do app é ou o padrão do Material 3, ou um `RoundedCornerShape` escrito à mão (7 ocorrências).
 
 Definir um `Shapes` no tema e usá-lo. Decidir os raios de card, sheet, chip, avatar e imagem, e parar de escrever raio na tela.
 
-### 13.7 Scroll, top bars e seções
+### 14.7 Scroll, top bars e seções
 
 Dois achados concretos:
 
@@ -863,31 +983,31 @@ Dois achados concretos:
 
 Padronizar também o contêiner de rolagem: a Home usa `Column` + `verticalScroll` com um `LazyColumn` embutido na busca. Vale conferir tela a tela quem é `LazyColumn` e quem é `Column` rolável, e se o critério é o tamanho da lista ou o acaso.
 
-### 13.8 Movimento e voltar
+### 14.8 Movimento e voltar
 
 - **Nenhuma transição de navegação foi customizada.** O `NavHost` em `App.kt` usa o padrão. Definir `enterTransition`/`exitTransition`/`popEnterTransition`/`popExitTransition` uma vez no `NavHost`, e não por rota.
 - **Predictive back (Android 13+)** não está tratado. O app tem `minSdk` recente o bastante para valer o gesto funcionando de verdade em vez de um corte seco. É item de Android puro, e pelo item 1.1 isso agora é permitido sem culpa.
 - **O app tem exatamente uma animação:** o `animateFloatAsState` que gira o chevron em `ProposicaoAutores.kt:91`. Não é para encher de movimento — é para que expandir/colapsar, carregar e trocar de estado se comportem igual nas dez telas em vez de só nessa.
 - **Miudeza que denuncia o resto:** o callback de voltar se chama `navigateBack` em cinco telas e `onBack` em `PartidoDetailsScreen.kt:82`. Escolher um.
 
-### 13.9 Estados: carregando, vazio e erro
+### 14.9 Estados: carregando, vazio e erro
 
 O bloco 4 unificou `Resource<T>` na camada de dados, mas a **aparência** dos três estados nunca foi unificada. Existem `LoadingComponent` e `SomethingWentWrongComponent` compartilhados — conferir se todas as telas realmente os usam, ou se algumas têm o seu próprio `CircularProgressIndicator` no meio de um `Box`.
 
 Faltando de propósito: **não existe um componente de estado vazio.** O bloco 8 torna isso obrigatório — trocar de legislatura vai produzir listas legitimamente vazias, e o item 11.4 depende de "vazio" e "sincronizando" serem visualmente distintos.
 
-### 13.10 Como fechar o bloco — e como não perder o sistema depois
+### 14.10 Como fechar o bloco — e como não perder o sistema depois
 
 O risco deste bloco é virar refactor infinito. Duas amarras:
 
-1. **Escrever as decisões antes de editar.** A extração do item 13.1 vira um documento curto — `documentation/design-system.md`: escala de espaçamento final, papéis de tipografia por função, raios, regra de seção, regra de scroll, os quatro estados. Aplicar depois. Decidir durante a edição é exatamente como o app chegou no estado atual.
-2. **Percorrer o inventário do item 13.2 uma tela por vez, com a lista como checklist**, e não abrir exceção "só nesta tela". Exceção é o que se está consertando.
+1. **Escrever as decisões antes de editar.** A extração do item 14.1 vira um documento curto — `documentation/design-system.md`: escala de espaçamento final, papéis de tipografia por função, raios, regra de seção, regra de scroll, os quatro estados. Aplicar depois. Decidir durante a edição é exatamente como o app chegou no estado atual.
+2. **Percorrer o inventário do item 14.2 uma tela por vez, com a lista como checklist**, e não abrir exceção "só nesta tela". Exceção é o que se está consertando.
 
 #### O que sobra depois — a parte que importa para a 1.2
 
 Um documento sozinho não sobrevive a três features novas. O que sobrevive é código que torna o caminho certo mais fácil que o errado:
 
-- **Tokens que cobrem tudo.** Se `Dimensions` não tem o valor que a tela precisa, a pessoa escreve `.dp` cru — e foi assim que apareceram os 58 de hoje. A escala final tem que ser suficiente, e `Shapes` tem que existir no tema (item 13.6). Token que falta é token que será contornado.
+- **Tokens que cobrem tudo.** Se `Dimensions` não tem o valor que a tela precisa, a pessoa escreve `.dp` cru — e foi assim que apareceram os 58 de hoje. A escala final tem que ser suficiente, e `Shapes` tem que existir no tema (item 14.6). Token que falta é token que será contornado.
 - **Componentes de tela, não só de widget.** Hoje `ui/component/` tem `LoadingComponent` e `SomethingWentWrongComponent`. Falta o andaime: um `MagnaScreen` (Scaffold + top bar + padding + scroll behavior padrão) e um `MagnaSection` (título + espaçamento + regra de separação). Com eles, uma feature nova começa com a identidade pronta em vez de recomeçar a decisão. Sem eles, cada tela nova é uma tela feita à mão de novo.
 - **Um componente por estado.** Carregando, vazio, offline e erro, os quatro compartilhados e usados por todo mundo. O bloco 8 já exige o de vazio e o de offline; deixá-los genéricos desde o começo é o que evita a quinta variante caseira (o item 4.2 já contou quatro variantes do mesmo padrão na camada de dados — o mesmo não pode se repetir na UI).
 - **Previews como vitrine.** Os `@Preview` já existem espalhados. Concentrar um arquivo de preview por componente do sistema dá um catálogo consultável sem precisar rodar o app — é o mais barato que existe nessa direção, e é o que faz alguém reusar em vez de reinventar.
@@ -898,11 +1018,11 @@ Ao terminar, rodar as telas em claro e escuro e em uma tela pequena. Como este �
 
 ---
 
-## 14. Bloco 11 — publicação da 1.1
+## 15. Bloco 12 — publicação da 1.1
 
 Este é o último bloco por construção: ele descreve o app como ele ficou, então qualquer item acima que ainda esteja em aberto invalida o que for preenchido aqui. Fazer só quando o código parar de mudar e a 1.1 estiver pronta para subir.
 
-### 14.1 [BLOQUEANTE] Política de privacidade
+### 15.1 [BLOQUEANTE] Política de privacidade
 
 `grep -ri "privac|lgpd"` no repositório inteiro: nenhuma ocorrência. A 1.0 quase certamente foi publicada declarando que não coleta dado nenhum, o que era verdade — o Firebase estava no Gradle mas nenhuma linha de código o usava.
 
@@ -918,7 +1038,7 @@ O que a política precisa cobrir, dado o que o app realmente faz:
 
 O texto pode ficar no próprio repositório, publicado por GitHub Pages, e a URL entra na ficha da Play Store. É o caminho mais barato e mantém a política versionada junto do código que ela descreve.
 
-### 14.2 [BLOQUEANTE] Formulário Data Safety
+### 15.2 [BLOQUEANTE] Formulário Data Safety
 
 A declaração precisa refletir Firebase Analytics **e** Crashlytics. A lista abaixo é um rascunho de trabalho, não a palavra final: **confira contra a página oficial do Firebase sobre Data Safety antes de enviar**, porque o que cada SDK coleta muda entre versões e o formulário é auditável.
 
@@ -940,7 +1060,7 @@ Pontos do formulário que costumam ser respondidos errado:
 
 O catálogo em `AnalyticsEvent.kt` é a fonte de verdade para preencher isso: cada evento está lá com seus parâmetros, e `AnalyticsEventTest` garante que nenhum texto livre é enviado. Reler os dois antes de responder o formulário é mais rápido do que tentar lembrar.
 
-### 14.3 Antes de subir
+### 15.3 Antes de subir
 
 - **`whatsnew`** (item 7.4): `distribution/whatsnew/whatsnew-pt-BR` ainda anuncia "Histórico de votações de cada deputado, com filtros por tipo de voto", removido em `6b21146`. Reescrever para a 1.1.
 - **Versão**: `androidApp/build.gradle.kts` está em `versionCode = 3`, `versionName = "1.0.1"`. Subir os dois.
@@ -950,13 +1070,13 @@ O catálogo em `AnalyticsEvent.kt` é a fonte de verdade para preencher isso: ca
 
 ---
 
-## 15. Achados da verificação em aparelho
+## 16. Achados da verificação em aparelho
 
 Primeira compilação depois dos blocos 0 a 6. Os seis blocos passaram inteiros: **0 erros de Kotlin** no alvo JVM e no `:androidApp`, **73 testes, 0 falhas**. O único erro de compilação do lote foi um `AUTORES_INITIAL_COUNT` declarado duas vezes, deixado pela extração de arquivos do bloco 6 e corrigido no bloco 1.
 
 O que apareceu de verdade foi o que só um aparelho mostra.
 
-### 15.1 O gateway da Câmara recusa `Accept-Charset` — CORRIGIDO
+### 16.1 O gateway da Câmara recusa `Accept-Charset` — CORRIGIDO
 
 Todas as requisições do app voltavam **403** com uma página HTML dizendo que o sistema de segurança bloqueou a operação. Não era query malformada: o endpoint sem nenhum parâmetro (`/referencias/proposicoes/siglaTipo`) também caiu.
 
@@ -977,7 +1097,7 @@ A remoção precisa acontecer no **send pipeline**. O `HttpPlainText` adiciona o
 
 Vale registrar o que isso diz sobre o bloco 1: o `HttpResponseValidator` mandou `api_error(endpoint, 403)` para o Firebase em todas as chamadas. Se a instrumentação existisse antes, o bloqueio teria aparecido no painel em vez de num logcat.
 
-### 15.2 Cancelamento tratado como falha — CORRIGIDO
+### 16.2 Cancelamento tratado como falha — CORRIGIDO
 
 `CancellationException: Flow was aborted, no more elements needed` aparecia como **erro** no log. O `Resource.kt` (bloco 4) relança cancelamento corretamente, mas nove `catch` genéricos fora dele não: os quatro `sync*` que devolvem `Boolean`, o `channelFlow` de `getDeputados`, o fetch por membro de `getPartidoMembros` e o `try` externo do `SyncUserInformationUseCase`.
 
@@ -988,7 +1108,7 @@ Duas consequências, e as duas corrompem justamente o que os blocos 1 e 4 constr
 
 Verificado no aparelho: abrir e sair em um segundo não produz mais nenhum passo reportado como falha.
 
-### 15.3 O build não roda no Windows — EM ABERTO
+### 16.3 O build não roda no Windows — EM ABERTO
 
 `generateCommonMainMagnaDatabaseInterface` falha antes de chegar no Kotlin. A mensagem do SQLDelight (`Failed to compile 1.sqm:482: DeputadoExpense`) é embrulho; embaixo está:
 
@@ -1005,7 +1125,7 @@ Descartado por medição, não por suposição: daemon reaproveitado (`--stop` e
 
 **Correção de verdade, a decidir:** `deriveSchemaFromMigrations = true` com um `0.sqm` carregando o schema original. As migrações viram a fonte da verdade e o codegen para de precisar abrir `.db`. É mudança estrutural: os `CREATE TABLE` sairiam dos `.sq`, que passariam a conter apenas queries.
 
-### 15.4 O que continua sem verificação
+### 16.4 O que continua sem verificação
 
 Os alvos iOS e o build de release com R8. Nenhum dos dois foi compilado ainda.
 
