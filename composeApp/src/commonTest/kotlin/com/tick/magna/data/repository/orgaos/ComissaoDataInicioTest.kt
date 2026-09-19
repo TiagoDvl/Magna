@@ -232,8 +232,11 @@ class ComissaoDataInicioTest {
             )
         }
 
-        override suspend fun getVotacoesFromOrgao(idOrgao: String): VotacoesResponse =
-            throw UnsupportedOperationException("not part of this test")
+        override suspend fun getVotacoesFromOrgao(
+            idOrgao: String,
+            dataInicio: String,
+            dataFim: String,
+        ): VotacoesResponse = throw UnsupportedOperationException("not part of this test")
 
         override suspend fun getVotacaoDetail(idVotacao: String): VotacaoDetailResponse =
             throw UnsupportedOperationException("not part of this test")

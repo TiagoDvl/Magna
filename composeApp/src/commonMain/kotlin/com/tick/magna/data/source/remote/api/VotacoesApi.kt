@@ -9,11 +9,23 @@ import io.ktor.client.request.parameter
 
 class VotacoesApi(private val httpClient: HttpClient) : VotacoesApiInterface {
 
-    override suspend fun getVotacoesFromOrgao(idOrgao: String): VotacoesResponse {
+    private companion object {
+        const val ITEMS_PER_PAGE = "20"
+    }
+
+
+    override suspend fun getVotacoesFromOrgao(
+        idOrgao: String,
+        dataInicio: String,
+        dataFim: String,
+    ): VotacoesResponse {
         return httpClient.get("votacoes") {
             parameter("idOrgao", idOrgao)
-            parameter("ordenarPor", "idProposicaoObjeto")
-            parameter("itens", "20")
+            parameter("dataInicio", dataInicio)
+            parameter("dataFim", dataFim)
+            parameter("ordem", "desc")
+            parameter("ordenarPor", "dataHoraRegistro")
+            parameter("itens", ITEMS_PER_PAGE)
         }.body()
     }
 

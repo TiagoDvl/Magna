@@ -17,5 +17,13 @@ interface OrgaosRepositoryInterface {
      */
     suspend fun hasComissoesPermanentes(): Boolean
 
+    /**
+     * Whether the selected term still has committees whose activity was never counted.
+     *
+     * Asked by the sync, because having the committee rows is not the same as being able to
+     * order them, and somebody upgrading already has the rows.
+     */
+    suspend fun needsAtividade(): Boolean
+
     suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>>
 }

@@ -85,7 +85,10 @@ class SyncUserInformationUseCase(
      *
      * Legislaturas is in this check for the sake of everyone upgrading from a version that
      * never had the table filled. They are Configured, so without it the sync would be skipped
-     * and the table would stay empty forever.
+     * and the table would stay empty forever. The activity count is here for exactly the same
+     * reason and learned it the hard way: having the committee rows is not the same as being
+     * able to order them, so an upgrade that already had the rows never measured anything and
+     * the list stayed alphabetical.
      */
     private suspend fun isLocalDataMissing(): Boolean {
         val partidos = partidosRepository.getPartidos().first()
@@ -95,7 +98,8 @@ class SyncUserInformationUseCase(
         return partidos.isEmpty() ||
             deputados.isEmpty() ||
             legislaturas.isEmpty() ||
-            !orgaosRepository.hasComissoesPermanentes()
+            !orgaosRepository.hasComissoesPermanentes() ||
+            orgaosRepository.needsAtividade()
     }
 
     /**

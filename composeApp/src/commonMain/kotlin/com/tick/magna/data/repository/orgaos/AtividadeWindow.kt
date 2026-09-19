@@ -1,6 +1,8 @@
 package com.tick.magna.data.repository.orgaos
 
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.minus
 
 /** A closed date range, as the API wants them: `dataInicio` and `dataFim`, ISO, inclusive. */
 internal data class AtividadeWindow(val start: String, val end: String)
@@ -46,8 +48,37 @@ internal fun atividadeWindows(
     }
 }
 
+/**
+ * The mandate cut into three-month windows, most recent first.
+ *
+ * Used by the committee screen, which walks backwards through them until it has enough votes
+ * to show. Asking without any window at all is what made that screen show a single vote for
+ * the CAPADR: `/votacoes` then answers with a recent slice of its own choosing, and a quiet
+ * quarter of a quiet committee is one card.
+ */
+internal fun mandateWindows(startDate: String, endDate: String, today: LocalDate): List<AtividadeWindow> {
+    val start = startDate.toLocalDateOrNull() ?: return emptyList()
+    val end = endDate.toLocalDateOrNull() ?: return emptyList()
+
+    val lastDay = if (today < end) today else end
+    if (lastDay <= start) return emptyList()
+
+    val windows = mutableListOf<AtividadeWindow>()
+    var windowEnd = lastDay
+    while (windowEnd > start) {
+        val windowStart = maxOf(windowEnd.minus(WINDOW_SPAN), start)
+        windows += AtividadeWindow(start = windowStart.toString(), end = windowEnd.toString())
+        windowEnd = windowStart
+    }
+
+    return windows
+}
+
 private fun String.toLocalDateOrNull(): LocalDate? =
     runCatching { LocalDate.parse(take(ISO_DATE_LENGTH)) }.getOrNull()
+
+/** The widest interval `/votacoes` accepts; anything larger is refused outright. */
+private val WINDOW_SPAN = DatePeriod(months = 3)
 
 /** Both recesses are avoided by staying inside this range: January and July are out. */
 private const val SAMPLE_START_MONTH = 3

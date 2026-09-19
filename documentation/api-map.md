@@ -127,6 +127,18 @@ Custou uma tabela inteira deste documento, que contava votações por comissão 
 
 Mesmo erro de forma do item 3.8: supor o recorte de um endpoint em vez de conferir o que ele devolveu.
 
+**Custou duas vezes.** Além da tabela do item 4.3, a tela de detalhe da comissão pedia `/votacoes?idOrgao=…` sem janela e mostrava o que viesse. Efeitos, medidos em 2026-09-19:
+
+| | CCJC | CAPADR |
+|---|---|---|
+| devolvidas sem janela | 20 | **7** |
+| com `proposicoesAfetadas` (o que a tela exibe) | 20 | **1** |
+| votações na legislatura 57 | 5673 | **1113** |
+
+A CAPADR tem 1113 votações na legislatura e a tela mostrava **uma**. E como não havia janela, também não havia legislatura: escolher a 56 continuava exibindo votações de 2026.
+
+Corrigido percorrendo o mandato de trás para frente em janelas de 3 meses, até juntar o suficiente para encher a tela (teto de 4 janelas).
+
 ### 3.5 Paginação: cada endpoint tem um padrão diferente
 
 | Endpoint | `itens` padrão | Exemplo real |

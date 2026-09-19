@@ -76,6 +76,29 @@ class SyncUserInformationUseCaseTest {
     }
 
     @Test
+    fun a_term_whose_committees_were_never_measured_syncs() = runTest {
+        // Everything is stored, which is why this was missed: an upgrade already had the
+        // committee rows, so the sync was skipped, the activity table stayed empty, and the
+        // Home opened on CAPADR and CASP — the alphabet, not a ranking.
+        val repositories = Repositories(
+            partidos = listOf(PARTIDO),
+            deputados = listOf(DEPUTADO),
+            legislaturas = listOf(LEGISLATURA),
+            comissoes = listOf(ORGAO),
+            hasComissoes = true,
+            needsAtividadeCount = true,
+        )
+
+        val states = useCase(repositories).invoke().toList()
+
+        assertEquals(
+            listOf(SyncUserInformationState.Downloading, SyncUserInformationState.Done),
+            states,
+        )
+        assertTrue(SyncStep.ORGAOS in repositories.stepsRun)
+    }
+
+    @Test
     fun a_term_that_was_never_downloaded_syncs() = runTest {
         val repositories = Repositories()
 
@@ -157,6 +180,7 @@ class SyncUserInformationUseCaseTest {
         legislaturas: List<Legislatura> = emptyList(),
         comissoes: List<Orgao> = emptyList(),
         private val hasComissoes: Boolean = false,
+        private val needsAtividadeCount: Boolean = false,
         private val failing: Set<SyncStep> = emptySet(),
     ) {
         val stepsRun = mutableListOf<SyncStep>()
@@ -221,6 +245,7 @@ class SyncUserInformationUseCaseTest {
             override suspend fun syncComissoesPermanentes() = run(SyncStep.ORGAOS)
             override fun getComissoesPermanentes(): Flow<List<Orgao>> = flowOf(comissoes)
             override suspend fun hasComissoesPermanentes() = hasComissoes
+            override suspend fun needsAtividade() = needsAtividadeCount
             override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>> =
                 throw UnsupportedOperationException("not part of the sync")
         }

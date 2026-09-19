@@ -99,4 +99,44 @@ class AtividadeWindowTest {
 
         assertEquals(4, windows.size)
     }
+
+    @Test
+    fun the_screen_walks_the_mandate_backwards_in_three_month_windows() {
+        val windows = mandateWindows("2023-02-01", "2027-01-31", LocalDate(2026, 9, 19))
+
+        // Most recent first, because that is the order the committee screen wants them in.
+        assertEquals("2026-09-19", windows.first().end)
+        assertEquals("2026-06-19", windows.first().start)
+        assertEquals("2026-06-19", windows[1].end)
+    }
+
+    @Test
+    fun no_window_is_wider_than_the_endpoint_accepts() {
+        val windows = mandateWindows("2019-02-01", "2023-01-31", LocalDate(2026, 9, 19))
+
+        // /votacoes answers "a diferença entre as datas não pode ser maior que 3 meses".
+        windows.forEach { window ->
+            val months = monthsBetween(window.start, window.end)
+            assertTrue(months <= 3, "${window.start}..${window.end} spans $months months")
+        }
+    }
+
+    @Test
+    fun windows_stop_at_the_start_of_the_mandate() {
+        val windows = mandateWindows("2019-02-01", "2023-01-31", LocalDate(2026, 9, 19))
+
+        assertEquals("2019-02-01", windows.last().start)
+    }
+
+    @Test
+    fun a_term_that_has_not_started_has_no_windows_to_walk() {
+        assertTrue(mandateWindows("2027-02-01", "2031-01-31", LocalDate(2026, 9, 19)).isEmpty())
+    }
+
+    private fun monthsBetween(start: String, end: String): Int {
+        val from = LocalDate.parse(start)
+        val to = LocalDate.parse(end)
+
+        return (to.year - from.year) * 12 + (to.monthNumber - from.monthNumber)
+    }
 }

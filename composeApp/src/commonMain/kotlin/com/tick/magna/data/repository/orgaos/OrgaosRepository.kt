@@ -38,6 +38,12 @@ internal class OrgaosRepository(
 
     override suspend fun hasComissoesPermanentes(): Boolean = orgaosDao.getOrgaos().isNotEmpty()
 
+    override suspend fun needsAtividade(): Boolean {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
+
+        return orgaosDao.countWithoutAtividade(legislaturaId) > 0L
+    }
+
     override suspend fun syncComissoesPermanentes(): Boolean {
         return try {
             val comissoesPermanentes = orgaosApi.getComissoesPermanentes().dados
@@ -212,34 +218,38 @@ internal class OrgaosRepository(
      * The per-votacao detail requests used to run one after another inside a map, which
      * meant twenty-one round trips in a queue. They are now issued together.
      */
+    /**
+     * The most recent votes of this committee, in the selected term.
+     *
+     * Both halves of that sentence were missing. The request carried no window at all, and
+     * `/votacoes` answers an unwindowed query with a recent slice of its own choosing — so the
+     * screen showed whatever the Camara had published lately regardless of which term was
+     * selected, and for a committee that was quiet in that particular quarter it showed almost
+     * nothing. The CAPADR has 1113 votes in the 57th legislature and this screen displayed one.
+     *
+     * So it walks the mandate backwards in three-month windows, the widest the endpoint takes,
+     * and stops as soon as it has enough to fill a screen. A busy committee is done after one
+     * window; a quiet one pays for a few more rather than looking empty.
+     */
     override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>> {
         return try {
-            val votacoes = votacoesApi.getVotacoesFromOrgao(idOrgao).dados
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+            val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
+                ?: return Result.success(emptyList())
 
-            val details = coroutineScope {
-                votacoes.map { votacao ->
-                    async { votacoesApi.getVotacaoDetail(votacao.id).dados }
-                }.awaitAll()
+            val windows = mandateWindows(legislatura.startDate, legislatura.endDate, today())
+            val result = mutableListOf<Votacao>()
+
+            for (window in windows.take(MAX_WINDOWS_PER_SCREEN)) {
+                result += votacoesIn(idOrgao, window)
+                if (result.size >= ENOUGH_VOTACOES) break
             }
 
-            val result = details
-                // Sorted on the raw timestamp, which is ISO and therefore already in
-                // chronological order as text. The old code sorted by re-parsing the
-                // display string it had just built.
-                .sortedByDescending { it.dataHoraRegistro.orEmpty() }
-                .map { detail ->
-                    Votacao(
-                        id = detail.id,
-                        dataHoraRegistro = detail.dataHoraRegistro?.toDisplayDate(),
-                        descricao = detail.descricao,
-                        aprovacao = detail.aprovacao == APPROVED,
-                        proposicoesAfetadas = detail.proposicoesAfetadas.map { it.ementa },
-                        idEvento = detail.idEvento,
-                    )
-                }
-                .filter { it.proposicoesAfetadas.isNotEmpty() }
-
-            loggerInterface.d("getComissaoPermanenteVotacoes: ${result.size} votacoes for orgao=$idOrgao", TAG)
+            loggerInterface.d(
+                "getComissaoPermanenteVotacoes: ${result.size} votacoes for orgao=$idOrgao " +
+                    "on legislatura=$legislaturaId",
+                TAG,
+            )
             Result.success(result)
         } catch (cancellation: CancellationException) {
             throw cancellation
@@ -247,6 +257,37 @@ internal class OrgaosRepository(
             loggerInterface.e("getComissaoPermanenteVotacoes: failed for orgao=$idOrgao", e, TAG)
             Result.failure(e)
         }
+    }
+
+    private suspend fun votacoesIn(idOrgao: String, window: AtividadeWindow): List<Votacao> {
+        val votacoes = votacoesApi.getVotacoesFromOrgao(idOrgao, window.start, window.end).dados
+
+        val details = coroutineScope {
+            val semaphore = Semaphore(MAX_PARALLEL_DETAIL_REQUESTS)
+            votacoes.map { votacao ->
+                async { semaphore.withPermit { votacoesApi.getVotacaoDetail(votacao.id).dados } }
+            }.awaitAll()
+        }
+
+        return details
+            // Sorted on the raw timestamp, which is ISO and therefore already in chronological
+            // order as text. The old code sorted by re-parsing the display string it had just
+            // built.
+            .sortedByDescending { it.dataHoraRegistro.orEmpty() }
+            .map { detail ->
+                Votacao(
+                    id = detail.id,
+                    dataHoraRegistro = detail.dataHoraRegistro?.toDisplayDate(),
+                    descricao = detail.descricao,
+                    aprovacao = detail.aprovacao == APPROVED,
+                    proposicoesAfetadas = detail.proposicoesAfetadas.map { it.ementa },
+                    idEvento = detail.idEvento,
+                )
+            }
+            // A vote with no proposition attached has nothing to show but its descricao, and
+            // that is procedural boilerplate. It is also most of what a quiet quarter contains,
+            // which is why one window was not enough.
+            .filter { it.proposicoesAfetadas.isNotEmpty() }
     }
 
     private companion object {
@@ -258,6 +299,16 @@ internal class OrgaosRepository(
          * handful of bytes, and there are four per committee rather than one.
          */
         const val MAX_PARALLEL_COUNT_REQUESTS = 10
+
+        /** Enough cards to fill a screen; a busy committee reaches it in the first window. */
+        const val ENOUGH_VOTACOES = 12
+
+        /**
+         * A ceiling on how far back a quiet committee is chased. Each window costs one request
+         * plus one per vote it returns, so this is the difference between a slow screen and an
+         * endless one.
+         */
+        const val MAX_WINDOWS_PER_SCREEN = 4
 
         /** Enough to compare `2023-02-15` with `2023-02-15T00:00`. */
         const val DATE_LENGTH = 10
