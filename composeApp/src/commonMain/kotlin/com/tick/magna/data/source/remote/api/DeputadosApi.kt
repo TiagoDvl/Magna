@@ -11,10 +11,17 @@ import io.ktor.client.request.parameter
 internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInterface {
 
     override suspend fun getDeputados(
-        legislaturaId: String
+        legislaturaId: String,
+        page: Int,
     ): DeputadosResponse {
         return httpClient.get("deputados") {
             parameter("idLegislatura", legislaturaId)
+            // Both of these are deliberate. The endpoint happens to default to a thousand per
+            // page today, which is enough to hide the problem on the current legislature and
+            // not on an older one: the 57th has 879 members and the 55th has 1138. Asking for
+            // the page explicitly is what lets the caller ask for the second one.
+            parameter("itens", DEPUTADOS_PER_PAGE)
+            parameter("pagina", page)
         }.body()
     }
 
@@ -36,5 +43,6 @@ internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInt
 
     private companion object {
         const val ITEMS_PER_PAGE = 100
+        const val DEPUTADOS_PER_PAGE = 1_000
     }
 }

@@ -14,6 +14,7 @@ import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
+import com.tick.magna.data.source.remote.response.hasNextPage
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.util.currentYear
 import kotlin.coroutines.cancellation.CancellationException
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.tick.magna.Deputado as DeputadoEntity
 
 /**
  * Every flow here builds its own network work inside itself, so leaving the screen
@@ -148,10 +150,39 @@ internal class DeputadosRepository(
 
     private suspend fun legislaturaId(): String? = userDao.getUser().first()?.legislaturaId
 
+    /**
+     * Follows the `next` link instead of taking the first page and calling it the list.
+     *
+     * Until the legislature became selectable this was one request, and it worked by luck:
+     * the current term has 879 members and the page the API hands out holds a thousand. The
+     * 55th has 1138, so the old version would have stored a thousand of them and dropped the
+     * rest without an error anywhere.
+     *
+     * Everything is collected before anything is written, so a term is stored whole or not at
+     * all. A partially stored legislature looks exactly like the bug this replaces.
+     */
     private suspend fun refreshDeputados(legislaturaId: String) {
-        val response = deputadosApi.getDeputados(legislaturaId = legislaturaId)
-        deputadoDao.insertDeputados(response.dados.map { it.toLocal(legislaturaId) })
-        loggerInterface.i("refreshDeputados: saved ${response.dados.size} deputados", TAG)
+        val deputados = mutableListOf<DeputadoEntity>()
+        var page = FIRST_PAGE
+
+        while (true) {
+            val response = deputadosApi.getDeputados(legislaturaId = legislaturaId, page = page)
+            deputados += response.dados.map { it.toLocal(legislaturaId) }
+
+            if (!response.links.hasNextPage()) break
+
+            if (page >= MAX_PAGES) {
+                loggerInterface.w(
+                    "refreshDeputados: stopped at page $page with a next link still present",
+                    TAG,
+                )
+                break
+            }
+            page++
+        }
+
+        deputadoDao.insertDeputados(deputados)
+        loggerInterface.i("refreshDeputados: saved ${deputados.size} deputados in $page page(s)", TAG)
     }
 
     private fun <T> Flow<Resource<T>>.logFailures(what: String): Flow<Resource<T>> = onEach { resource ->
@@ -162,5 +193,12 @@ internal class DeputadosRepository(
 
     private companion object {
         const val TAG = "DeputadosRepository"
+        const val FIRST_PAGE = 1
+
+        /**
+         * A bound, not an expectation. The largest legislature takes two pages; this only
+         * exists so a `next` link that never goes away cannot loop forever.
+         */
+        const val MAX_PAGES = 10
     }
 }

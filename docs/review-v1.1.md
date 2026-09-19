@@ -503,7 +503,7 @@ O que ele responde, e que o plano assumia sem saber:
 E três achados que viram trabalho, detalhados no item 4 do mapa:
 
 - **[ALTO]** `getPartidoMembros` não manda `itens` e o padrão do endpoint é 15: a tela de partido mostra 15 de ~90 membros, **em produção, na legislatura atual**;
-- **[ALTO]** `getDeputados` não pagina. A 57 cabe numa página (879 de 1000), a **55 tem 1138** e a segunda página seria descartada em silêncio — o bug que a troca de legislatura destravaria;
+- ~~**[ALTO]** `getDeputados` não pagina. A 57 cabe numa página (879 de 1000), a **55 tem 1138** e a segunda página seria descartada em silêncio — o bug que a troca de legislatura destravaria~~ **CORRIGIDO**, seguindo o link `rel="next"`;
 - **[MÉDIO]** `/orgaos?codTipoOrgao=2` devolve **30** comissões permanentes; `MagnaComissaoPermanente` fixa seis.
 
 O custo por tela também foi medido: proposições recentes **31 requisições**, detalhe da comissão **21**, detalhe do partido **17**.

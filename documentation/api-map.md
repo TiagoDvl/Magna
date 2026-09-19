@@ -154,11 +154,13 @@ Isso não é problema futuro: **está em produção hoje, na legislatura atual.*
 
 Efeito colateral bom: o leque de 15 `deputados/{id}` da tela de detalhe existe porque só 15 membros chegam. Resolver a paginação sem resolver o leque troca 17 requisições por ~90.
 
-### 4.2 [ALTO] A segunda página de deputados some em legislaturas antigas
+### 4.2 [ALTO] A segunda página de deputados some em legislaturas antigas — CORRIGIDO
 
-`getDeputados` não manda `itens` nem pagina. O padrão de `/deputados` é 1000, então a 57 (879 deputados) cabe numa página e o problema não aparece hoje. **A 55 tem 1138 e ocupa duas páginas** — o app gravaria 1000 e perderia 138 sem erro nenhum.
+`getDeputados` não mandava `itens` nem paginava. O padrão de `/deputados` é 1000, então a 57 (879 deputados) cabia numa página e o problema não aparecia. **A 55 tem 1138 e ocupa duas páginas** — o app gravaria 1000 e perderia 138 sem erro nenhum.
 
-É o bug que o bloco 8 destravaria no dia em que a troca de legislatura entrasse no ar.
+Era o bug que o bloco 8 destravaria no dia em que a troca de legislatura entrasse no ar, e foi o que aconteceu: o seletor tornou a 55 alcançável em dois toques.
+
+**Corrigido** seguindo o link `rel="next"` em vez de contar itens — os endpoints não concordam num tamanho de página padrão, então comparar o tamanho com o que foi pedido erra para algum deles. A coleta acumula tudo antes de gravar, para que uma legislatura entre inteira ou não entre: gravar a primeira página e reportar falha deixaria o mesmo estado que o bug original. Há um teto de 10 páginas, que existe só para o caso de um `next` que nunca some.
 
 ### 4.3 [MÉDIO] As seis comissões fixas contra as 30 que a API devolve
 

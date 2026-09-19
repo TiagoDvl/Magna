@@ -6,7 +6,7 @@ import com.tick.magna.data.source.remote.response.DespesasResponse
 
 interface DeputadosApiInterface {
 
-    suspend fun getDeputados(legislaturaId: String): DeputadosResponse
+    suspend fun getDeputados(legislaturaId: String, page: Int): DeputadosResponse
 
     suspend fun getDeputadoById(id: String): DeputadoByIdResponse
 
