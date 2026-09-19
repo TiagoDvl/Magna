@@ -62,7 +62,27 @@ Um papel por função, o mesmo em todas as telas.
 
 Escala curta de propósito: raio que precisa ser consultado é raio que vai ser chutado.
 
-## 5. Andaime de tela
+## 5. Fundo, superfície e elevação
+
+`background` é o creme em que o app se apoia; `surface` é o que fica **em cima** dele. Eram o mesmo valor, no claro e no escuro — então card não tinha de que se destacar, e a elevação de todo `Card` do app estava em zero. Os dois fatos eram o mesmo fato.
+
+| | Claro | Escuro |
+|---|---|---|
+| `background` | `#FFFCF4` | `#1A1C1E` |
+| `surface` | `#FFFFFF` | `#212427` |
+
+Elevação em `ui/core/theme/Elevation.kt`, via `magnaCardElevation()`:
+
+| Papel | Valor |
+|---|---|
+| Card | **1 dp** |
+| Pressionado | 3 dp |
+
+Um dp lê como sombra, não como painel flutuante. A tela é cheia de card; mais que isso vira pilha de azulejo.
+
+**Fundo de tela usa `background`, nunca `surface`.** Duas telas pintavam o próprio fundo com `surface`, o que era invisível enquanto as duas cores eram iguais e virou um bloco branco no meio do creme assim que deixaram de ser. Quem usa `surface` é o que se sobrepõe: sheet, card, diálogo.
+
+## 6. Andaime de tela
 
 `MagnaScreen` — Scaffold, top bar, e o comportamento de scroll. Uma tela nova começa com a identidade pronta em vez de ser montada à mão outra vez.
 
@@ -82,7 +102,7 @@ O callback de voltar chama-se **`navigateBack`** em todo lugar. Eram 23 contra 1
 
 `MagnaLargeTopBar` foi apagado. Tinha zero usos fora dos próprios previews, e dar top bar à Home é decisão de desenho que ainda não foi tomada — manter os dois sem usar um era o pior dos três caminhos.
 
-## 6. Estados
+## 7. Estados
 
 Quatro, compartilhados, e ninguém escreve o seu:
 
@@ -95,7 +115,7 @@ Quatro, compartilhados, e ninguém escreve o seu:
 
 **Vazio não é erro e não é carregando.** Comissão sem votação, deputado sem voto nominal e legislatura sem dado baixado são fatos, e cada um já custou um giro infinito neste app.
 
-## 7. Sem emoji
+## 8. Sem emoji
 
 Removidos dos 13 pontos onde estavam. Eles renderizam diferente em cada aparelho, o leitor de tela anuncia o nome do emoji em voz alta, e "prédio, porta, telefone, envelope" não é o que um gabinete é. Ícone com rótulo diz a mesma coisa e diz igual em todo lugar.
 
@@ -106,7 +126,7 @@ Removidos dos 13 pontos onde estavam. Eles renderizam diferente em cada aparelho
 - `MagnaSection` — regra de separação entre seções
 - Aplicar `MagnaScreen` nas telas que faltam: Home, busca, detalhe do deputado (usa `BottomSheetScaffold`) e detalhe do partido
 - Transições de navegação: o `NavHost` usa o padrão, e não há nenhuma
-- `background` e `surface` são a mesma cor no claro **e** no escuro, o que apaga a distinção entre fundo e card
+- O buraco vertical na Home entre a seção de proposições e a de comissões: é altura reservada, não cor
 - Aplicar o inventário do §14.2, tela por tela
 
 ## O teste de que o bloco funcionou

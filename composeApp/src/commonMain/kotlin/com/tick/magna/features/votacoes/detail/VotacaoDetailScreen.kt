@@ -38,6 +38,7 @@ import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
 import magna.composeapp.generated.resources.votacao_nao_encontrada
@@ -155,7 +156,7 @@ private fun VotacaoContent(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth().clickable { onProposicaoClick(proposicao.id) },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
                 ) {
                     Column(

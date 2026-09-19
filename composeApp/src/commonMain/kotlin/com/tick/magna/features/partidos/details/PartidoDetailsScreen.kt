@@ -49,6 +49,7 @@ import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.component.chart.GenderChart
 import com.tick.magna.ui.component.chart.HorizontalBarChart
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
@@ -141,7 +142,6 @@ private fun PartidoDetailsContent(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = colorScheme.surface,
         topBar = {
             MagnaMediumTopBar(
                 titleText = topBarTitle,
@@ -287,7 +287,7 @@ private fun PartidoDetailsContent(
                                 .fillMaxWidth()
                                 .padding(horizontal = dimensions.grid16, vertical = dimensions.grid8),
                             colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
-                            elevation = CardDefaults.cardElevation(0.dp),
+                            elevation = magnaCardElevation(),
                         ) {
                             Box(modifier = Modifier.padding(dimensions.grid16)) {
                                 when (state.selectedChart) {
@@ -473,7 +473,7 @@ private fun PartidoHeader(
         detail.lider?.let { lider ->
             Card(
                 colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLow),
-                elevation = CardDefaults.cardElevation(0.dp),
+                elevation = magnaCardElevation(),
             ) {
                 Row(
                     modifier = Modifier

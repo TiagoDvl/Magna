@@ -65,6 +65,7 @@ import com.tick.magna.ui.core.avatar.AvatarSize
 import com.tick.magna.data.source.local.mapper.toDisplayDate
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import com.tick.magna.util.toBrlString
@@ -449,7 +450,7 @@ fun DeputadoExpenses(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = MaterialTheme.shapes.medium,
-                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            elevation = magnaCardElevation(),
                             colors = CardDefaults.cardColors(
                                 containerColor = colorScheme.surfaceContainer
                             ),
@@ -627,7 +628,7 @@ private fun VotoCard(voto: VotoDeputado, onClick: () -> Unit) {
 
     Card(
         modifier = Modifier.clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = magnaCardElevation(),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
     ) {
         Column(

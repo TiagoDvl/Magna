@@ -32,6 +32,7 @@ import com.tick.magna.data.domain.partidosMock
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
 import magna.composeapp.generated.resources.ic_star
@@ -128,7 +129,7 @@ private fun PartidoCard(
 
     Card(
         modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = magnaCardElevation(),
         colors = CardDefaults.cardColors(
             containerColor = colorScheme.surfaceContainer,
         ),

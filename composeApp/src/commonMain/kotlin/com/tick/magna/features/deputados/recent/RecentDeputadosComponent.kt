@@ -37,6 +37,7 @@ import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.shape.RoundedPentagonShape
 import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
@@ -166,7 +167,7 @@ private fun RecentDeputados(
             items(deputados) { deputado ->
                 Card(
                     modifier = Modifier.fillMaxHeight().width(80.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainer,
                         contentColor = colorScheme.onSurface
@@ -207,7 +208,7 @@ private fun RecentDeputados(
             item {
                 Card(
                     modifier = Modifier.fillMaxHeight().width(80.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainerLow,
                         contentColor = colorScheme.onSurface

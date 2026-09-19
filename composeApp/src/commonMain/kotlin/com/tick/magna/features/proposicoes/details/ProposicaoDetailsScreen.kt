@@ -35,6 +35,7 @@ import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_left
@@ -257,7 +258,7 @@ private fun StatusSection(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = magnaCardElevation(),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLow),
     ) {
         Column(

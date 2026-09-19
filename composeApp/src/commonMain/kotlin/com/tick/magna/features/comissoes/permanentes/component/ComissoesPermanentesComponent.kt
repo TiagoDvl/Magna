@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_permanentes_section_title
@@ -79,7 +80,7 @@ fun ComissoesPermanentesComponent(
             items(comissoes.value) { item ->
                 Card(
                     modifier = Modifier.height(80.dp).width(200.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainerLow
                     ),

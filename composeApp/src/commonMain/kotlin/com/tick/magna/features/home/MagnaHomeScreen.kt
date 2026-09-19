@@ -286,8 +286,7 @@ private fun MagnaHomeContent(
             Column(
                 modifier = Modifier.fillMaxSize()
                     .padding(paddingValues)
-                    .verticalScroll(scrollState)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .verticalScroll(scrollState),
             ) {
                 val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)
 

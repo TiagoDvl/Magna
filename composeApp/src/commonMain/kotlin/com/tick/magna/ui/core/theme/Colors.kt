@@ -27,9 +27,12 @@ val onErrorLight = Color(0xFFFFFFFF)
 val errorContainerLight = Color(0xFFFFDAD6)
 val onErrorContainerLight = Color(0xFF410002)
 
+// Background is the cream the app sits on; surface is what sits on top of it. They used to
+// be the same value, which meant a card had nothing to lift off and the elevation of every
+// Card in the app was set to zero — the two facts were the same fact.
 val backgroundLight = Color(0xFFFFFCF4)
 val onBackgroundLight = Color(0xFF1A1C1E)
-val surfaceLight = Color(0xFFFFFCF4)
+val surfaceLight = Color(0xFFFFFFFF)
 val onSurfaceLight = Color(0xFF1A1C1E)
 val surfaceVariantLight = Color(0xFFE2E2E8)
 val onSurfaceVariantLight = Color(0xFF45464E)
@@ -81,7 +84,7 @@ val onErrorContainerDark = Color(0xFFFFDAD6)
 // Dark backgrounds
 val backgroundDark = Color(0xFF1A1C1E)
 val onBackgroundDark = Color(0xFFE3E2E6)
-val surfaceDark = Color(0xFF1A1C1E)
+val surfaceDark = Color(0xFF212427)
 val onSurfaceDark = Color(0xFFE3E2E6)
 val surfaceVariantDark = Color(0xFF45464E)
 val onSurfaceVariantDark = Color(0xFFC6C6CE)

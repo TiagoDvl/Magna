@@ -29,6 +29,7 @@ import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_list_empty
@@ -113,7 +114,7 @@ private fun ComissaoCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = magnaCardElevation(),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLow),
         onClick = onClick,
     ) {

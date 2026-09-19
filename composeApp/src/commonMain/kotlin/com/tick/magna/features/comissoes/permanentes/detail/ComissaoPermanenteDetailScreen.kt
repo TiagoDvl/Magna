@@ -46,6 +46,7 @@ import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissao_membros_empty
 import magna.composeapp.generated.resources.comissao_membros_empty_description
@@ -200,7 +201,7 @@ private fun VotacoesTab(
 
                 items(votacoes.votacoes) { votacao ->
                     Card(
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        elevation = magnaCardElevation(),
                         colors = CardDefaults.cardColors(
                             containerColor = colorScheme.surfaceContainer
                         )

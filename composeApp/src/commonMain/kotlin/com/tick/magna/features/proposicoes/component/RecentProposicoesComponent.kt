@@ -41,6 +41,7 @@ import com.tick.magna.data.domain.proposicoesMock
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
@@ -157,7 +158,7 @@ private fun RecentProposicoesComponentContent(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.medium,
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        elevation = magnaCardElevation(),
                         colors = CardDefaults.cardColors(
                             containerColor = colorScheme.surfaceContainer
                         ),
