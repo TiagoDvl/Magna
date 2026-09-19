@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 class ComissaoPermanenteDetailViewModel(
     savedStateHandle: SavedStateHandle,
-    dispatcher: DispatcherInterface,
+    private val dispatcher: DispatcherInterface,
     private val orgaosRepository: OrgaosRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
@@ -40,6 +40,13 @@ class ComissaoPermanenteDetailViewModel(
     private val _state: MutableStateFlow<ComissaoPermanenteState> = MutableStateFlow(ComissaoPermanenteState())
     val state: StateFlow<ComissaoPermanenteState> = _state.asStateFlow()
 
+    /**
+     * Resolved in [init] against the list, which is scoped by term, so it is null both before
+     * the list arrives and for a committee that does not exist in the selected one. The
+     * presidents tab reads it rather than the route argument for that second reason.
+     */
+    private var loadedOrgaoId: String? = null
+
     init {
         viewModelScope.launch(dispatcher.io) {
             val comissoesPermanentes = orgaosRepository.getComissoesPermanentes().first()
@@ -51,18 +58,27 @@ class ComissaoPermanenteDetailViewModel(
                 // the screen spinning on nothing.
                 logger.w("init: orgao not found for id=${args.comissaoPermanenteId}", TAG)
                 _state.update {
-                    it.copy(votacoesState = VotacoesState.Error, membrosState = MembrosState.Error)
+                    it.copy(
+                        votacoesState = VotacoesState.Error,
+                        membrosState = MembrosState.Error,
+                        presidentesState = PresidentesState.Error,
+                    )
                 }
                 return@launch
             }
 
             logger.d("init: loading orgao=${orgao.nomeResumido}", TAG)
+            loadedOrgaoId = orgao.id
             _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
             analytics.track(AnalyticsEvent.ComissaoOpened(sigla = orgao.sigla.orEmpty()))
 
             // Together rather than one after the other. The votes are the expensive half —
             // one request per vote on top of the window — and the composition is two; waiting
             // for the first to finish would hold an already-loaded tab behind it.
+            // Somebody can reach the presidents tab before this resolves, and that tap found
+            // no orgao id to load with. Asking again here is what turns it into a request.
+            if (_state.value.selectedTab == ComissaoTab.PRESIDENTES) loadPresidentes()
+
             coroutineScope {
                 val votacoes = async { loadVotacoes(orgao) }
                 val membros = async { loadMembros(orgao) }
@@ -74,6 +90,39 @@ class ComissaoPermanenteDetailViewModel(
 
     fun onTabSelected(tab: ComissaoTab) {
         _state.update { it.copy(selectedTab = tab) }
+
+        if (tab == ComissaoTab.PRESIDENTES) loadPresidentes()
+    }
+
+    /**
+     * The only request this screen makes on demand, because it is the only expensive one: the
+     * whole mandate is ten requests on the CCJC, against two for the current composition.
+     *
+     * Guarded by reading the state rather than by a flag, which also makes reopening the tab
+     * after a failure a retry. Called from the tab row, so the check and the write happen on
+     * the same thread.
+     */
+    private fun loadPresidentes() {
+        val orgaoId = loadedOrgaoId ?: return
+        if (!shouldLoadPresidentes(_state.value.presidentesState)) return
+
+        _state.update { it.copy(presidentesState = PresidentesState.Loading) }
+
+        viewModelScope.launch(dispatcher.io) {
+            val result = orgaosRepository.getComissaoPresidentes(orgaoId)
+            result
+                .onSuccess { presidentes ->
+                    logger.d("loadPresidentes: ${presidentes.size} for orgao=$orgaoId", TAG)
+                    if (presidentes.isEmpty()) {
+                        analytics.track(
+                            AnalyticsEvent.ContentEmpty(AnalyticsEvent.EmptyContent.COMISSAO_PRESIDENTES)
+                        )
+                    }
+                }
+                .onFailure { e -> logger.e("loadPresidentes: failed for orgao=$orgaoId", e, TAG) }
+
+            _state.update { it.copy(presidentesState = presidentesStateFor(result)) }
+        }
     }
 
     private suspend fun loadVotacoes(orgao: Orgao) {

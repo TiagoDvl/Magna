@@ -90,6 +90,11 @@
     <string name="comissao_membros_suplentes">Suplentes</string>
     <string name="comissao_membros_empty">Composição não publicada</string>
     <string name="comissao_membros_empty_description">A Câmara não publicou quem ocupava as cadeiras desta comissão no período.</string>
+    <string name="comissao_tab_presidentes">Presidentes</string>
+    <string name="comissao_presidentes_empty">Nenhuma presidência registrada</string>
+    <string name="comissao_presidentes_empty_description">A Câmara não publicou quem presidiu esta comissão nesta legislatura.</string>
+    <string name="comissao_presidentes_atual">atual</string>
+    <string name="comissao_presidentes_incompleto">A Câmara não publica um registro contínuo: períodos podem faltar.</string>
 
     <string name="partidos_section_title">Partidos</string>
     <string name="partidos_see_all">Ver todos</string>

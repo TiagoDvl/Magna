@@ -36,7 +36,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.membrosComissaoMock
+import com.tick.magna.data.domain.presidentesComissaoMock
 import com.tick.magna.data.domain.votacoesMock
+import com.tick.magna.data.source.local.mapper.toDisplayDate
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
@@ -50,7 +52,12 @@ import magna.composeapp.generated.resources.comissao_membros_empty_description
 import magna.composeapp.generated.resources.comissao_membros_mesa
 import magna.composeapp.generated.resources.comissao_membros_suplentes
 import magna.composeapp.generated.resources.comissao_membros_titulares
+import magna.composeapp.generated.resources.comissao_presidentes_atual
+import magna.composeapp.generated.resources.comissao_presidentes_empty
+import magna.composeapp.generated.resources.comissao_presidentes_empty_description
+import magna.composeapp.generated.resources.comissao_presidentes_incompleto
 import magna.composeapp.generated.resources.comissao_tab_composicao
+import magna.composeapp.generated.resources.comissao_tab_presidentes
 import magna.composeapp.generated.resources.comissao_tab_votacoes
 import magna.composeapp.generated.resources.comissao_votacoes_empty
 import magna.composeapp.generated.resources.comissao_votacoes_empty_description
@@ -121,6 +128,12 @@ private fun ComissaoPermanenteDetail(
                 paddingValues = paddingValues,
                 onDeputadoClick = onDeputadoClick,
             )
+
+            ComissaoTab.PRESIDENTES -> PresidentesTab(
+                presidentesState = state.presidentesState,
+                paddingValues = paddingValues,
+                onDeputadoClick = onDeputadoClick,
+            )
         }
     }
 }
@@ -129,6 +142,7 @@ private val ComissaoTab.label: StringResource
     get() = when (this) {
         ComissaoTab.VOTACOES -> Res.string.comissao_tab_votacoes
         ComissaoTab.COMPOSICAO -> Res.string.comissao_tab_composicao
+        ComissaoTab.PRESIDENTES -> Res.string.comissao_tab_presidentes
     }
 
 @Composable
@@ -470,6 +484,115 @@ private fun MembroRow(
     }
 }
 
+@Composable
+private fun PresidentesTab(
+    presidentesState: PresidentesState,
+    paddingValues: PaddingValues,
+    onDeputadoClick: (String) -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+    val dimensions = LocalDimensions.current
+
+    when (presidentesState) {
+        // Idle only lasts as long as it takes the tap to reach the ViewModel, and during the
+        // first moment of a screen that has not resolved its committee yet. A spinner is what
+        // both of those are.
+        PresidentesState.Idle, PresidentesState.Loading ->
+            LoadingComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
+
+        PresidentesState.Error ->
+            SomethingWentWrongComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
+
+        PresidentesState.Empty ->
+            EmptyComponent(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                title = stringResource(Res.string.comissao_presidentes_empty),
+                description = stringResource(Res.string.comissao_presidentes_empty_description),
+            )
+
+        is PresidentesState.Content -> {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentPadding = PaddingValues(dimensions.grid16),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid12),
+            ) {
+                items(presidentesState.presidentes, key = { "${it.deputadoId}-${it.dataInicio}" }) { presidente ->
+                    PresidenteRow(
+                        presidente = presidente,
+                        onClick = { onDeputadoClick(presidente.deputadoId) },
+                    )
+                }
+
+                // Said once, at the bottom, because it is true of every committee and of no
+                // particular row. The CSSF has nothing between March 2024 and March 2025 and
+                // the CAPADR nothing before March 2024 — the record has holes, and filling
+                // them in would mean inventing a president.
+                item {
+                    Text(
+                        modifier = Modifier.fillMaxWidth().padding(top = dimensions.grid8),
+                        text = stringResource(Res.string.comissao_presidentes_incompleto),
+                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PresidenteRow(
+    presidente: MembroComissao,
+    onClick: () -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+    val dimensions = LocalDimensions.current
+
+    val isAtual = presidente.dataFim == null
+    val atual = stringResource(Res.string.comissao_presidentes_atual)
+    val periodo = "${presidente.dataInicio.toDisplayDate()} - ${presidente.dataFim?.toDisplayDate() ?: atual}"
+
+
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.grid12),
+    ) {
+        Avatar(photoUrl = presidente.urlFoto)
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid2),
+        ) {
+            Text(
+                text = presidente.nome,
+                style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            val partido = listOfNotNull(presidente.siglaPartido, presidente.siglaUf).joinToString(" - ")
+            if (partido.isNotEmpty()) {
+                Text(
+                    text = partido,
+                    style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            Text(
+                text = periodo,
+                style = typography.labelSmall.copy(
+                    color = if (isAtual) colorScheme.primary else colorScheme.onSurfaceVariant,
+                    fontWeight = if (isAtual) FontWeight.SemiBold else FontWeight.Normal,
+                ),
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun PreviewComissaoPermanenteVotacoes() {
@@ -489,6 +612,18 @@ private fun PreviewComissaoPermanenteComposicao() {
             comissaoPermanenteNomeResumido = "CCJ",
             selectedTab = ComissaoTab.COMPOSICAO,
             membrosState = MembrosState.Content(membrosComissaoMock),
+        )
+    )
+}
+
+@Preview
+@Composable
+private fun PreviewComissaoPermanentePresidentes() {
+    ComissaoPermanenteDetail(
+        state = ComissaoPermanenteState(
+            comissaoPermanenteNomeResumido = "CCJ",
+            selectedTab = ComissaoTab.PRESIDENTES,
+            presidentesState = PresidentesState.Content(presidentesComissaoMock),
         )
     )
 }

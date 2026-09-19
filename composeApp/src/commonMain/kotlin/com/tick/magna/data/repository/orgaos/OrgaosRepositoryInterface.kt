@@ -34,4 +34,12 @@ interface OrgaosRepositoryInterface {
      * suplentes, and alphabetically inside each.
      */
     suspend fun getComissaoMembros(idOrgao: String): Result<List<MembroComissao>>
+
+    /**
+     * Everybody who presided over the committee during the selected term, most recent first.
+     *
+     * The expensive one: it reads the whole mandate, which is ten requests for the CCJC and
+     * two for most committees. Asked only when somebody opens the tab that shows it.
+     */
+    suspend fun getComissaoPresidentes(idOrgao: String): Result<List<MembroComissao>>
 }

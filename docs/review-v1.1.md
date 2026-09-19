@@ -726,7 +726,7 @@ Três coisas tornam isso pobre, e nenhuma é culpa do layout:
 
 A ementa, que é a única parte com substância, já é exibida — `OrgaosRepository.kt:79` mapeia `proposicoesAfetadas.map { it.ementa }`.
 
-### 12.2 Composição: a API organiza diferente do que parece — FEITO (composição) / PENDENTE (histórico)
+### 12.2 Composição: a API organiza diferente do que parece — FEITO
 
 Confirmado por medição, porque a intuição de que "as comissões se organizavam de outro jeito" estava certa.
 
@@ -801,8 +801,8 @@ O que este bloco acrescenta, medido:
 | Adição | Requisições | Observação |
 |---|---|---|
 | composição vigente | 2 | `itens=100`, 130 registros |
-| histórico de passagens da legislatura | 10 | 902 registros, agrupar por deputado |
-| linha do tempo de presidentes | 0 extra | sai do histórico acima |
+| histórico de passagens da legislatura | 1 a 10 | CCJC 902 registros, CASP 2 — a mediana medida é 2 requisições |
+| linha do tempo de presidentes | 0 extra | sai do histórico acima, filtrando `codTitulo == 1` |
 
 A composição vigente é barata e vale a pena, e **está feita**: 2 requisições, junto das votações em vez de depois delas. O histórico só se a tela de fato o usar. **Nada disso deveria ser feito sem cache**: composição de comissão muda uma vez por ano, e é o tipo de dado que pertence ao banco. As tabelas precisam de `legislaturaId`, o que conecta este bloco ao item 11.3 e a uma migração — ver o item 16.3 antes, porque migração é o que não compila no Windows hoje.
 
@@ -813,7 +813,8 @@ Aproveitar para resolver as 21 requisições: buscar votações por data com pag
 - **Votação nominal por deputado não existe aqui.** O bloco 5 removeu `getDeputadoVotacoes` porque custava 21 requisições para responder uma pergunta. Nada neste bloco o traz de volta.
 - ~~**`/orgaos/{id}/eventos` devolveu vazio**~~ — **verificado**: era falta de janela, não falta de dado. 0 itens sem datas, 14 com. Item 5.6 do mapa. Ainda não exibido.
 - ~~**`efeitosRegistrados` veio vazio**~~ — **verificado**: vazio em 6 votações de 3 comissões diferentes. É geral. Descartado.
-- **Histórico e linha do tempo de presidentes continuam de fora.** São 10 requisições por comissão contra 2 da composição vigente — tela própria, não extra desta.
+- ~~**Histórico e linha do tempo de presidentes continuam de fora.**~~ — **feito**, numa terceira aba que só busca quando é aberta. As 10 requisições da CCJC são o pior caso; a mediana medida é 2. Item 5.8 do mapa.
+- **O registro de presidências tem buracos** e a tela não os preenche. A CSSF não tem nada entre março de 2024 e março de 2025; a CFT tem um presidente só no quadriênio. Emendar isso seria inventar dado.
 
 ---
 

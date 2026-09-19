@@ -522,18 +522,41 @@ Duas armadilhas a mais, as duas reais:
 
 `codTitulo`: `1` Presidente, `2`/`3`/`4` 1º/2º/3º Vice, `101` Titular, `102` Suplente. É a chave de ordenação; o `titulo` em texto é só para exibir.
 
-### 5.8 A presidência rotaciona, e a linha do tempo sai da mesma chamada
+### 5.8 A presidência rotaciona, e a linha do tempo sai da mesma chamada — CORRIGIDO
 
-Janela do mandato inteiro na CCJC: **10 requisições, 902 registros, 293 deputados distintos**. Filtrando `codTitulo == 1`:
+Uma janela cobrindo o mandato inteiro, filtrando `codTitulo == 1`. O custo varia muito por comissão, medido em 2026-09-19 na legislatura 57:
 
-| Presidente | Período |
+| Comissão | Requisições | Registros | Deputados distintos | Presidentes |
+|---|---|---|---|---|
+| CCJC | **10** | 902 | 293 | 4 |
+| CAPADR | 6 | 556 | 191 | 4 |
+| CE | 3 | 268 | 127 | 4 |
+| CSSF | 2 | 171 | 74 | 3 |
+| CFT | 2 | 164 | 79 | **1** |
+| CCTI | 2 | 199 | 86 | 3 |
+| CASP | **1** | 2 | 2 | 2 |
+
+A CCJC é o pior caso, não o caso típico. A mediana é 2 ou 3.
+
+**Não há filtro no servidor.** `codTitulo=1`, `titulo=Presidente` e `codTituloOrgao=1` são todos HTTP 400 nomeando o próprio parâmetro. Baixar o mandato e filtrar no cliente é o único caminho.
+
+**O registro tem buracos, e não dá para fechá-los.** Isto é o achado que muda o desenho da tela:
+
+| Comissão | Buraco |
 |---|---|
-| Rui Falcão (PT) | 2023-03-15 → 2024-03-06 |
-| Caroline de Toni (PL) | 2024-03-06 → 2025-03-18 |
-| Paulo Azi (UNIÃO) | 2025-03-19 → 2026-02-09 |
-| Leur Lomanto Júnior (UNIÃO) | 2026-02-10 → atual |
+| CSSF | nada entre 2024-03-06 e 2025-03-19 — um ano inteiro |
+| CCTI | nada entre 2025-03-18 e 2026-02-04 |
+| CAPADR | nada antes de 2024-03-06, com o mandato começando em 2023-02-01 |
+| CFT | **um presidente só** no quadriênio, começando em 2026-02-04 |
 
-Ainda não exibido. São 10 requisições por comissão contra 2 da composição vigente, então é uma tela própria, não um extra da que existe.
+Emendar os períodos para parecerem contínuos seria inventar presidente. A tela lista o que existe e diz uma vez, no rodapé, que o registro pode ter falhas.
+
+Duas armadilhas menores:
+
+- **Uma janela de um dia funciona e devolve o período inteiro do vínculo.** `?dataInicio=2024-06-01&dataFim=2024-06-01` na CCJC devolve Caroline de Toni com `2024-03-06 → 2025-03-18`. Tentador para caminhar pela linha do tempo em menos requisições, mas não compensa: continuam 2 páginas por sondagem, e **a CSSF não tem presidente nenhum em 2024-06-01** — a caminhada quebra no primeiro buraco.
+- **A ordenação não é por `codTitulo`.** O presidente pode cair na página 2. Paginar inteiro é obrigatório.
+
+A CASP é um caso à parte: 2 registros no mandato todo, e os "presidentes" são Arthur Lira e Hugo Motta — presidentes da Câmara, não de comissão.
 
 ---
 

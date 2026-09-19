@@ -74,6 +74,25 @@ internal fun mandateWindows(startDate: String, endDate: String, today: LocalDate
     return windows
 }
 
+/**
+ * The whole mandate as a single window, never reaching into the future.
+ *
+ * Only `/orgaos/{id}/membros` can be asked this way, and that is the point of it existing
+ * separately from [mandateWindows]: that endpoint accepts an eight-year range without
+ * complaining, while `/votacoes` refuses anything over three months. Asking for the mandate
+ * in one go is what makes the list of a committee's presidents a single query instead of
+ * sixteen.
+ */
+internal fun fullMandateWindow(startDate: String, endDate: String, today: LocalDate): AtividadeWindow? {
+    val start = startDate.toLocalDateOrNull() ?: return null
+    val end = endDate.toLocalDateOrNull() ?: return null
+
+    val lastDay = if (today < end) today else end
+    if (lastDay <= start) return null
+
+    return AtividadeWindow(start = start.toString(), end = lastDay.toString())
+}
+
 private fun String.toLocalDateOrNull(): LocalDate? =
     runCatching { LocalDate.parse(take(ISO_DATE_LENGTH)) }.getOrNull()
 

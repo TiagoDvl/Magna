@@ -3,6 +3,7 @@ package com.tick.magna.features.comissoes.permanentes.detail
 import com.tick.magna.data.domain.MembroComissao
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -55,6 +56,37 @@ class MembrosStateTest {
         assertTrue(state.mesa.isEmpty())
         assertTrue(state.titulares.isEmpty())
         assertEquals(1, state.suplentes.size)
+    }
+
+    @Test
+    fun the_presidents_tab_does_not_fetch_until_it_is_opened() {
+        // Ten requests on the CCJC against two for the current composition, so it is the one
+        // thing on this screen that is not paid for on every visit.
+        assertTrue(shouldLoadPresidentes(PresidentesState.Idle))
+        assertFalse(shouldLoadPresidentes(PresidentesState.Loading))
+        assertFalse(shouldLoadPresidentes(PresidentesState.Empty))
+        assertFalse(
+            shouldLoadPresidentes(PresidentesState.Content(listOf(membro("1", codTitulo = 1))))
+        )
+    }
+
+    @Test
+    fun coming_back_to_the_tab_after_a_failure_is_a_retry() {
+        // There is no button offering another attempt, and reopening the tab is the gesture
+        // somebody makes when a screen failed.
+        assertTrue(shouldLoadPresidentes(PresidentesState.Error))
+    }
+
+    @Test
+    fun a_committee_with_no_published_presidency_is_empty_and_not_loading() {
+        assertEquals(PresidentesState.Empty, presidentesStateFor(Result.success(emptyList())))
+    }
+
+    @Test
+    fun a_failed_presidency_request_is_an_error() {
+        val state = presidentesStateFor(Result.failure<List<MembroComissao>>(RuntimeException("boom")))
+
+        assertEquals(PresidentesState.Error, state)
     }
 
     private fun membro(id: String, codTitulo: Int) = MembroComissao(

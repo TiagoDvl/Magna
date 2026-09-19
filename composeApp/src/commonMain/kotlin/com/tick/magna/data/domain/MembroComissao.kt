@@ -94,3 +94,51 @@ val membrosComissaoMock = listOf(
         dataFim = null,
     ),
 )
+
+/** The four presidents the CCJC had in the 57th legislature, as the API returns them. */
+val presidentesComissaoMock = listOf(
+    MembroComissao(
+        deputadoId = "204436",
+        nome = "Leur Lomanto Júnior",
+        siglaPartido = "UNIÃO",
+        siglaUf = "BA",
+        urlFoto = "https://www.camara.leg.br/internet/deputado/bandep/204436.jpg",
+        titulo = "Presidente",
+        codTitulo = 1,
+        dataInicio = "2026-02-10",
+        dataFim = null,
+    ),
+    MembroComissao(
+        deputadoId = "178860",
+        nome = "Paulo Azi",
+        siglaPartido = "UNIÃO",
+        siglaUf = "BA",
+        urlFoto = "https://www.camara.leg.br/internet/deputado/bandep/178860.jpg",
+        titulo = "Presidente",
+        codTitulo = 1,
+        dataInicio = "2025-03-19",
+        dataFim = "2026-02-09",
+    ),
+    MembroComissao(
+        deputadoId = "220552",
+        nome = "Caroline de Toni",
+        siglaPartido = "PL",
+        siglaUf = "SC",
+        urlFoto = "https://www.camara.leg.br/internet/deputado/bandep/220552.jpg",
+        titulo = "Presidente",
+        codTitulo = 1,
+        dataInicio = "2024-03-06",
+        dataFim = "2025-03-18",
+    ),
+    MembroComissao(
+        deputadoId = "141428",
+        nome = "Rui Falcão",
+        siglaPartido = "PT",
+        siglaUf = "SP",
+        urlFoto = "https://www.camara.leg.br/internet/deputado/bandep/141428.jpg",
+        titulo = "Presidente",
+        codTitulo = 1,
+        dataInicio = "2023-03-15",
+        dataFim = "2024-03-06",
+    ),
+)

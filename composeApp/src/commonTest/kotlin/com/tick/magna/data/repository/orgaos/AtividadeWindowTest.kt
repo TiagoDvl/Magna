@@ -2,6 +2,7 @@ package com.tick.magna.data.repository.orgaos
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
 
@@ -131,6 +132,30 @@ class AtividadeWindowTest {
     @Test
     fun a_term_that_has_not_started_has_no_windows_to_walk() {
         assertTrue(mandateWindows("2027-02-01", "2031-01-31", LocalDate(2026, 9, 19)).isEmpty())
+    }
+
+    @Test
+    fun the_whole_mandate_is_one_window_for_the_endpoint_that_allows_it() {
+        // /orgaos/{id}/membros takes an eight-year range without complaining, which is what
+        // makes a committee's list of presidents one query instead of sixteen.
+        val window = fullMandateWindow("2019-02-01", "2023-01-31", LocalDate(2026, 9, 19))
+
+        assertEquals("2019-02-01", window?.start)
+        assertEquals("2023-01-31", window?.end)
+    }
+
+    @Test
+    fun the_mandate_window_stops_at_today_on_a_term_still_running() {
+        val window = fullMandateWindow("2023-02-01", "2027-01-31", LocalDate(2026, 9, 19))
+
+        assertEquals("2023-02-01", window?.start)
+        assertEquals("2026-09-19", window?.end)
+    }
+
+    @Test
+    fun a_term_that_has_not_started_has_no_mandate_window() {
+        assertNull(fullMandateWindow("2027-02-01", "2031-01-31", LocalDate(2026, 9, 19)))
+        assertNull(fullMandateWindow("", "2031-01-31", LocalDate(2026, 9, 19)))
     }
 
     private fun monthsBetween(start: String, end: String): Int {

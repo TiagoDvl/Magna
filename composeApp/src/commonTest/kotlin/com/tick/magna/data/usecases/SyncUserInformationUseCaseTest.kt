@@ -252,6 +252,9 @@ class SyncUserInformationUseCaseTest {
 
             override suspend fun getComissaoMembros(idOrgao: String): Result<List<MembroComissao>> =
                 throw UnsupportedOperationException("not part of the sync")
+
+            override suspend fun getComissaoPresidentes(idOrgao: String): Result<List<MembroComissao>> =
+                throw UnsupportedOperationException("not part of the sync")
         }
 
         val legislaturasRepository = object : LegislaturasRepositoryInterface {

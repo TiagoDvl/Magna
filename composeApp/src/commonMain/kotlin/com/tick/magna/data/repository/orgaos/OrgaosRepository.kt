@@ -337,7 +337,54 @@ internal class OrgaosRepository(
         }
     }
 
-    private suspend fun fetchMembros(idOrgao: String, window: AtividadeWindow): List<MembroComissao> {
+    /**
+     * The committee's presidents over the term, most recent first.
+     *
+     * One window covering the whole mandate, which this endpoint allows and `/votacoes` does
+     * not. Measured: the CCJC is ten requests and 902 rows, the CSSF two and 171, the CASP
+     * one and two. Four of those rows are presidents on the CCJC, one on the CFT.
+     *
+     * The list is printed as it comes, with no attempt to make it continuous, because it is
+     * not. The CSSF has nothing between March 2024 and March 2025 and the CAPADR nothing
+     * before March 2024; filling those in would be inventing a president. A committee whose
+     * term has an unbroken chain and one whose record has a hole look different here, and
+     * that is the honest outcome.
+     */
+    override suspend fun getComissaoPresidentes(idOrgao: String): Result<List<MembroComissao>> {
+        return try {
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+            val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
+                ?: return Result.success(emptyList())
+
+            val window = fullMandateWindow(legislatura.startDate, legislatura.endDate, today())
+                ?: return Result.success(emptyList())
+
+            val presidentes = fetchMembros(idOrgao, window, MAX_HISTORY_PAGES)
+                .filter { it.isPresidente }
+                // Somebody can preside twice in one term, so the same person is not a repeat;
+                // the same person over the same period is.
+                .distinctBy { it.deputadoId to it.dataInicio }
+                .sortedByDescending { it.dataInicio }
+
+            loggerInterface.d(
+                "getComissaoPresidentes: ${presidentes.size} presidentes for orgao=$idOrgao " +
+                    "on legislatura=$legislaturaId",
+                TAG,
+            )
+            Result.success(withPartidoFromLocal(presidentes, legislaturaId))
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.e("getComissaoPresidentes: failed for orgao=$idOrgao", e, TAG)
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun fetchMembros(
+        idOrgao: String,
+        window: AtividadeWindow,
+        maxPages: Int = MAX_MEMBER_PAGES,
+    ): List<MembroComissao> {
         val membros = mutableListOf<MembroComissao>()
         var pagina = 1
 
@@ -347,7 +394,7 @@ internal class OrgaosRepository(
 
             if (!response.links.hasNextPage()) break
 
-            if (pagina >= MAX_MEMBER_PAGES) {
+            if (pagina >= maxPages) {
                 loggerInterface.w("fetchMembros: stopped at page $pagina for orgao $idOrgao", TAG)
                 break
             }
@@ -416,6 +463,13 @@ internal class OrgaosRepository(
          * only here so a `next` link that never stops cannot loop forever.
          */
         const val MAX_MEMBER_PAGES = 10
+
+        /**
+         * The mandate is longer than a quarter, so it pages further: 10 for the CCJC, which
+         * is the largest measured. The ceiling is generous rather than tight because the only
+         * thing it guards against is a `next` link that never ends.
+         */
+        const val MAX_HISTORY_PAGES = 20
 
         /** Enough to compare `2023-02-15` with `2023-02-15T00:00`. */
         const val DATE_LENGTH = 10
