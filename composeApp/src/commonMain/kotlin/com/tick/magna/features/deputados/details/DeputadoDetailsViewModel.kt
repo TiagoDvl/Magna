@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DeputadoDetailsViewModel(
@@ -50,7 +51,11 @@ class DeputadoDetailsViewModel(
                 deputadosRepository.getDeputadoDetails(deputadoIdArgs),
                 deputadosRepository.getDeputadoExpenses(deputadoIdArgs)
             ) { deputadoData, detailsResult, expensesResult ->
-                DeputadoDetailsState(
+                // Only the three fields this flow owns. It used to build a whole
+                // DeputadoDetailsState, which silently reset every other field to its default
+                // on each emission — the selected tab jumped back to Despesas and the download
+                // card disappeared a second after it appeared.
+                Combined(
                     deputado = deputadoData,
                     detailsState = when (detailsResult) {
                         Resource.Loading -> DetailsState.Loading
@@ -68,15 +73,27 @@ class DeputadoDetailsViewModel(
                                 ExpensesState.Content(expensesResult.data)
                             }
                         }
-                    }
+                    },
                 )
-            }.collect { state ->
-                logger.d("state → detailsState=${state.detailsState::class.simpleName}, expensesState=${state.expensesState::class.simpleName}", TAG)
+            }.collect { combined ->
+                logger.d(
+                    "state → detailsState=${combined.detailsState::class.simpleName}, " +
+                        "expensesState=${combined.expensesState::class.simpleName}",
+                    TAG,
+                )
 
-                // The combine rebuilds the whole state on every emission, and the votes are
-                // not one of its sources. Assigning it whole would throw them away each time
-                // an expense or a detail arrived.
-                _state.value = state.copy(votosState = _state.value.votosState)
+                // update, not `value =`. Reading the current state and assigning a modified
+                // copy is a lost update waiting to happen: this coroutine and the votes one
+                // both run on Dispatchers.IO, and the votes arrived 23 ms before an emission
+                // here, so this wrote Loading back over a list that was already on screen and
+                // nothing ever set it again.
+                _state.update { current ->
+                    current.copy(
+                        deputado = combined.deputado,
+                        detailsState = combined.detailsState,
+                        expensesState = combined.expensesState,
+                    )
+                }
             }
         }
 
@@ -96,7 +113,7 @@ class DeputadoDetailsViewModel(
                 }
                 .onFailure { e -> logger.e("votos: falhou para deputadoId=$deputadoIdArgs", e, TAG) }
 
-            _state.value = _state.value.copy(votosState = votosStateFor(result))
+            _state.update { it.copy(votosState = votosStateFor(result)) }
 
             // Two HEAD requests and no transfer, so it can run beside the votes rather than
             // waiting for a tab to be opened.
@@ -105,7 +122,7 @@ class DeputadoDetailsViewModel(
     }
 
     fun onTabSelected(tab: DeputadoTab) {
-        _state.value = _state.value.copy(selectedTab = tab)
+        _state.update { it.copy(selectedTab = tab) }
     }
 
     /**
@@ -118,11 +135,11 @@ class DeputadoDetailsViewModel(
         if (_state.value.importacao is ImportacaoState.Baixando) return
 
         val anterior = _state.value.importacao
-        _state.value = _state.value.copy(importacao = ImportacaoState.Baixando(0f))
+        _state.update { it.copy(importacao = ImportacaoState.Baixando(0f)) }
 
         importJob = viewModelScope.launch(dispatcher.io) {
             val result = votosRepository.importarAno { progresso ->
-                _state.value = _state.value.copy(importacao = ImportacaoState.Baixando(progresso))
+                _state.update { it.copy(importacao = ImportacaoState.Baixando(progresso)) }
             }
 
             result
@@ -133,9 +150,7 @@ class DeputadoDetailsViewModel(
                 }
                 .onFailure { e ->
                     logger.e("importarAno: falhou", e, TAG)
-                    _state.value = _state.value.copy(
-                        importacao = ImportacaoState.Falhou(bytesDe(anterior)),
-                    )
+                    _state.update { it.copy(importacao = ImportacaoState.Falhou(bytesDe(anterior))) }
                 }
         }
     }
@@ -159,14 +174,13 @@ class DeputadoDetailsViewModel(
     }
 
     private suspend fun refreshImportacao() {
-        _state.value = _state.value.copy(
-            importacao = importacaoStateFor(votosRepository.getImportacao()),
-        )
+        val importacao = importacaoStateFor(votosRepository.getImportacao())
+        _state.update { it.copy(importacao = importacao) }
     }
 
     private suspend fun reloadVotos() {
         val result = votosRepository.getVotosDoDeputado(deputadoIdArgs)
-        _state.value = _state.value.copy(votosState = votosStateFor(result))
+        _state.update { it.copy(votosState = votosStateFor(result)) }
     }
 
     /**
@@ -184,6 +198,18 @@ class DeputadoDetailsViewModel(
     fun onSocialOpened() {
         analytics.track(AnalyticsEvent.ExternalLinkOpened(AnalyticsEvent.LinkKind.DEPUTADO_SOCIAL))
     }
+
+    /**
+     * What the combined flow produces: its own three fields and nothing else.
+     *
+     * A separate type on purpose. Producing a DeputadoDetailsState here is what let three
+     * unrelated fields be reset to their defaults without anybody noticing.
+     */
+    private data class Combined(
+        val deputado: com.tick.magna.data.domain.Deputado?,
+        val detailsState: DetailsState,
+        val expensesState: ExpensesState,
+    )
 
     /** The combined flow emits repeatedly; the empty outcome is worth reporting only once. */
     private fun trackEmptyExpensesOnce() {

@@ -80,12 +80,12 @@
     <string name="deputado_tab_votos">Como votou</string>
     <string name="votos_baixar_titulo">Baixar o ano completo</string>
     <string name="votos_baixar_descricao">Hoje o app guarda só os últimos três meses do Plenário. O arquivo do ano tem todas as votações nominais, incluindo as das comissões.</string>
-    <string name="votos_baixar_botao">Baixar %s</string>
-    <string name="votos_baixando">Baixando… %d%%</string>
+    <string name="votos_baixar_botao">Baixar %1$s</string>
+    <string name="votos_baixando">Baixando… %1$d%%</string>
     <string name="votos_cancelar">Cancelar</string>
-    <string name="votos_completo_ate">Dados completos até %s</string>
+    <string name="votos_completo_ate">Dados completos até %1$s</string>
     <string name="votos_desatualizado">Existe uma versão mais recente</string>
-    <string name="votos_atualizar">Atualizar %s</string>
+    <string name="votos_atualizar">Atualizar %1$s</string>
     <string name="votos_baixar_erro">Não foi possível baixar. Nada foi alterado.</string>
     <string name="votacao_title">Votação</string>
     <string name="votacao_votos_title">Como cada um votou</string>
