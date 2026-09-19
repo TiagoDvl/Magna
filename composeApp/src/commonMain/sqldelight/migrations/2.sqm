@@ -1,0 +1,21 @@
+-- Scopes Proposicao by legislatura, so that switching terms stops showing the rows the
+-- previous term left behind.
+--
+-- The rows are dropped rather than migrated. There is no honest legislatura to assign to
+-- what is already stored: the table has only ever held whatever the Camara returned as
+-- most recent, with no record of which term that belonged to. It is a cache of at most a
+-- few dozen rows, refilled the next time the Home opens, so nothing is lost by starting
+-- over — and the same choice was made for DeputadoExpense in the first migration.
+DROP TABLE Proposicao;
+
+CREATE TABLE Proposicao (
+    id TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    codTipo TEXT,
+    ementa TEXT,
+    dataApresentacao TEXT,
+    autores TEXT,
+    url TEXT,
+    PRIMARY KEY (id, legislaturaId),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);

@@ -20,15 +20,15 @@ class ProposicaoDao(
         }
     }
 
-    override fun getProposicoes(siglaTipo: String): Flow<List<Proposicao>> {
+    override fun getProposicoes(legislaturaId: String, siglaTipo: String): Flow<List<Proposicao>> {
         return if (siglaTipo.isNotEmpty()) {
             proposicaoQueries
-                .getProposicoesByCodTipo(siglaTipo)
+                .getProposicoesByCodTipo(legislaturaId, siglaTipo)
                 .asFlow()
                 .mapToList(dispatcherInterface.io)
         } else {
             proposicaoQueries
-                .getProposicoes()
+                .getProposicoes(legislaturaId)
                 .asFlow()
                 .mapToList(dispatcherInterface.io)
         }

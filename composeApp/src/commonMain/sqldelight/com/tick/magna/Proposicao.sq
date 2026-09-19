@@ -1,17 +1,24 @@
 CREATE TABLE Proposicao (
-    id TEXT NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
     codTipo TEXT,
     ementa TEXT,
     dataApresentacao TEXT,
     autores TEXT,
-    url TEXT
+    url TEXT,
+    PRIMARY KEY (id, legislaturaId),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
 
 insertProposicao:
 INSERT OR REPLACE INTO Proposicao VALUES ?;
 
 getProposicoes:
-SELECT * FROM Proposicao ORDER BY dataApresentacao DESC LIMIT 5;
+SELECT * FROM Proposicao
+WHERE legislaturaId = :legislaturaId
+ORDER BY dataApresentacao DESC LIMIT 5;
 
 getProposicoesByCodTipo:
-SELECT * FROM Proposicao WHERE codTipo = :codTipo ORDER BY dataApresentacao DESC LIMIT 5;
+SELECT * FROM Proposicao
+WHERE legislaturaId = :legislaturaId AND codTipo = :codTipo
+ORDER BY dataApresentacao DESC LIMIT 5;

@@ -9,23 +9,35 @@ import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.cachedList
 import com.tick.magna.data.repository.networkResource
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
+import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.ProposicaoDaoInterface
 import com.tick.magna.data.source.local.dao.SiglaTipoDaoInterface
+import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.ProposicoesApiInterface
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.supervisorScope
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import com.tick.magna.Proposicao as ProposicaoEntity
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ProposicoesRepository(
     private val siglaTipoDao: SiglaTipoDaoInterface,
     private val proposicoesApi: ProposicoesApiInterface,
     private val proposicoesDao: ProposicaoDaoInterface,
     private val deputadosDao: DeputadoDaoInterface,
+    private val userDao: UserDaoInterface,
+    private val legislaturaDao: LegislaturaDaoInterface,
     private val loggerInterface: AppLoggerInterface,
 ) : ProposicoesRepositoryInterface {
 
@@ -51,9 +63,26 @@ internal class ProposicoesRepository(
         }
     }
 
+    /**
+     * Re-reads on its own when the term changes, like the deputado and partido lists do. The
+     * cache is keyed by legislatura now, so the previous term's rows stop leaking into the
+     * next one's Home.
+     */
     override fun observeRecentProposicoes(siglaTipo: String?): Flow<Resource<List<Proposicao>>> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId
+                ?: return@flatMapLatest flowOf(Resource.Content(emptyList()))
+
+            recentProposicoes(legislaturaId, siglaTipo)
+        }
+    }
+
+    private fun recentProposicoes(
+        legislaturaId: String,
+        siglaTipo: String?,
+    ): Flow<Resource<List<Proposicao>>> {
         return cachedList(
-            cache = proposicoesDao.getProposicoes(siglaTipo.orEmpty()).map { proposicoes ->
+            cache = proposicoesDao.getProposicoes(legislaturaId, siglaTipo.orEmpty()).map { proposicoes ->
                 proposicoes.map { proposicao ->
                     val autores = proposicao.autores
                         ?.split(AUTHOR_SEPARATOR)
@@ -63,7 +92,7 @@ internal class ProposicoesRepository(
                     proposicao.toDomain(autores)
                 }
             },
-            refresh = { refreshProposicoes(siglaTipo) },
+            refresh = { refreshProposicoes(legislaturaId, siglaTipo) },
         )
     }
 
@@ -100,9 +129,23 @@ internal class ProposicoesRepository(
      * supervisorScope keeps one failing branch from cancelling its siblings; awaitAll still
      * surfaces the first failure, which becomes Resource.Error for the whole section.
      */
-    private suspend fun refreshProposicoes(siglaTipo: String?) {
-        val proposicoes = proposicoesApi.getProposicoes(siglaTipo).dados
-        loggerInterface.d("refreshProposicoes: fetched ${proposicoes.size} for siglaTipo=$siglaTipo", TAG)
+    private suspend fun refreshProposicoes(legislaturaId: String, siglaTipo: String?) {
+        val window = window(legislaturaId)
+            ?: run {
+                loggerInterface.w("refreshProposicoes: no window for legislatura $legislaturaId", TAG)
+                return
+            }
+
+        val proposicoes = proposicoesApi.getProposicoes(
+            siglaTipo = siglaTipo,
+            dataApresentacaoInicio = window.start,
+            dataApresentacaoFim = window.end,
+        ).dados
+        loggerInterface.d(
+            "refreshProposicoes: fetched ${proposicoes.size} for siglaTipo=$siglaTipo " +
+                "between ${window.start} and ${window.end}",
+            TAG,
+        )
 
         val entities = supervisorScope {
             proposicoes.map { proposicao ->
@@ -115,6 +158,7 @@ internal class ProposicoesRepository(
 
                     ProposicaoEntity(
                         id = proposicao.id.toString(),
+                        legislaturaId = legislaturaId,
                         codTipo = tipo.sigla,
                         ementa = proposicao.ementa,
                         dataApresentacao = proposicao.dataApresentacao,
@@ -127,6 +171,21 @@ internal class ProposicoesRepository(
 
         proposicoesDao.insertProposicoes(entities)
         loggerInterface.d("refreshProposicoes: saved ${entities.size} for siglaTipo=$siglaTipo", TAG)
+    }
+
+    /**
+     * Null when the term is not stored yet, which happens before the first sync finishes.
+     * Refusing to ask is better than asking with a window nobody chose.
+     */
+    private suspend fun window(legislaturaId: String): ProposicaoWindow? {
+        val legislatura = legislaturaDao.getLegislaturaById(legislaturaId) ?: return null
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+
+        return proposicaoWindow(
+            startDate = legislatura.startDate,
+            endDate = legislatura.endDate,
+            today = today,
+        )
     }
 
     private companion object {

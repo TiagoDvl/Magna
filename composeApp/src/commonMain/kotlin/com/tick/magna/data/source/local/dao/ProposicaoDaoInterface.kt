@@ -7,5 +7,5 @@ interface ProposicaoDaoInterface {
 
     fun insertProposicoes(proposicoes: List<Proposicao>)
 
-    fun getProposicoes(siglaTipo: String): Flow<List<Proposicao>>
+    fun getProposicoes(legislaturaId: String, siglaTipo: String): Flow<List<Proposicao>>
 }

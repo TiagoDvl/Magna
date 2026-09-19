@@ -10,7 +10,11 @@ interface ProposicoesApiInterface {
 
     suspend fun getSiglaTipos(): ProposicoesSiglaTipoResponse
 
-    suspend fun getProposicoes(siglaTipo: String?): ProposicoesResponse
+    suspend fun getProposicoes(
+        siglaTipo: String?,
+        dataApresentacaoInicio: String,
+        dataApresentacaoFim: String,
+    ): ProposicoesResponse
 
     suspend fun getProposicaoDetail(idProposicao: String): ProposicaoDetailResponse
 

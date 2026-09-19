@@ -38,7 +38,7 @@ Data e escopo de cada medição estão junto do número. Onde não houver legisl
 | `GET /partidos` | `idLegislatura`, `itens=100` | `PartidosRepository.kt:45` | `Partido` (com `legislaturaId`) | 1 |
 | `GET /partidos/{id}` | — | `PartidosRepository.kt:82` | não persiste | 1 |
 | `GET /partidos/{id}/membros` | `idLegislatura` | `PartidosRepository.kt:117` | não persiste | 1 |
-| `GET /proposicoes` | `ordem=desc`, `siglaTipo?` | `ProposicoesRepository.kt:104` | `Proposicao` (**sem** `legislaturaId`) | 1 |
+| `GET /proposicoes` | `dataApresentacaoInicio`, `dataApresentacaoFim`, `ordem=desc`, `siglaTipo?` | `ProposicoesRepository` | `Proposicao` (com `legislaturaId`) | 1 |
 | `GET /proposicoes/{id}` | — | `ProposicoesRepository.kt:71,111` | `Proposicao` | 1 por proposição |
 | `GET /proposicoes/{id}/autores` | — | `ProposicoesRepository.kt:88,112` | campo de texto em `Proposicao` | 1 por proposição |
 | `GET /proposicoes/{id}/votacoes` | — | declarado, sem uso hoje | — | — |
@@ -72,7 +72,7 @@ Esta é a pergunta que o bloco 8 depende, e a resposta não é uniforme.
 | `/deputados/{id}/despesas` | **sim** | — (usa `ano`) | `idLegislatura` + `ano` |
 | `/partidos` | **sim** | — | `idLegislatura` |
 | `/partidos/{id}/membros` | **sim** | — | `idLegislatura` |
-| `/proposicoes` | **HTTP 400** | **sim** | faixa de datas da legislatura |
+| `/proposicoes` | **HTTP 400** | sim, mas filtram **tramitação** — ver item 3.7 | `dataApresentacaoInicio`/`dataApresentacaoFim`, janela de 3 meses |
 | `/orgaos` | **HTTP 400** | sim, mas ver item 3.3 | não dá pelo endpoint |
 | `/orgaos/{id}/membros` | **HTTP 400** | sim | cada registro traz `idLegislatura`; filtrar no cliente |
 | `/votacoes` | **HTTP 400** | sim, **máximo 3 meses** | ver item 3.2 |
@@ -141,6 +141,30 @@ Já registrado no plano (seção 16.1) e corrigido em `3897905`, mas pertence a 
 E esse endpoint **recusa `itens` com HTTP 400**. Sem parâmetro nenhum ele devolve todos os votos de uma vez, sem paginação (`links` só traz `self`). Quem tenta paginar leva erro ou lista vazia e conclui que não há voto nominal registrado — é a armadilha mais cara do mapa inteiro.
 
 Vale saber a proporção antes de desenhar em cima: em 2026, de **7.360 votações, só 152 têm voto nominal** (2%), concentradas em 44 dias do ano. Detalhes e a estratégia de sincronização estão no bloco 10 do plano (seção 13).
+
+### 3.7 `dataInicio`/`dataFim` em `/proposicoes` não filtram por apresentação
+
+Esta corrige uma afirmação errada das primeiras versões deste documento e do plano.
+
+`/proposicoes?dataInicio=2018-11-01&dataFim=2019-01-31` responde 200, e é fácil concluir que filtra proposições apresentadas naquele intervalo. **Não filtra.** Pedindo a mesma janela com `ordem=asc`, as primeiras respostas são:
+
+| id | `dataApresentacao` |
+|---|---|
+| 14016 | 1998-03-04 |
+| 14244 | 1999-03-02 |
+| 14257 | 1991-06-05 |
+
+Ou seja: o par `dataInicio`/`dataFim` filtra por **tramitação** — proposições que *se moveram* naquele período, independentemente de quando foram apresentadas. Para uma janela de legislatura isso é a pergunta errada.
+
+**Os parâmetros certos existem e se chamam `dataApresentacaoInicio` e `dataApresentacaoFim`.** A mesma janela com eles devolve o que se esperava: 2018-12-10, 2018-12-11, 2018-12-12.
+
+Três detalhes que vêm junto:
+
+- **o teto de intervalo vale aqui também.** Três e quatro meses passaram; seis e doze devolveram `A diferença entre as datas não pode ser maior que 3 meses`. Uma legislatura inteira não é uma janela que dê para pedir, então "as proposições do mandato" não existe numa chamada;
+- **`ordenarPor=dataApresentacao` é recusado com 400.** O `ordem=desc` que o app manda ordena por **id**, que é o padrão. Ids crescem junto com a apresentação de perto o bastante para pegar uma fatia recente, mas não é a mesma coisa e não deve ser tratado como se fosse;
+- **`ano` não é o ano de apresentação.** É o ano do número da proposição: `ano=2018` devolve itens com `dataApresentacao` em 2019-05-16. Serve para achar "PL 1234/2018", não para recortar um período.
+
+Vale como lembrete do item 0: um 200 não quer dizer que o parâmetro faz o que o nome sugere. A verificação que pega isso é pedir a mesma janela com `ordem=asc` e olhar o campo que deveria estar filtrado.
 
 ---
 
@@ -301,7 +325,7 @@ Usar CSV e não JSON: mesma informação, quase metade do peso.
 
 - **Ordenação padrão de cada endpoint.** Só foi verificada onde o app passa `ordenarPor` explicitamente.
 - **Comportamento de `/orgaos/{id}/membros` com datas.** Com faixa de datas ele devolve *mais* registros do que sem, o que sugere que o filtro seleciona vínculos históricos em vez de restringir. Precisa ser entendido antes de virar base do escopo de comissões.
-- **Limites de intervalo nos outros endpoints.** Só `/votacoes` foi testado até o erro; `/proposicoes` aceitou um mês e um ano sem reclamar, mas o teto não foi procurado.
+- **Limites de intervalo nos demais endpoints.** `/votacoes` e `/proposicoes` foram testados até o erro e os dois recusam mais de três meses. Os outros não foram.
 - **`/legislaturas/{id}`** individual, que provavelmente evita baixar as 57.
 
 ## 8. Como refazer esta verificação
