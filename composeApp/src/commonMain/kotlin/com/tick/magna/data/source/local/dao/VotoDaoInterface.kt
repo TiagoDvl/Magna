@@ -1,5 +1,6 @@
 package com.tick.magna.data.source.local.dao
 
+import com.tick.magna.SelectVotosDaVotacao
 import com.tick.magna.SelectVotosDoDeputado
 import com.tick.magna.Voto
 import com.tick.magna.VotacaoNominal
@@ -12,6 +13,12 @@ interface VotoDaoInterface {
      * every vote of the term.
      */
     suspend fun getVotosDoDeputado(legislaturaId: String, deputadoId: String): List<SelectVotosDoDeputado>
+
+    /** The votacao itself, or null when this term never swept the window it is in. */
+    suspend fun getVotacao(legislaturaId: String, votacaoId: String): VotacaoNominal?
+
+    /** Everybody who voted in it, with the person joined in from the roster. */
+    suspend fun getVotosDaVotacao(legislaturaId: String, votacaoId: String): List<SelectVotosDaVotacao>
 
     /**
      * What window has been downloaded for this term, or null if none has. Null and an empty

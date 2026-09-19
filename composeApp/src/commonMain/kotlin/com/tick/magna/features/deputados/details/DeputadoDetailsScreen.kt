@@ -1,6 +1,7 @@
 package com.tick.magna.features.deputados.details
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.VotoDeputado
+import com.tick.magna.features.votacoes.detail.VotacaoDetailArgs
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
@@ -97,6 +99,7 @@ fun DeputadoDetailScreen(
         onExpenseDocumentOpened = viewModel::onExpenseDocumentOpened,
         onSocialOpened = viewModel::onSocialOpened,
         onTabSelected = viewModel::onTabSelected,
+        onVotacaoClick = { id -> navController.navigate(VotacaoDetailArgs(id)) },
     )
 }
 
@@ -108,6 +111,7 @@ private fun DeputadoDetails(
     onExpenseDocumentOpened: () -> Unit = {},
     onSocialOpened: () -> Unit = {},
     onTabSelected: (DeputadoTab) -> Unit = {},
+    onVotacaoClick: (String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -196,7 +200,10 @@ private fun DeputadoDetails(
                         },
                     )
 
-                    DeputadoTab.VOTOS -> DeputadoVotos(state = state.votosState)
+                    DeputadoTab.VOTOS -> DeputadoVotos(
+                        state = state.votosState,
+                        onVotacaoClick = onVotacaoClick,
+                    )
                 }
             }
         }
@@ -499,7 +506,7 @@ private val DeputadoTab.label: StringResource
     }
 
 @Composable
-private fun DeputadoVotos(state: VotosState) {
+private fun DeputadoVotos(state: VotosState, onVotacaoClick: (String) -> Unit) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
@@ -554,7 +561,9 @@ private fun DeputadoVotos(state: VotosState) {
                     )
                 }
 
-                items(state.votos, key = { it.votacaoId }) { voto -> VotoCard(voto = voto) }
+                items(state.votos, key = { it.votacaoId }) { voto ->
+                    VotoCard(voto = voto, onClick = { onVotacaoClick(voto.votacaoId) })
+                }
 
                 // What the list does not contain, said once. The window is a quarter of the
                 // plenary, so this is not the deputado's whole record.
@@ -571,12 +580,13 @@ private fun DeputadoVotos(state: VotosState) {
 }
 
 @Composable
-private fun VotoCard(voto: VotoDeputado) {
+private fun VotoCard(voto: VotoDeputado, onClick: () -> Unit) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
     Card(
+        modifier = Modifier.clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
     ) {
@@ -621,6 +631,16 @@ private fun VotoCard(voto: VotoDeputado) {
                         style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
                     )
                 }
+            }
+
+            voto.proposicaoRotulo?.let { rotulo ->
+                Text(
+                    text = rotulo,
+                    style = typography.labelSmall.copy(
+                        color = colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                )
             }
 
             Text(

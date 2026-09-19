@@ -128,12 +128,56 @@ class VotoIndexTest {
         assertEquals(0, database.votoQueries.selectVotosDoDeputado("57", "111111").executeAsList().size)
     }
 
+    @Test
+    fun a_votacao_brings_the_proposicao_that_was_voted_on() {
+        givenVotacao("v1", "2026-09-01T10:00", proposicaoId = "2611313")
+
+        val votacao = database.votoQueries.selectVotacaoNominal("v1", "57").executeAsOne()
+
+        // From `proposicoesAfetadas`, not from `uriProposicaoObjeto`: that one is present in
+        // 5 of 14 nominal plenary votacoes in the listing and in none of them in the detail.
+        assertEquals("2611313", votacao.proposicaoId)
+        assertEquals("PLP 74/2026", votacao.proposicaoRotulo)
+    }
+
+    @Test
+    fun a_votacao_swept_before_the_columns_existed_still_reads() {
+        // Migration 10 adds them nullable and copies nothing; those rows fill in on the next
+        // sweep rather than disappearing.
+        givenVotacao("v1", "2026-09-01T10:00", proposicaoId = null)
+
+        assertNull(database.votoQueries.selectVotacaoNominal("v1", "57").executeAsOne().proposicaoId)
+    }
+
+    @Test
+    fun the_votacao_screen_gets_everybody_with_their_name_attached() {
+        givenVotacao("v1", "2026-09-01T10:00")
+        givenDeputado("204501", "Alencar Santana", "PT", "SP")
+        givenVoto("v1", "204501", "Não")
+        givenVoto("v1", "204479", "Sim")
+
+        val votos = database.votoQueries.selectVotosDaVotacao("57", "v1").executeAsList()
+
+        // Grouped by vote, and somebody missing from the roster still appears rather than
+        // vanishing from a tally.
+        assertEquals(listOf("Não", "Sim"), votos.map { it.voto })
+        assertEquals("Alencar Santana", votos.first().name)
+        assertNull(votos.last().name)
+    }
+
+    private fun givenDeputado(id: String, nome: String, partido: String, uf: String) {
+        database.deputadoQueries.insertDeputado(
+            com.tick.magna.Deputado(id, "57", partido, nome, uf, null, null)
+        )
+    }
+
     private fun givenVotacao(
         id: String,
         dataHoraRegistro: String,
         legislaturaId: String = "57",
         descricao: String = "Aprovado. Sim: 10; Não: 2.",
         siglaOrgao: String = "PLEN",
+        proposicaoId: String? = null,
     ) {
         database.votoQueries.insertVotacaoNominal(
             VotacaoNominal(
@@ -143,6 +187,9 @@ class VotoIndexTest {
                 descricao = descricao,
                 siglaOrgao = siglaOrgao,
                 aprovacao = 1L,
+                proposicaoId = proposicaoId,
+                proposicaoRotulo = proposicaoId?.let { "PLP 74/2026" },
+                proposicaoEmenta = proposicaoId?.let { "Dispõe sobre regras relativas a benefícios tributários." },
             )
         )
     }

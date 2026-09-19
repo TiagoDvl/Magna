@@ -1,6 +1,7 @@
 package com.tick.magna.data.source.local.dao
 
 import com.tick.magna.MagnaDatabase
+import com.tick.magna.SelectVotosDaVotacao
 import com.tick.magna.SelectVotosDoDeputado
 import com.tick.magna.Voto
 import com.tick.magna.VotacaoNominal
@@ -19,6 +20,17 @@ class VotoDao(
         deputadoId: String,
     ): List<SelectVotosDoDeputado> {
         return votoQueries.selectVotosDoDeputado(legislaturaId, deputadoId).executeAsList()
+    }
+
+    override suspend fun getVotacao(legislaturaId: String, votacaoId: String): VotacaoNominal? {
+        return votoQueries.selectVotacaoNominal(votacaoId, legislaturaId).executeAsOneOrNull()
+    }
+
+    override suspend fun getVotosDaVotacao(
+        legislaturaId: String,
+        votacaoId: String,
+    ): List<SelectVotosDaVotacao> {
+        return votoQueries.selectVotosDaVotacao(legislaturaId, votacaoId).executeAsList()
     }
 
     override suspend fun getSync(legislaturaId: String): VotoSync? {

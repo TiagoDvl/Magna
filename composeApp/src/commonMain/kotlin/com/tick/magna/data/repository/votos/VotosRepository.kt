@@ -3,7 +3,10 @@ package com.tick.magna.data.repository.votos
 import com.tick.magna.Voto as VotoEntity
 import com.tick.magna.VotacaoNominal as VotacaoNominalEntity
 import com.tick.magna.VotoSync as VotoSyncEntity
+import com.tick.magna.data.domain.ProposicaoVotada
+import com.tick.magna.data.domain.VotacaoDetalhe
 import com.tick.magna.data.domain.VotoDeputado
+import com.tick.magna.data.domain.VotoRegistrado
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.isCacheFresh
 import com.tick.magna.data.repository.nowMillis
@@ -14,6 +17,7 @@ import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.dao.VotoDaoInterface
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
+import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.response.hasNextPage
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.async
@@ -76,6 +80,57 @@ internal class VotosRepository(
         }
     }
 
+    /**
+     * One votacao and everybody who voted in it, entirely from the index.
+     *
+     * No request at all, and that is the point of it existing: a vote card is only reachable
+     * from a deputado whose window was already swept, so the four hundred votes behind it are
+     * already on disk. It works with the network off.
+     */
+    override suspend fun getVotacao(votacaoId: String): Result<VotacaoDetalhe?> {
+        return try {
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+                ?: return Result.success(null)
+
+            val votacao = votoDao.getVotacao(legislaturaId, votacaoId)
+                ?: return Result.success(null)
+
+            val votos = votoDao.getVotosDaVotacao(legislaturaId, votacaoId).map { row ->
+                VotoRegistrado(
+                    deputadoId = row.deputadoId,
+                    nome = row.name,
+                    siglaPartido = row.partido,
+                    siglaUf = row.uf,
+                    urlFoto = row.profile_picture,
+                    voto = row.voto,
+                )
+            }
+
+            Result.success(
+                VotacaoDetalhe(
+                    id = votacao.id,
+                    dataHoraRegistro = votacao.dataHoraRegistro,
+                    descricao = votacao.descricao,
+                    siglaOrgao = votacao.siglaOrgao,
+                    aprovacao = votacao.aprovacao == APPROVED,
+                    proposicao = votacao.proposicaoId?.let { id ->
+                        ProposicaoVotada(
+                            id = id,
+                            rotulo = votacao.proposicaoRotulo,
+                            ementa = votacao.proposicaoEmenta,
+                        )
+                    },
+                    votos = votos,
+                )
+            )
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.e("getVotacao: falhou para votacaoId=$votacaoId", e, TAG)
+            Result.failure(e)
+        }
+    }
+
     private suspend fun read(legislaturaId: String, deputadoId: String): List<VotoDeputado> {
         return votoDao.getVotosDoDeputado(legislaturaId, deputadoId).map { row ->
             VotoDeputado(
@@ -84,6 +139,7 @@ internal class VotosRepository(
                 descricao = row.descricao,
                 siglaOrgao = row.siglaOrgao,
                 aprovacao = row.aprovacao == APPROVED,
+                proposicaoRotulo = row.proposicaoRotulo,
                 voto = row.voto,
             )
         }
@@ -119,7 +175,19 @@ internal class VotosRepository(
                 async {
                     semaphore.withPermit {
                         try {
-                            votacao to votacoesApi.getVotos(votacao.id).dados
+                            // Two requests per votacao rather than one. The second is what
+                            // makes a vote card openable: `proposicoesAfetadas` lives only in
+                            // the detail, and `uriProposicaoObjeto`, which looks like the
+                            // field for this, is absent from all fourteen details measured.
+                            val votos = votacoesApi.getVotos(votacao.id).dados
+                            val proposicao = runCatching {
+                                votacoesApi.getVotacaoDetail(votacao.id).dados
+                                    .proposicoesAfetadas
+                                    .firstOrNull()
+                                    ?.toDomain()
+                            }.getOrNull()
+
+                            Triple(votacao, votos, proposicao)
                         } catch (cancellation: CancellationException) {
                             throw cancellation
                         } catch (e: Exception) {
@@ -133,7 +201,7 @@ internal class VotosRepository(
             }.awaitAll()
         }.filterNotNull()
 
-        val votacoes = baixadas.map { (votacao, _) ->
+        val votacoes = baixadas.map { (votacao, _, proposicao) ->
             VotacaoNominalEntity(
                 id = votacao.id,
                 legislaturaId = legislaturaId,
@@ -141,10 +209,13 @@ internal class VotosRepository(
                 descricao = votacao.descricao,
                 siglaOrgao = votacao.siglaOrgao,
                 aprovacao = if (votacao.aprovacao) APPROVED else NOT_APPROVED,
+                proposicaoId = proposicao?.id,
+                proposicaoRotulo = proposicao?.rotulo,
+                proposicaoEmenta = proposicao?.ementa,
             )
         }
 
-        val votos = baixadas.flatMap { (votacao, dados) ->
+        val votos = baixadas.flatMap { (votacao, dados, _) ->
             dados.map { voto ->
                 VotoEntity(
                     votacaoId = votacao.id,

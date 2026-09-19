@@ -34,6 +34,12 @@ CREATE TABLE VotacaoNominal (
     descricao TEXT NOT NULL,
     siglaOrgao TEXT,
     aprovacao INTEGER NOT NULL,
+    -- From `proposicoesAfetadas` in the detail, not from `uriProposicaoObjeto`: that one is in
+    -- 5 of 14 nominal plenary votacoes in the listing and in none of them in the detail.
+    -- Nullable because rows written before the columns existed have not been swept again.
+    proposicaoId TEXT,
+    proposicaoRotulo TEXT,
+    proposicaoEmenta TEXT,
     PRIMARY KEY (id, legislaturaId)
 );
 
@@ -42,7 +48,10 @@ INSERT OR REPLACE INTO Voto(votacaoId, deputadoId, legislaturaId, voto, dataHora
 VALUES ?;
 
 insertVotacaoNominal:
-INSERT OR REPLACE INTO VotacaoNominal(id, legislaturaId, dataHoraRegistro, descricao, siglaOrgao, aprovacao)
+INSERT OR REPLACE INTO VotacaoNominal(
+    id, legislaturaId, dataHoraRegistro, descricao, siglaOrgao, aprovacao,
+    proposicaoId, proposicaoRotulo, proposicaoEmenta
+)
 VALUES ?;
 
 -- The one query the index exists for: what this person voted, most recent first.
@@ -53,6 +62,7 @@ SELECT
     VotacaoNominal.descricao,
     VotacaoNominal.siglaOrgao,
     VotacaoNominal.aprovacao,
+    VotacaoNominal.proposicaoRotulo,
     Voto.voto
 FROM Voto
 JOIN VotacaoNominal
@@ -60,6 +70,31 @@ JOIN VotacaoNominal
     AND VotacaoNominal.legislaturaId = Voto.legislaturaId
 WHERE Voto.legislaturaId = :legislaturaId AND Voto.deputadoId = :deputadoId
 ORDER BY VotacaoNominal.dataHoraRegistro DESC;
+
+selectVotacaoNominal:
+SELECT * FROM VotacaoNominal WHERE id = :id AND legislaturaId = :legislaturaId;
+
+-- Everybody who voted, with the person attached.
+--
+-- The vote rows carry only an id, because the sweep stores the same four hundred people over
+-- and over and the roster already has their names. LEFT JOIN so that somebody missing from it
+-- still appears rather than disappearing from a tally.
+--
+-- Ordered by the vote first: the screen groups by Sim, Não and the rest.
+selectVotosDaVotacao:
+SELECT
+    Voto.deputadoId,
+    Voto.voto,
+    Deputado.name,
+    Deputado.partido,
+    Deputado.uf,
+    Deputado.profile_picture
+FROM Voto
+LEFT JOIN Deputado
+    ON Deputado.id = Voto.deputadoId
+    AND Deputado.legislaturaId = Voto.legislaturaId
+WHERE Voto.legislaturaId = :legislaturaId AND Voto.votacaoId = :votacaoId
+ORDER BY Voto.voto ASC, Deputado.name ASC;
 
 selectVotacoesNominaisSincronizadas:
 SELECT id FROM VotacaoNominal WHERE legislaturaId = :legislaturaId;

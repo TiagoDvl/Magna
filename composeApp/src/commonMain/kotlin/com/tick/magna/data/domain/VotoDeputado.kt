@@ -14,6 +14,8 @@ data class VotoDeputado(
     val descricao: String,
     val siglaOrgao: String?,
     val aprovacao: Boolean,
+    /** `PLP 74/2026`, when the sweep managed to attach one. */
+    val proposicaoRotulo: String?,
     /** As the Camara words it: `Sim`, `Não`, `Abstenção`, `Obstrução`, `Artigo 17`. */
     val voto: String,
 )
@@ -25,6 +27,7 @@ val votosDeputadoMock = listOf(
         descricao = "Aprovado o Requerimento de Urgência (Art. 155 do RICD). Sim: 320; Não: 41; Total: 361.",
         siglaOrgao = "PLEN",
         aprovacao = true,
+        proposicaoRotulo = "PLP 74/2026",
         voto = "Sim",
     ),
     VotoDeputado(
@@ -33,6 +36,7 @@ val votosDeputadoMock = listOf(
         descricao = "Rejeitada a Emenda de Plenário nº 1. Sim: 105; Não: 233; Total: 338.",
         siglaOrgao = "PLEN",
         aprovacao = false,
+        proposicaoRotulo = "PL 1760/2026",
         voto = "Não",
     ),
     VotoDeputado(
@@ -41,6 +45,7 @@ val votosDeputadoMock = listOf(
         descricao = "Rejeitado o Requerimento de Retirada de Pauta. Resultado:  17 votos \"Sim\", 20 votos \"Não\".",
         siglaOrgao = "CCJC",
         aprovacao = false,
+        proposicaoRotulo = null,
         voto = "Obstrução",
     ),
 )

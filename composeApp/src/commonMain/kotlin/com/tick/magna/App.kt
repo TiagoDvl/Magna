@@ -32,6 +32,8 @@ import com.tick.magna.features.comissoes.permanentes.list.ComissoesListScreen
 import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.partidos.list.PartidosListScreen
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
+import com.tick.magna.features.votacoes.detail.VotacaoDetailArgs
+import com.tick.magna.features.votacoes.detail.VotacaoDetailScreen
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsScreen
 import com.tick.magna.ui.core.theme.MagnaTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -110,6 +112,10 @@ fun App() {
 
                 composable<PartidoDetailsArgs> {
                     PartidoDetailsScreen(navController = navController)
+                }
+
+                composable<VotacaoDetailArgs> {
+                    VotacaoDetailScreen(navController = navController)
                 }
 
                 composable<ProposicaoDetailsArgs> {

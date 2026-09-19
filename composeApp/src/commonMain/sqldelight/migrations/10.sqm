@@ -1,0 +1,11 @@
+-- Attaches the proposicao to a nominal votacao, so a vote card can be opened.
+--
+-- ALTER rather than a rebuild: the three columns are new and nullable, and every row already
+-- stored keeps its votes. They fill in on the next sweep.
+--
+-- The field that looks right is not. `uriProposicaoObjeto` is present in 5 of 14 nominal
+-- plenary votacoes in the listing and in **0 of 14** in the detail — the detail drops it.
+-- `proposicoesAfetadas` is in all 14, which is why these columns come from there.
+ALTER TABLE VotacaoNominal ADD COLUMN proposicaoId TEXT;
+ALTER TABLE VotacaoNominal ADD COLUMN proposicaoRotulo TEXT;
+ALTER TABLE VotacaoNominal ADD COLUMN proposicaoEmenta TEXT;

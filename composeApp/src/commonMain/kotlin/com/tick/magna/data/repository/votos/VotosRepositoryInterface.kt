@@ -1,5 +1,6 @@
 package com.tick.magna.data.repository.votos
 
+import com.tick.magna.data.domain.VotacaoDetalhe
 import com.tick.magna.data.domain.VotoDeputado
 
 interface VotosRepositoryInterface {
@@ -13,4 +14,11 @@ interface VotosRepositoryInterface {
      * show. The screen has to say that rather than imply absence.
      */
     suspend fun getVotosDoDeputado(deputadoId: String): Result<List<VotoDeputado>>
+
+    /**
+     * One votacao and everybody who voted in it, read from the index and never from the
+     * network. Null when this term has not swept the window that votacao is in, which is
+     * reachable by restoring a deep link rather than by tapping a card.
+     */
+    suspend fun getVotacao(votacaoId: String): Result<VotacaoDetalhe?>
 }

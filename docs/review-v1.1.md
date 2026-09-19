@@ -963,6 +963,16 @@ Duas correções menores do que está escrito acima:
 - **o CSV tem 12 colunas, não 11** — falta `deputado_uri` na lista do item 13.2. O parser tem que ler por nome de coluna, não por posição;
 - os headers do `HEAD` estão todos lá (`content-length` 17.218.936, `last-modified`, `etag`, `accept-ranges: bytes`), então as regras de produto do item 13.4 continuam de pé.
 
+### 13.5.2 Clicar num voto — decidido e feito
+
+O card de voto abre a **votação**, e dentro dela a **proposição** é clicável. Fecha o ciclo deputado → votação → outro deputado.
+
+A pegadinha: `uriProposicaoObjeto` **parece** ser o campo e não é — vem em 5 de 14 votações nominais do Plenário na listagem e em **0 de 14** no detalhe. O detalhe *perde* o campo. O que serve é `proposicoesAfetadas`, presente em **14 de 14**, com `PLP 74/2026` e ementa.
+
+Custo: `/votacoes/{id}` passa a ser buscado no sweep, então o trimestre vai de 18 para **32 requisições** — uma vez, cacheadas para sempre. A tela de votação em si custa **zero**: os ~400 votos já estão no banco, então ela abre offline.
+
+Migração `10.sqm`: três colunas novas e nulas em `VotacaoNominal`. Linhas gravadas antes preenchem no próximo sweep.
+
 ### 13.6 O que precisa existir no código
 
 - ~~**tabela nova** para o voto~~ — **feito**: `Voto`, `VotacaoNominal` e `VotoSync` na migração `9.sqm`, com índice `(legislaturaId, deputadoId)`;

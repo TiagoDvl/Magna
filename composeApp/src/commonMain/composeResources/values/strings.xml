@@ -78,6 +78,10 @@
     <string name="deputado_votos_nota">Só votações nominais do Plenário, dos últimos três meses.</string>
     <string name="deputado_tab_despesas">Despesas</string>
     <string name="deputado_tab_votos">Como votou</string>
+    <string name="votacao_title">Votação</string>
+    <string name="votacao_votos_title">Como cada um votou</string>
+    <string name="votacao_nao_encontrada">Votação fora do período baixado</string>
+    <string name="votacao_nao_encontrada_description">O app guarda os votos dos últimos três meses da legislatura selecionada. Esta votação está fora dessa janela.</string>
     <string name="deputado_details_expenses_error">Não foi possível carregar as despesas agora.</string>
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
