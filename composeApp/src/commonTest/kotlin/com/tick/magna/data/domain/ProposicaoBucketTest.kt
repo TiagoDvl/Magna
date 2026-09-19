@@ -53,4 +53,34 @@ class ProposicaoBucketTest {
         assertEquals(ProposicaoBucket.CONSTITUICAO, proposicaoBucket(" pec "))
         assertEquals(ProposicaoBucket.LEI, proposicaoBucket("plp"))
     }
+
+    @Test
+    fun `the closed buckets are the ones the API can be asked about`() {
+        assertEquals(
+            listOf(
+                ProposicaoBucket.CONSTITUICAO,
+                ProposicaoBucket.LEI,
+                ProposicaoBucket.ATO_LEGISLATIVO,
+            ),
+            ProposicaoBucket.fechados,
+        )
+    }
+
+    @Test
+    fun `no sigla is claimed by two buckets`() {
+        // The SQL filter is IN for three of them and NOT IN for the fourth, so an overlap
+        // would put the same proposition under two chips.
+        val todas = ProposicaoBucket.siglasClassificadas
+
+        assertEquals(todas.size, todas.distinct().size)
+    }
+
+    @Test
+    fun `every classified sigla maps back to the bucket that claims it`() {
+        ProposicaoBucket.fechados.forEach { bucket ->
+            bucket.siglas.forEach { sigla ->
+                assertEquals(bucket, proposicaoBucket(sigla), sigla)
+            }
+        }
+    }
 }

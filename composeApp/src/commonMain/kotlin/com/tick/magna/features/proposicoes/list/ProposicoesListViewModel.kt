@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
+import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.Resource
+import com.tick.magna.data.repository.proposicoes.contagensPorBucket
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
-import com.tick.magna.features.proposicoes.component.ProposicaoType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,21 +42,21 @@ class ProposicoesListViewModel(
         observar(filtro = null)
 
         // Every chip's number at once, so the counts are there before anything is tapped. Four
-        // requests of one record each, which is what makes them cheap enough to show.
+        // requests of one record each — the window total and the three buckets that have a
+        // list of siglas — and Tramitacao falls out of the subtraction.
         viewModelScope.launch(dispatcher.io) {
-            val contagens = buildMap {
-                proposicoesRepository.contarNaJanela()?.let { put(null, it.total) }
-                ProposicaoType.entries.forEach { tipo ->
-                    proposicoesRepository.contarNaJanela(tipo.name)?.let { put(tipo, it.total) }
-                }
+            val total = proposicoesRepository.contarNaJanela()?.total
+            val fechados = ProposicaoBucket.fechados.associateWith { bucket ->
+                proposicoesRepository.contarNaJanela(bucket.siglas)?.total
             }
 
+            val contagens = contagensPorBucket(total = total, fechados = fechados)
             logger.d("contagens: $contagens", TAG)
             _state.update { it.copy(contagens = contagens) }
         }
     }
 
-    fun onFiltroSelected(filtro: ProposicaoType?) {
+    fun onFiltroSelected(filtro: ProposicaoBucket?) {
         if (_state.value.filtro == filtro) return
 
         analytics.track(AnalyticsEvent.ProposicaoFilterChanged(filtro?.name ?: "TODAS"))
@@ -71,13 +72,13 @@ class ProposicoesListViewModel(
      * One collector at a time: changing the filter cancels the previous one rather than
      * leaving two flows writing the same field.
      */
-    private fun observar(filtro: ProposicaoType?) {
+    private fun observar(filtro: ProposicaoBucket?) {
         listaJob?.cancel()
         listaJob = viewModelScope.launch(dispatcher.io) {
             val flow = if (filtro == null) {
                 proposicoesRepository.observeRecentProposicoes(LIMIT)
             } else {
-                proposicoesRepository.observeProposicoes(filtro.name, LIMIT)
+                proposicoesRepository.observeProposicoesDoBucket(filtro, LIMIT)
             }
 
             flow.collect { resource ->

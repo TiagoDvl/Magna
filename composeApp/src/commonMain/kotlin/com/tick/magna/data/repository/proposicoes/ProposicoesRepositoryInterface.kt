@@ -2,6 +2,7 @@ package com.tick.magna.data.repository.proposicoes
 
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Proposicao
+import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.domain.ProposicoesNaJanela
 import com.tick.magna.data.repository.Resource
@@ -22,16 +23,29 @@ interface ProposicoesRepositoryInterface {
      */
     fun observeRecentProposicoes(limite: Int): Flow<Resource<List<Proposicao>>>
 
-    /** One type, for the screen that filters. */
-    fun observeProposicoes(siglaTipo: String, limite: Int): Flow<Resource<List<Proposicao>>>
+    /**
+     * One bucket of instruments, for the screen that filters.
+     *
+     * A bucket rather than a sigla because a sigla is the wrong unit to offer: the filter used
+     * to be PEC, MPV and PLP, three of the Camara's 544 siglas, and between them they held 87
+     * of the 11333 propositions in a measured window. The four buckets cover all of it.
+     */
+    fun observeProposicoesDoBucket(
+        bucket: ProposicaoBucket,
+        limite: Int,
+    ): Flow<Resource<List<Proposicao>>>
 
     /**
      * How many were filed in the window, which is what tells five-of-five from five-of-2479.
      *
      * One request with `itens=1`: the `last` link carries the count and the body is a handful
      * of bytes. Null when the term has no window yet.
+     *
+     * @param siglaTipos empty for the whole window; otherwise every sigla of one bucket, which
+     * the endpoint unions. [ProposicaoBucket.TRAMITACAO] cannot be asked for this way and is
+     * counted by subtraction — see `contagensPorBucket`.
      */
-    suspend fun contarNaJanela(siglaTipo: String? = null): ProposicoesNaJanela?
+    suspend fun contarNaJanela(siglaTipos: List<String> = emptyList()): ProposicoesNaJanela?
 
     fun getProposicaoDetail(id: String): Flow<Resource<ProposicaoDetail>>
 

@@ -10,8 +10,15 @@ interface ProposicoesApiInterface {
 
     suspend fun getSiglaTipos(): ProposicoesSiglaTipoResponse
 
+    /**
+     * @param siglaTipos every sigla to ask for at once; empty means no type filter.
+     *
+     * A list rather than one sigla because the filter is a bucket now, and `Lei` is six of
+     * them. The endpoint unions repeated `siglaTipo` parameters — measured: PL 2067 + PLP 62
+     * + MPV 21 + PLV 5 + PLN 6 comes back as 2161.
+     */
     suspend fun getProposicoes(
-        siglaTipo: String?,
+        siglaTipos: List<String>,
         dataApresentacaoInicio: String,
         dataApresentacaoFim: String,
         itens: Int = DEFAULT_ITENS,

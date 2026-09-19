@@ -27,7 +27,24 @@ SELECT * FROM Proposicao
 WHERE legislaturaId = :legislaturaId
 ORDER BY dataApresentacao DESC LIMIT :limite;
 
-getProposicoesByCodTipo:
+-- One bucket of instruments rather than one sigla.
+--
+-- The filter is no longer PEC / MPV / PLP, which were three siglas out of the 544 the Camara
+-- has and between them covered 87 of the 11333 propositions in a measured window. A bucket
+-- takes the whole list its kind is made of, so `Lei` means PL, PLP, MPV, PLV, PLN and PLC at
+-- once, and the four buckets together cover everything.
+getProposicoesNosTipos:
 SELECT * FROM Proposicao
-WHERE legislaturaId = :legislaturaId AND codTipo = :codTipo
+WHERE legislaturaId = :legislaturaId AND codTipo IN :tipos
+ORDER BY dataApresentacao DESC LIMIT :limite;
+
+-- The complement, which is how Tramitacao is asked for.
+--
+-- It is the one bucket with no list of its own: it means every sigla the other three do not
+-- claim, and those cannot be enumerated because the app will meet siglas written after this
+-- file. `codTipo IS NULL` is included because a row stored before the sigla was resolved is
+-- procedure as far as anyone can tell, and dropping it would lose it from every filter.
+getProposicoesForaDosTipos:
+SELECT * FROM Proposicao
+WHERE legislaturaId = :legislaturaId AND (codTipo IS NULL OR codTipo NOT IN :tipos)
 ORDER BY dataApresentacao DESC LIMIT :limite;

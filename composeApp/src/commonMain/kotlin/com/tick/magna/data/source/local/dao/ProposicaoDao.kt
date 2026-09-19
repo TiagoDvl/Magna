@@ -20,12 +20,22 @@ class ProposicaoDao(
         }
     }
 
-    override fun getProposicoes(
+    override fun getProposicoesNosTipos(
         legislaturaId: String,
-        siglaTipo: String,
+        tipos: List<String>,
         limite: Long,
     ): Flow<List<Proposicao>> {
-        return proposicaoQueries.getProposicoesByCodTipo(legislaturaId, siglaTipo, limite)
+        return proposicaoQueries.getProposicoesNosTipos(legislaturaId, tipos, limite)
+            .asFlow()
+            .mapToList(dispatcherInterface.io)
+    }
+
+    override fun getProposicoesForaDosTipos(
+        legislaturaId: String,
+        tipos: List<String>,
+        limite: Long,
+    ): Flow<List<Proposicao>> {
+        return proposicaoQueries.getProposicoesForaDosTipos(legislaturaId, tipos, limite)
             .asFlow()
             .mapToList(dispatcherInterface.io)
     }

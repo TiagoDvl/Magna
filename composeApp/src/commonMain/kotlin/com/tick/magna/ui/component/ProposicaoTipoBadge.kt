@@ -5,11 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Article
-import androidx.compose.material.icons.outlined.Balance
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,17 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.proposicaoBucket
-import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.proposicao_bucket_ato
-import magna.composeapp.generated.resources.proposicao_bucket_constituicao
-import magna.composeapp.generated.resources.proposicao_bucket_lei
-import magna.composeapp.generated.resources.proposicao_bucket_tramitacao
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -72,30 +59,6 @@ fun ProposicaoTipoBadge(siglaTipo: String, modifier: Modifier = Modifier) {
         )
     }
 }
-
-/**
- * One icon per bucket, none of them reused from [com.tick.magna.ui.core.theme.MagnaArea].
- *
- * The scales are the Constitution, the gavel is a law being made, the sheet is an act of the
- * houses, and the pen over a page is everything that moves a proposition without deciding it:
- * requerimentos, pareceres, emendas, substitutivos.
- */
-private val ProposicaoBucket.icon: ImageVector
-    get() = when (this) {
-        ProposicaoBucket.CONSTITUICAO -> Icons.Outlined.Balance
-        ProposicaoBucket.LEI -> Icons.Outlined.Gavel
-        ProposicaoBucket.ATO_LEGISLATIVO -> Icons.Outlined.Article
-        ProposicaoBucket.TRAMITACAO -> Icons.Outlined.EditNote
-    }
-
-/** What the icon means, spelled out for a screen reader and for the legend on the full list. */
-private val ProposicaoBucket.label: StringResource
-    get() = when (this) {
-        ProposicaoBucket.CONSTITUICAO -> Res.string.proposicao_bucket_constituicao
-        ProposicaoBucket.LEI -> Res.string.proposicao_bucket_lei
-        ProposicaoBucket.ATO_LEGISLATIVO -> Res.string.proposicao_bucket_ato
-        ProposicaoBucket.TRAMITACAO -> Res.string.proposicao_bucket_tramitacao
-    }
 
 private val BADGE_ICON = 14.dp
 private val BADGE_PADDING_H = 8.dp

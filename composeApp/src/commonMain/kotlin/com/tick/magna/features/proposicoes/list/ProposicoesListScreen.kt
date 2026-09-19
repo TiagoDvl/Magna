@@ -6,27 +6,34 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.proposicoesMock
-import com.tick.magna.features.proposicoes.component.ProposicaoType
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.component.ProposicaoCard
 import com.tick.magna.ui.component.SomethingWentWrongComponent
+import com.tick.magna.ui.component.icon
+import com.tick.magna.ui.component.label
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
@@ -57,19 +64,20 @@ fun ProposicoesListScreen(
 }
 
 /**
- * Every recent proposition, with the type filter that used to live on the Home.
+ * Every recent proposition, filtered by the kind of instrument it is.
  *
- * It moved here because the numbers are uneven enough to need room: measured over one window
- * PEC had 1 proposition, MPV 24 and PLP 62, and the Home's segmented control showed none of
- * that — it just dropped into loading and came back with however many there were. On a chip
- * the count fits beside the name, so nobody taps `PEC 1` expecting a list.
+ * The chips used to be PEC, MPV and PLP: three of the Camara's 544 siglas, holding 87 of the
+ * 11333 propositions in a measured window, so two thirds of the filter were a list of one or
+ * two and nothing at all selected the 2067 PLs. They are the four buckets now, which between
+ * them cover the whole window, and each carries the same icon the badge on its cards does —
+ * tap the gavel, get gavels.
  */
 @Composable
 private fun ProposicoesList(
     modifier: Modifier = Modifier,
     state: ProposicoesListState,
     navigateBack: () -> Unit = {},
-    onFiltroSelected: (ProposicaoType?) -> Unit = {},
+    onFiltroSelected: (ProposicaoBucket?) -> Unit = {},
     onProposicaoClick: (String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
@@ -88,17 +96,21 @@ private fun ProposicoesList(
             ) {
                 FiltroChip(
                     label = stringResource(Res.string.proposicoes_filtro_todas),
+                    // Not a bucket's icon: "todas" is the absence of a filter, and borrowing
+                    // one of the four would read as a fifth kind of instrument.
+                    icon = Icons.Outlined.Inbox,
                     total = state.contagens[null],
                     selected = state.filtro == null,
                     onClick = { onFiltroSelected(null) },
                 )
 
-                ProposicaoType.entries.forEach { tipo ->
+                ProposicaoBucket.entries.forEach { bucket ->
                     FiltroChip(
-                        label = tipo.name,
-                        total = state.contagens[tipo],
-                        selected = state.filtro == tipo,
-                        onClick = { onFiltroSelected(tipo) },
+                        label = stringResource(bucket.label),
+                        icon = bucket.icon,
+                        total = state.contagens[bucket],
+                        selected = state.filtro == bucket,
+                        onClick = { onFiltroSelected(bucket) },
                     )
                 }
             }
@@ -111,8 +123,7 @@ private fun ProposicoesList(
             state.isError && state.proposicoes.isEmpty() ->
                 SomethingWentWrongComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
 
-            // A real answer for a narrow filter: one window of the 56th had six PECs and
-            // another had one.
+            // A real answer for a narrow bucket: one window of the 57th had a single PEC in it.
             state.proposicoes.isEmpty() ->
                 EmptyComponent(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -137,18 +148,34 @@ private fun ProposicoesList(
 }
 
 @Composable
-private fun FiltroChip(label: String, total: Int?, selected: Boolean, onClick: () -> Unit) {
+private fun FiltroChip(
+    label: String,
+    icon: ImageVector,
+    total: Int?,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         colors = FilterChipDefaults.filterChipColors(),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.size(CHIP_ICON),
+                imageVector = icon,
+                contentDescription = null,
+            )
+        },
         label = {
             // The count is part of the label rather than a badge, so it survives on a narrow
-            // screen and is read out with the name.
+            // screen and is read out with the name. Tramitação is the one that matters most
+            // here: 8848 of 11333, which is the real shape of what the Camara files.
             Text(text = if (total == null) label else "$label $total")
         },
     )
 }
+
+private val CHIP_ICON = 18.dp
 
 @Preview
 @Composable
@@ -159,10 +186,11 @@ private fun ProposicoesListPreview() {
                 isLoading = false,
                 proposicoes = proposicoesMock,
                 contagens = mapOf(
-                    null to 2479,
-                    ProposicaoType.PEC to 1,
-                    ProposicaoType.MPV to 24,
-                    ProposicaoType.PLP to 62,
+                    null to 11333,
+                    ProposicaoBucket.CONSTITUICAO to 1,
+                    ProposicaoBucket.LEI to 2161,
+                    ProposicaoBucket.ATO_LEGISLATIVO to 323,
+                    ProposicaoBucket.TRAMITACAO to 8848,
                 ),
             )
         )

@@ -17,7 +17,7 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
     }
 
     override suspend fun getProposicoes(
-        siglaTipo: String?,
+        siglaTipos: List<String>,
         dataApresentacaoInicio: String,
         dataApresentacaoFim: String,
         itens: Int,
@@ -34,7 +34,9 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
             // grow with filing order closely enough to pick a recent slice, and the rows are
             // sorted by date again in SQL once they are stored.
             parameter("ordem", "desc")
-            siglaTipo?.let { parameter("siglaTipo", it) }
+            // Repeated, not comma-joined: the endpoint unions one parameter per sigla and
+            // reads "PL,PLP" as a single sigla that matches nothing.
+            siglaTipos.forEach { sigla -> parameter("siglaTipo", sigla) }
         }.body()
     }
 

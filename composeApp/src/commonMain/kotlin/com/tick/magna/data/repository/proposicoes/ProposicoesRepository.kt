@@ -3,6 +3,7 @@ package com.tick.magna.data.repository.proposicoes
 import com.tick.magna.SiglaTipo
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Proposicao
+import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.domain.ProposicoesNaJanela
@@ -73,26 +74,29 @@ internal class ProposicoesRepository(
             val legislaturaId = user?.legislaturaId
                 ?: return@flatMapLatest flowOf(Resource.Content(emptyList()))
 
-            recentProposicoes(legislaturaId, siglaTipo = null, limite = limite)
+            recentProposicoes(legislaturaId, bucket = null, limite = limite)
         }
     }
 
-    override fun observeProposicoes(siglaTipo: String, limite: Int): Flow<Resource<List<Proposicao>>> {
+    override fun observeProposicoesDoBucket(
+        bucket: ProposicaoBucket,
+        limite: Int,
+    ): Flow<Resource<List<Proposicao>>> {
         return userDao.getUser().flatMapLatest { user ->
             val legislaturaId = user?.legislaturaId
                 ?: return@flatMapLatest flowOf(Resource.Content(emptyList()))
 
-            recentProposicoes(legislaturaId, siglaTipo = siglaTipo, limite = limite)
+            recentProposicoes(legislaturaId, bucket = bucket, limite = limite)
         }
     }
 
-    override suspend fun contarNaJanela(siglaTipo: String?): ProposicoesNaJanela? {
+    override suspend fun contarNaJanela(siglaTipos: List<String>): ProposicoesNaJanela? {
         val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return null
         val window = window(legislaturaId) ?: return null
 
         return try {
             val response = proposicoesApi.getProposicoes(
-                siglaTipo = siglaTipo,
+                siglaTipos = siglaTipos,
                 dataApresentacaoInicio = window.start,
                 dataApresentacaoFim = window.end,
                 itens = 1,
@@ -105,20 +109,32 @@ internal class ProposicoesRepository(
             throw cancellation
         } catch (e: Exception) {
             // The list is still worth showing without the number beside it.
-            loggerInterface.w("contarNaJanela: falhou para siglaTipo=$siglaTipo", TAG)
+            loggerInterface.w("contarNaJanela: falhou para siglaTipos=$siglaTipos", TAG)
             null
         }
     }
 
+    /**
+     * @param bucket null for every type mixed, which is what the Home and the unfiltered list
+     * show. [ProposicaoBucket.TRAMITACAO] reads the complement instead of a list, because it
+     * does not have one.
+     */
     private fun recentProposicoes(
         legislaturaId: String,
-        siglaTipo: String?,
+        bucket: ProposicaoBucket?,
         limite: Int,
     ): Flow<Resource<List<Proposicao>>> {
-        val cache = if (siglaTipo == null) {
-            proposicoesDao.getProposicoes(legislaturaId, limite.toLong())
-        } else {
-            proposicoesDao.getProposicoes(legislaturaId, siglaTipo, limite.toLong())
+        val cache = when {
+            bucket == null -> proposicoesDao.getProposicoes(legislaturaId, limite.toLong())
+
+            bucket.siglas.isNotEmpty() ->
+                proposicoesDao.getProposicoesNosTipos(legislaturaId, bucket.siglas, limite.toLong())
+
+            else -> proposicoesDao.getProposicoesForaDosTipos(
+                legislaturaId = legislaturaId,
+                tipos = ProposicaoBucket.siglasClassificadas,
+                limite = limite.toLong(),
+            )
         }
 
         return cachedList(
@@ -132,7 +148,7 @@ internal class ProposicoesRepository(
                     proposicao.toDomain(autores)
                 }
             },
-            refresh = { refreshProposicoes(legislaturaId, siglaTipo) },
+            refresh = { refreshProposicoes(legislaturaId, bucket) },
         )
     }
 
@@ -174,7 +190,13 @@ internal class ProposicoesRepository(
      * supervisorScope keeps one failing branch from cancelling its siblings; awaitAll still
      * surfaces the first failure, which becomes Resource.Error for the whole section.
      */
-    private suspend fun refreshProposicoes(legislaturaId: String, siglaTipo: String?) {
+    private suspend fun refreshProposicoes(legislaturaId: String, bucket: ProposicaoBucket?) {
+        // Empty for "todas" and for Tramitacao alike: one asks for everything on purpose, and
+        // the other cannot be asked for at all, so it takes the unfiltered page and lets the
+        // NOT IN in SQL do the filtering. Tramitacao is 8848 of the 11333 in a measured
+        // window, so an unfiltered page is mostly it anyway.
+        val siglaTipos = bucket?.siglas.orEmpty()
+
         val window = window(legislaturaId)
             ?: run {
                 loggerInterface.w("refreshProposicoes: no window for legislatura $legislaturaId", TAG)
@@ -182,12 +204,12 @@ internal class ProposicoesRepository(
             }
 
         val proposicoes = proposicoesApi.getProposicoes(
-            siglaTipo = siglaTipo,
+            siglaTipos = siglaTipos,
             dataApresentacaoInicio = window.start,
             dataApresentacaoFim = window.end,
         ).dados
         loggerInterface.d(
-            "refreshProposicoes: fetched ${proposicoes.size} for siglaTipo=$siglaTipo " +
+            "refreshProposicoes: fetched ${proposicoes.size} for bucket=$bucket " +
                 "between ${window.start} and ${window.end}",
             TAG,
         )
@@ -215,7 +237,7 @@ internal class ProposicoesRepository(
         }
 
         proposicoesDao.insertProposicoes(entities)
-        loggerInterface.d("refreshProposicoes: saved ${entities.size} for siglaTipo=$siglaTipo", TAG)
+        loggerInterface.d("refreshProposicoes: saved ${entities.size} for bucket=$bucket", TAG)
     }
 
     /**
