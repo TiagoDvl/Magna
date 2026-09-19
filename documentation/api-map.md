@@ -33,11 +33,11 @@ Data e escopo de cada medição estão junto do número. Onde não houver legisl
 | Endpoint | Parâmetros usados hoje | Quem chama | Vai para o banco | Custo por abertura |
 |---|---|---|---|---|
 | `GET /deputados` | `idLegislatura` | `DeputadosRepository.kt:152` | `Deputado` (com `legislaturaId`) | 1 |
-| `GET /deputados/{id}` | — | `DeputadosRepository.kt:123`, `PartidosRepository.kt:150` | `DeputadoDetails` (com `legislaturaId`) | 1 por deputado |
+| `GET /deputados/{id}` | — | `DeputadosRepository`, `PartidosRepository.fetchBios` | `DeputadoDetails` (com `legislaturaId`), `DeputadoBio` (**sem**) | 1 por deputado ainda não guardado |
 | `GET /deputados/{id}/despesas` | `idLegislatura`, `ano`, `ordem`, `ordenarPor`, `itens=100` | `DeputadosRepository.kt:140` | `DeputadoExpense` (com `legislaturaId`) | 1 |
 | `GET /partidos` | `idLegislatura`, `itens=100` | `PartidosRepository.kt:45` | `Partido` (com `legislaturaId`) | 1 |
 | `GET /partidos/{id}` | — | `PartidosRepository.kt:82` | não persiste | 1 |
-| `GET /partidos/{id}/membros` | `idLegislatura` | `PartidosRepository.kt:117` | não persiste | 1 |
+| `GET /partidos/{id}/membros` | `idLegislatura`, `itens=100`, `pagina` | `PartidosRepository.fetchRoster` | não persiste | 1 por página |
 | `GET /proposicoes` | `dataApresentacaoInicio`, `dataApresentacaoFim`, `ordem=desc`, `siglaTipo?` | `ProposicoesRepository` | `Proposicao` (com `legislaturaId`) | 1 |
 | `GET /proposicoes/{id}` | — | `ProposicoesRepository.kt:71,111` | `Proposicao` | 1 por proposição |
 | `GET /proposicoes/{id}/autores` | — | `ProposicoesRepository.kt:88,112` | campo de texto em `Proposicao` | 1 por proposição |
@@ -56,7 +56,8 @@ O número acima é por chamada. O que a tela gasta é a soma, e três delas faze
 |---|---|---|
 | Proposições recentes | **31** | 1 lista + 15 × (detalhe + autores) — `ProposicoesRepository.kt:104-113` |
 | Detalhe da comissão | **21** | 1 lista de votações + 20 detalhes — `OrgaosRepository.kt:58-63` |
-| Detalhe do partido | **17** | 1 partido + 1 membros + 15 × `deputados/{id}`, limitado por `Semaphore` — `PartidosRepository.kt:82,117,144` |
+| Detalhe do partido, 1ª visita | **146** no PL | 1 partido + 2 páginas de membros + 143 × `deputados/{id}`, limitado por `Semaphore` |
+| Detalhe do partido, revisita | **3** | 1 partido + 2 páginas de membros; a biografia sai de `DeputadoBio` |
 | Lista de deputados | 1 | — |
 | Despesas do deputado | 1 | — |
 
