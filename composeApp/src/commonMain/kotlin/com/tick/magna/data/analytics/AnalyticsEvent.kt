@@ -127,6 +127,7 @@ sealed class AnalyticsEvent(
         SIGLA_TIPOS("sigla_tipos"),
         DEPUTADOS("deputados"),
         ORGAOS("orgaos"),
+        LEGISLATURAS("legislaturas"),
     }
 
     enum class EmptyContent(val value: String) {

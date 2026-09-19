@@ -5,6 +5,7 @@ import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.legislaturas.LegislaturasRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepositoryInterface
@@ -23,6 +24,7 @@ class SyncUserInformationUseCase(
     private val proposicoesRepository: ProposicoesRepositoryInterface,
     private val deputadosRepository: DeputadosRepositoryInterface,
     private val orgaosRepository: OrgaosRepositoryInterface,
+    private val legislaturasRepository: LegislaturasRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
 ) {
@@ -38,10 +40,14 @@ class SyncUserInformationUseCase(
                 val partidos = partidosRepository.getPartidos().first()
                 val deputados = deputadosRepository.getDeputados().first()
                 val orgaos = orgaosRepository.getComissoesPermanentes().first()
+                val legislaturas = legislaturasRepository.getLegislaturas().first()
 
                 when (userConfiguration) {
                     UserConfiguration.Configured -> {
-                        if (partidos.isEmpty() || deputados.isEmpty() || orgaos.isEmpty()) {
+                        // Legislaturas is in this check for the sake of everyone upgrading from a
+                        // version that never had the table filled. They are Configured, so without
+                        // it the sync would be skipped and the table would stay empty forever.
+                        if (partidos.isEmpty() || deputados.isEmpty() || orgaos.isEmpty() || legislaturas.isEmpty()) {
                             logger.w("invoke: Configured but local data missing, re-syncing", TAG)
                             syncInitialDependencies()
                         } else {
@@ -97,11 +103,17 @@ class SyncUserInformationUseCase(
             val deputados = async { deputadosRepository.syncDeputados() }
             val orgaos = async { orgaosRepository.syncComissoesPermanentes() }
 
+            // Runs alongside the others because /legislaturas takes no parameters and depends on
+            // nothing. That stops being true the moment a step needs the date window of a term to
+            // build its request — then this one has to finish first.
+            val legislaturas = async { legislaturasRepository.syncLegislaturas() }
+
             mapOf(
                 AnalyticsEvent.SyncStep.PARTIDOS to partidos.await(),
                 AnalyticsEvent.SyncStep.SIGLA_TIPOS to siglaTipos.await(),
                 AnalyticsEvent.SyncStep.DEPUTADOS to deputados.await(),
                 AnalyticsEvent.SyncStep.ORGAOS to orgaos.await(),
+                AnalyticsEvent.SyncStep.LEGISLATURAS to legislaturas.await(),
             )
         }
 

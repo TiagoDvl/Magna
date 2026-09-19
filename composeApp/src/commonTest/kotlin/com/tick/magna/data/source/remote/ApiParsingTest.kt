@@ -1,12 +1,16 @@
 package com.tick.magna.data.source.remote
 
+import com.tick.magna.data.source.remote.dto.LegislaturaDto
+import com.tick.magna.data.source.remote.dto.hasPeriod
 import com.tick.magna.data.source.remote.dto.toLocal
 import com.tick.magna.data.source.remote.response.DeputadoByIdResponse
 import com.tick.magna.data.source.remote.response.DespesasResponse
 import com.tick.magna.data.source.remote.response.DeputadosResponse
+import com.tick.magna.data.source.remote.response.LegislaturasResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -203,5 +207,67 @@ class ApiParsingTest {
         val response = json.decodeFromString<DespesasResponse>("""{ "dados": [], "links": [] }""")
 
         assertTrue(response.dados.isEmpty())
+    }
+
+    @Test
+    fun legislaturas_list_keeps_the_period_of_each_term() {
+        val payload = """
+            {
+              "dados": [
+                {
+                  "id": 57,
+                  "uri": "https://dadosabertos.camara.leg.br/api/v2/legislaturas/57",
+                  "dataInicio": "2023-02-01",
+                  "dataFim": "2027-01-31"
+                },
+                {
+                  "id": 56,
+                  "uri": "https://dadosabertos.camara.leg.br/api/v2/legislaturas/56",
+                  "dataInicio": "2019-02-01",
+                  "dataFim": "2023-01-31"
+                }
+              ],
+              "links": []
+            }
+        """.trimIndent()
+
+        val response = json.decodeFromString<LegislaturasResponse>(payload)
+
+        assertEquals(2, response.dados.size)
+        assertEquals("2023-02-01", response.dados[0].dataInicio)
+        assertEquals("2027-01-31", response.dados[0].dataFim)
+        assertTrue(response.dados.all { it.hasPeriod() })
+    }
+
+    @Test
+    fun a_legislatura_without_a_period_parses_but_is_not_usable() {
+        val payload = """
+            {
+              "dados": [
+                { "id": 57, "dataInicio": "2023-02-01", "dataFim": "2027-01-31" },
+                { "id": 1, "dataInicio": null, "dataFim": null }
+              ],
+              "links": []
+            }
+        """.trimIndent()
+
+        val response = json.decodeFromString<LegislaturasResponse>(payload)
+
+        // The list still parses, which is the point: one unusable record must not cost the
+        // other 56. The repository is what drops it, because the table requires both dates.
+        assertEquals(2, response.dados.size)
+        assertTrue(response.dados.first { it.id == 57 }.hasPeriod())
+        assertFalse(response.dados.first { it.id == 1 }.hasPeriod())
+    }
+
+    @Test
+    fun a_legislatura_maps_to_the_row_the_table_expects() {
+        val dto = LegislaturaDto(id = 57, dataInicio = "2023-02-01", dataFim = "2027-01-31")
+
+        val entity = dto.toLocal()
+
+        assertEquals("57", entity.id)
+        assertEquals("2023-02-01", entity.startDate)
+        assertEquals("2027-01-31", entity.endDate)
     }
 }

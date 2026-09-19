@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
 import com.tick.magna.DeputadoDetailsQueries
 import com.tick.magna.DeputadoQueries
+import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
 import com.tick.magna.OrgaoQueries
 import com.tick.magna.PartidoQueries
@@ -23,6 +24,8 @@ import com.tick.magna.data.repository.PartidosRepository
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepository
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.legislaturas.LegislaturasRepository
+import com.tick.magna.data.repository.legislaturas.LegislaturasRepositoryInterface
 import com.tick.magna.data.repository.orgaos.OrgaosRepository
 import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.proposicoes.ProposicoesRepository
@@ -36,6 +39,8 @@ import com.tick.magna.data.source.local.dao.DeputadoDetailsDao
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDao
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
+import com.tick.magna.data.source.local.dao.LegislaturaDao
+import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDao
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDao
@@ -50,6 +55,8 @@ import com.tick.magna.data.source.local.platformModule
 import com.tick.magna.data.source.remote.HttpClientFactory
 import com.tick.magna.data.source.remote.api.DeputadosApi
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
+import com.tick.magna.data.source.remote.api.LegislaturasApi
+import com.tick.magna.data.source.remote.api.LegislaturasApiInterface
 import com.tick.magna.data.source.remote.api.OrgaosApi
 import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.PartidosApi
@@ -88,6 +95,7 @@ val databaseModule = module {
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
     single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }
+    single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
@@ -97,6 +105,7 @@ val databaseModule = module {
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }
     single<ProposicaoDaoInterface> { ProposicaoDao(get(), get()) }
+    single<LegislaturaDaoInterface> { LegislaturaDao(get(), get(), get()) }
 }
 
 val dataModule = module {
@@ -112,6 +121,7 @@ val dataModule = module {
     single<ProposicoesApiInterface> { ProposicoesApi(get()) }
     single<OrgaosApiInterface> { OrgaosApi(get()) }
     single<VotacoesApiInterface> { VotacoesApi(get()) }
+    single<LegislaturasApiInterface> { LegislaturasApi(get()) }
 
     // Repositories
     single<DeputadosRepositoryInterface> {
@@ -121,6 +131,7 @@ val dataModule = module {
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get()) }
     single<UserRepositoryInterface> { UserRepository(get(), get()) }
+    single<LegislaturasRepositoryInterface> { LegislaturasRepository(get(), get(), get()) }
 }
 
 val useCaseModule = module {
