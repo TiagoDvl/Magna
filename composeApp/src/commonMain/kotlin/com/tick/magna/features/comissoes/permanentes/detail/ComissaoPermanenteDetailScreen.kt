@@ -247,7 +247,7 @@ private fun VotacoesTab(
                             // Data
                             votacao.dataHoraRegistro?.let {
                                 Text(
-                                    text = it,
+                                    text = it.toDisplayDate(),
                                     style = typography.labelSmall.copy(
                                         color = colorScheme.onSurfaceVariant
                                     )

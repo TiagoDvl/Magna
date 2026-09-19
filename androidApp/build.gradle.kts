@@ -49,6 +49,27 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        // Release with R8, signed with the debug key.
+        //
+        // R8 had never been run against this app, let alone installed. What it breaks does not
+        // show at build time — a stripped serializer or a class that only reflection reaches
+        // fails when the screen opens — and the only way to find that is to run a minified
+        // build. The release one cannot be built without the keystore and its three passwords,
+        // which live on one machine and in CI, so nobody was ever going to test it by accident.
+        //
+        // Not debuggable, on purpose: logging is gated on FLAG_DEBUGGABLE at runtime, so this
+        // is quiet exactly the way the store build is.
+        create("minified") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+
+            // Nothing here is ever shipped, so its mapping file has no crash to explain.
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                mappingFileUploadEnabled = false
+            }
+        }
     }
 }
 

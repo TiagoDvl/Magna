@@ -1233,10 +1233,37 @@ Junto veio `TermScopedTablesTest`, que exercita as tabelas contra SQLite real em
 
 ### 16.6 O que continua sem verificação
 
-Os alvos iOS e o build de release com R8. Nenhum dos dois foi compilado ainda.
-
-Pela decisão de escopo do item 1.1, os dois deixam de ter o mesmo peso:
-
-- **Release com R8 — obrigatório antes da 1.1.** É o binário que vai para a loja, e nunca foi gerado. Um `minifyEnabled` que come uma classe de DTO ou uma regra de serialização só aparece no APK assinado, depois que a CI passou verde.
+- ~~**Release com R8 — obrigatório antes da 1.1.**~~ — **VERIFICADO em aparelho.** Ver 16.7.
 - **iOS — não-objetivo.** Continua sem compilar e assim fica. Não bloqueia nada.
 - **App desktop (`:composeApp:run`) — não-objetivo.** O alvo `jvm()` continua no build porque a suíte de testes depende dele, mas o app em si não é verificado nem distribuído.
+
+### 16.7 R8 rodou, instalou e funcionou — VERIFICADO
+
+O problema não era técnico, era de acesso: `assembleRelease` precisa do keystore e das três senhas, que vivem numa máquina só e na CI. Ninguém ia testar R8 por acidente.
+
+**Solução: build type `minified`** — `initWith(release)`, mesmas regras de R8 e shrink, assinado com a **chave de debug**. Nenhuma credencial, instalável, e não-debuggable, então o gate de log por `FLAG_DEBUGGABLE` se comporta como na loja.
+
+```bash
+./gradlew :androidApp:assembleMinified
+```
+
+Verificado em aparelho em 2026-09-19, APK de **5,8 MB**:
+
+| Caminho | Resultado |
+|---|---|
+| Abrir o app | sem crash, `Displayed +61ms` |
+| Home | SQLDelight, recursos Compose, Coil, favoritos de partido, contagem de bancada |
+| Proposições | ementa e data corretas — **os serializers sobreviveram** |
+| Comissões ordenadas por atividade | CCJ primeiro, Segurança Pública segundo |
+| Comissão › Votações | 20 cartões com rótulo, ementa e parecer |
+| Comissão › Composição | Mesa 4, Titulares 60 — bate com a medição |
+| Comissão › Presidentes | os 4 presidentes, com períodos e "atual" |
+| **Offline** (wifi e dados desligados, app force-stopped) | **a tela de comissão abriu inteira, do cache** |
+
+O susto que não era: `mapping.txt` mostra `kotlin.time.Clock$System -> R8$$REMOVED$$CLASS$$938`. Essa é exatamente a classe que já derrubou o app duas vezes em runtime. Aqui é inline, não remoção — as janelas de data e o cache funcionam no aparelho.
+
+**O que o R8 achou de verdade foi um bug meu, não dele:** o card de votação mostrava `2026-09-01T16:31:52` em vez de `01/09/2026`. Ao mover a formatação do repositório para a tela (commit do cache), o patch não casou por indentação e eu não coloquei assert. Os 219 testes passaram porque nenhum renderiza o card — não existe teste de UI no projeto, e esse é o buraco que isso expôs.
+
+**Efeito colateral a saber:** `:androidApp:minifyReleaseWithR8` dispara `uploadCrashlyticsMappingFileRelease`. Rodar o build de release local **envia mapping para o Firebase**. O build type `minified` desliga isso (`mappingFileUploadEnabled = false`).
+
+**O que continua sem verificação:** o APK **assinado com a chave real**. O R8 é o mesmo, mas `signingConfig` e o AAB da loja não foram exercitados aqui.
