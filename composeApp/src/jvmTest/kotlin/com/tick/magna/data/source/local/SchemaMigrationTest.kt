@@ -8,7 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Runs `4.sqm` against a database built the way version 4 built it.
+ * Runs the migrations against a database built the way version 4 built it.
  *
  * The plugin's own `verifyMigrations` cannot run on Windows — it opens its SQLite connection
  * inside a forked worker whose temp directory it gets wrong — and nothing runs on push, so the
@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
  * The version 4 schema below is a frozen copy of the past, which is what the `.db` snapshots
  * would have been. It is not meant to follow the `.sq` files: it is meant not to.
  */
-class Migration4Test {
+class SchemaMigrationTest {
 
     private lateinit var driver: JdbcSqliteDriver
 
@@ -69,6 +69,41 @@ class Migration4Test {
             listOf("220593"),
             database.deputadoQueries.getDeputadosOrderedByLastSeen("57").executeAsList().map { it.id },
         )
+    }
+
+    @Test
+    fun the_whole_chain_runs_for_somebody_upgrading_from_the_shipped_release() {
+        driver.execute(null, "INSERT INTO Legislatura VALUES ('57', '2023-02-01', '2027-01-31')", 0)
+
+        // Version 4 is what is in the store today, so this is the jump a real update makes.
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 6).value
+
+        val database = MagnaDatabase(driver)
+        database.deputadoBioQueries.insertDeputadoBio(
+            com.tick.magna.DeputadoBio("220593", "M", "1984-01-31", "MT", "Cuiaba")
+        )
+
+        assertEquals(
+            listOf("MT"),
+            database.deputadoBioQueries.getDeputadoBios(listOf("220593")).executeAsList()
+                .map { it.ufNascimento },
+        )
+    }
+
+    @Test
+    fun a_biography_is_not_keyed_by_term_because_it_does_not_change() {
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 6).value
+        val database = MagnaDatabase(driver)
+
+        database.deputadoBioQueries.insertDeputadoBio(
+            com.tick.magna.DeputadoBio("220593", "M", "1984-01-31", "MT", "Cuiaba")
+        )
+        database.deputadoBioQueries.insertDeputadoBio(
+            com.tick.magna.DeputadoBio("220593", "M", "1984-01-31", "MT", "Cuiaba")
+        )
+
+        // One row per person, however many mandates they served.
+        assertEquals(1, database.deputadoBioQueries.getDeputadoBios(listOf("220593")).executeAsList().size)
     }
 
     @Test

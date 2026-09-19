@@ -1193,7 +1193,7 @@ Verificado junto, na mesma instalação: trocar de legislatura filtra proposiç�
 
 O `verifyMigrations` do plugin continua desligado no Windows pelo motivo do item 16.3 — ele abre a conexão SQLite dentro de um worker forkado cujo tmpdir vem errado. Mas isso é um problema do *plugin*, não do SQLite: um teste JVM comum abre `JdbcSqliteDriver` no próprio processo de teste e funciona.
 
-Daí `Migration4Test`, em `src/jvmTest`: monta o schema da versão 4 à mão, roda `MagnaDatabase.Schema.migrate(driver, 4, 5)` e afirma o resultado. É a primeira migração deste projeto verificada sem aparelho, e o padrão vale para as próximas.
+Daí `SchemaMigrationTest`, em `src/jvmTest`: monta o schema da versão 4 à mão, roda `MagnaDatabase.Schema.migrate(driver, …)` e afirma o resultado. É a primeira migração deste projeto verificada sem aparelho, e o padrão vale para as próximas — a `5.sqm` já nasceu coberta, inclusive no salto 4 → 6, que é o que a atualização real faz a partir do que está na loja.
 
 O schema antigo escrito à mão dentro do teste é uma cópia congelada do passado — é o papel que os arquivos `.db` teriam. Ele **não** deve acompanhar os `.sq`; se alguém o "atualizar" para bater com o schema atual, o teste passa a não testar nada.
 

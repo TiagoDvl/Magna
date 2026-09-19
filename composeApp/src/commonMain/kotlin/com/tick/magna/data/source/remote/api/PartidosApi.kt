@@ -21,9 +21,23 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
         return httpClient.get("partidos/$id").body()
     }
 
-    override suspend fun getPartidoMembros(id: String, legislaturaId: String): DeputadosResponse {
+    /**
+     * Without `itens` this endpoint answers with fifteen, which is what the party screen used
+     * to show of a bench of a hundred and forty-five. A hundred is the ceiling the API accepts:
+     * asking for two hundred returns a hundred and a `next` link, so paging is not optional.
+     *
+     * The count is larger than the number of seats because the answer is everyone who passed
+     * through the party during the term, not the bench as it stands today.
+     */
+    override suspend fun getPartidoMembros(
+        id: String,
+        legislaturaId: String,
+        pagina: Int,
+    ): DeputadosResponse {
         return httpClient.get("partidos/$id/membros") {
             parameter("idLegislatura", legislaturaId)
+            parameter("itens", ITEMS_PER_PAGE)
+            parameter("pagina", pagina)
         }.body()
     }
 

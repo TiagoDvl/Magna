@@ -5,11 +5,13 @@ import com.tick.magna.data.domain.Lider
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.PartidoDetail
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.source.local.dao.DeputadoBioDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.PartidosApiInterface
+import com.tick.magna.data.source.remote.response.hasNextPage
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import com.tick.magna.DeputadoBio as DeputadoBioEntity
 import com.tick.magna.Partido as PartidoEntity
 
 @ExperimentalCoroutinesApi
@@ -32,6 +35,7 @@ internal class PartidosRepository(
     private val partidoDao: PartidoDaoInterface,
     private val loggerInterface: AppLoggerInterface,
     private val deputadosApi: DeputadosApiInterface,
+    private val deputadoBioDao: DeputadoBioDaoInterface,
 ): PartidosRepositoryInterface {
 
     override suspend fun syncPartidos(): Boolean {
@@ -95,13 +99,17 @@ internal class PartidosRepository(
     }
 
     /**
-     * Two phases on one flow: the roster arrives first and goes on screen, then each
-     * member's record is filled in. Content carries isRefreshing while the second phase
-     * runs, which is what the screen shows as a progress hint.
+     * Two phases on one flow: the roster arrives first and goes on screen, then the four
+     * biographical fields the charts need are filled in. Content carries isRefreshing while
+     * the second phase runs, which is what the screen shows as a progress hint.
      *
-     * The enrichment is one request per member, so it is capped by a semaphore. It is also
-     * structured inside the flow now: closing the screen cancels it, where before it kept
-     * fetching seventy deputados nobody was waiting for.
+     * Both phases got cheaper in different ways. The roster is paged now, because the endpoint
+     * answers with fifteen when nothing is asked and the PL has a hundred and forty-five
+     * members in the 57th. The second phase is still one request per member, but only for
+     * members whose record is not stored yet, so it shrinks to nothing on a revisit.
+     *
+     * It is structured inside the flow: closing the screen cancels it, where before it kept
+     * fetching deputados nobody was waiting for.
      */
     override fun getPartidoMembros(partidoId: String): Flow<Resource<List<DeputadoMembro>>> = flow {
         emit(Resource.Loading)
@@ -114,7 +122,48 @@ internal class PartidosRepository(
         }
 
         val roster = try {
-            partidosApi.getPartidoMembros(partidoId, legislaturaId).dados.map { dto ->
+            fetchRoster(partidoId, legislaturaId)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.e("getPartidoMembros: roster fetch failed", e, TAG)
+            emit(Resource.Error(e))
+            return@flow
+        }
+
+        val stored = deputadoBioDao.getBios(roster.map { it.id }).associateBy { it.deputadoId }
+        val missing = roster.filter { member -> member.id !in stored }
+        loggerInterface.d(
+            "getPartidoMembros: ${roster.size} membros, ${stored.size} bios cached, ${missing.size} to fetch",
+            TAG,
+        )
+
+        // Everything already known, so there is no second phase to announce.
+        if (missing.isEmpty()) {
+            emit(Resource.Content(roster.withBios(stored), isRefreshing = false))
+            return@flow
+        }
+
+        emit(Resource.Content(roster.withBios(stored), isRefreshing = true))
+
+        val fetched = fetchBios(missing).associateBy { it.deputadoId }
+        deputadoBioDao.insertBios(fetched.values.toList())
+
+        emit(Resource.Content(roster.withBios(stored + fetched), isRefreshing = false))
+    }
+
+    /**
+     * Pages until the response stops offering a next one. The cap is there so a change on the
+     * Camara side cannot turn this into an unbounded loop; at a hundred per page it is far
+     * above the largest party measured.
+     */
+    private suspend fun fetchRoster(partidoId: String, legislaturaId: String): List<DeputadoMembro> {
+        val membros = mutableListOf<DeputadoMembro>()
+        var pagina = 1
+
+        while (true) {
+            val response = partidosApi.getPartidoMembros(partidoId, legislaturaId, pagina)
+            membros += response.dados.map { dto ->
                 DeputadoMembro(
                     id = dto.id,
                     nome = dto.nome,
@@ -128,19 +177,26 @@ internal class PartidosRepository(
                     municipioNascimento = null,
                 )
             }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (e: Exception) {
-            loggerInterface.e("getPartidoMembros: roster fetch failed", e, TAG)
-            emit(Resource.Error(e))
-            return@flow
+
+            if (!response.links.hasNextPage()) break
+
+            if (pagina >= MAX_MEMBER_PAGES) {
+                loggerInterface.w("fetchRoster: stopped at page $pagina for partido $partidoId", TAG)
+                break
+            }
+            pagina++
         }
 
-        emit(Resource.Content(roster, isRefreshing = true))
-        emit(Resource.Content(withMemberDetails(roster), isRefreshing = false))
+        return membros
     }
 
-    private suspend fun withMemberDetails(members: List<DeputadoMembro>): List<DeputadoMembro> = coroutineScope {
+    /**
+     * One request per member who is not stored yet, capped by a semaphore.
+     *
+     * A member whose record fails is left out rather than stored blank, so the next visit tries
+     * again instead of remembering a gap forever.
+     */
+    private suspend fun fetchBios(members: List<DeputadoMembro>): List<DeputadoBioEntity> = coroutineScope {
         val semaphore = Semaphore(MAX_PARALLEL_MEMBER_REQUESTS)
 
         members.map { member ->
@@ -148,7 +204,8 @@ internal class PartidosRepository(
                 semaphore.withPermit {
                     try {
                         val detail = deputadosApi.getDeputadoById(member.id).dados
-                        member.copy(
+                        DeputadoBioEntity(
+                            deputadoId = member.id,
                             sexo = detail.sexo,
                             dataNascimento = detail.dataNascimento,
                             ufNascimento = detail.ufNascimento,
@@ -158,11 +215,22 @@ internal class PartidosRepository(
                         throw cancellation
                     } catch (e: Exception) {
                         // One missing record should not blank out the whole roster.
-                        member
+                        null
                     }
                 }
             }
-        }.awaitAll()
+        }.awaitAll().filterNotNull()
+    }
+
+    private fun List<DeputadoMembro>.withBios(bios: Map<String, DeputadoBioEntity>) = map { member ->
+        val bio = bios[member.id] ?: return@map member
+
+        member.copy(
+            sexo = bio.sexo,
+            dataNascimento = bio.dataNascimento,
+            ufNascimento = bio.ufNascimento,
+            municipioNascimento = bio.municipioNascimento,
+        )
     }
 
     private suspend fun legislaturaId(): String? = userDao.getUser().first()?.legislaturaId
@@ -170,5 +238,8 @@ internal class PartidosRepository(
     private companion object {
         const val TAG = "PartidosRepository"
         const val MAX_PARALLEL_MEMBER_REQUESTS = 10
+
+        /** A hundred per page, so this is far above the largest party ever measured. */
+        const val MAX_MEMBER_PAGES = 10
     }
 }

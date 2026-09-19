@@ -5,6 +5,7 @@ package com.tick.magna.di
 import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
 import com.tick.magna.DeputadoDetailsQueries
+import com.tick.magna.DeputadoBioQueries
 import com.tick.magna.DeputadoLastSeenQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
@@ -34,6 +35,8 @@ import com.tick.magna.data.repository.proposicoes.ProposicoesRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepository
 import com.tick.magna.data.repository.user.UserRepositoryInterface
 import com.tick.magna.data.source.local.DatabaseDriverFactory
+import com.tick.magna.data.source.local.dao.DeputadoBioDao
+import com.tick.magna.data.source.local.dao.DeputadoBioDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDao
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDao
@@ -92,6 +95,7 @@ val databaseModule = module {
     single<UserQueries> { get<MagnaDatabase>().userQueries }
     single<DeputadoQueries> { get<MagnaDatabase>().deputadoQueries }
     single<DeputadoLastSeenQueries> { get<MagnaDatabase>().deputadoLastSeenQueries }
+    single<DeputadoBioQueries> { get<MagnaDatabase>().deputadoBioQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
@@ -101,6 +105,7 @@ val databaseModule = module {
 
     single<UserDaoInterface> { UserDao(get(), get()) }
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get(), get()) }
+    single<DeputadoBioDaoInterface> { DeputadoBioDao(get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get()) }
@@ -129,7 +134,7 @@ val dataModule = module {
     single<DeputadosRepositoryInterface> {
         DeputadosRepository(get(), get(), get(), get(), get(), get())
     }
-    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get()) }
+    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
     single<OrgaosRepositoryInterface> { OrgaosRepository(get(), get(), get(), get(), get(), get()) }
     single<UserRepositoryInterface> { UserRepository(get(), get()) }

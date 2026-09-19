@@ -186,7 +186,7 @@ Trocar 57 → 56 tirava 332 pessoas da 57. Voltar encontrava 316 e não re-sincr
 
 Corrigido na migração `4.sqm`, que recria as três com chave `(id, legislaturaId)` e move `last_seen` para `DeputadoLastSeen`.
 
-### 4.1 [ALTO] Membros do partido são truncados em 15
+### 4.1 [ALTO] Membros do partido são truncados em 15 — CORRIGIDO
 
 `PartidosApi.getPartidoMembros` (`PartidosApi.kt:24`) não manda `itens`, e o padrão do endpoint é 15. O partido 36844 na legislatura 57 tem **6 páginas**; a tela mostra a primeira e não indica que há mais.
 
@@ -212,7 +212,18 @@ O leque de `deputados/{id}` continua sendo o problema caro: os campos que a tela
 Dois caminhos, e o segundo é novo:
 
 1. **Persistir a biografia.** Os quatro campos não mudam e não dependem de legislatura, então cabem numa tabela própria preenchida sob demanda. Primeira abertura do PL custa 145 requisições, as seguintes custam zero, e o custo é pago uma vez por pessoa em vez de uma vez por tela.
-2. **`arquivos/deputados/csv/deputados.csv`** (ver seção 6): **1,3 MB, 7889 linhas, todos os deputados da história**, com exatamente esses quatro campos. Um download substitui o leque inteiro, em qualquer legislatura. Cai nas regras de download do bloco 10 do plano — pedir permissão avisando o peso, marcar validade —, então não é decisão do item 4.1.
+2. **`arquivos/deputados/csv/deputados.csv`** (ver seção 6.1): **1,3 MB, 7889 linhas, todos os deputados da história**, com exatamente esses quatro campos. Um download substitui o leque inteiro, em qualquer legislatura. Cai nas regras de download do bloco 10 do plano — pedir permissão avisando o peso, marcar validade —, então não é decisão do item 4.1.
+
+**Feito o caminho 1.** `getPartidoMembros` manda `itens=100` e segue `links[rel=next]` até acabar, com teto de 10 páginas para o caso da API mudar de ideia. A biografia vai para `DeputadoBio` (migração `5.sqm`), tabela **sem `legislaturaId`**, porque nada ali muda entre mandatos. O leque passou a pedir só quem ainda não está guardado.
+
+Custo antes e depois, no PL da 57:
+
+| | antes | primeira visita | revisita |
+|---|---|---|---|
+| roster | 1 requisição, 15 de 145 membros | 2 requisições, 145 membros | 2 |
+| biografia | 15 | 145 | **0** |
+
+O caminho 2 continua valendo e agora é barato de encaixar: ele só preenche a mesma tabela por outra porta.
 
 ### 4.2 [ALTO] A segunda página de deputados some em legislaturas antigas — CORRIGIDO
 

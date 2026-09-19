@@ -9,5 +9,9 @@ interface PartidosApiInterface {
 
     suspend fun getPartidoById(id: String): PartidoDetalheResponse
 
-    suspend fun getPartidoMembros(id: String, legislaturaId: String): DeputadosResponse
+    suspend fun getPartidoMembros(
+        id: String,
+        legislaturaId: String,
+        pagina: Int = 1,
+    ): DeputadosResponse
 }

@@ -1,0 +1,16 @@
+-- Adds DeputadoBio, which stores the four fields the partido charts need and no listing
+-- endpoint returns: sex, date of birth, and state and town of birth.
+--
+-- Plain CREATE, nothing dropped and nothing converted. The table starts empty and fills in as
+-- partido screens are opened.
+--
+-- It has no legislaturaId on purpose. Unlike Deputado and Partido, which the previous migration
+-- had to re-key by term, none of this belongs to a mandate: where somebody was born does not
+-- change when they are re-elected.
+CREATE TABLE DeputadoBio (
+    deputadoId TEXT NOT NULL PRIMARY KEY,
+    sexo TEXT,
+    dataNascimento TEXT,
+    ufNascimento TEXT,
+    municipioNascimento TEXT
+);

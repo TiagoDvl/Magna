@@ -1,0 +1,23 @@
+-- Where and when a deputado was born, and their registered sex.
+--
+-- No legislaturaId, and that is the point: none of this changes between mandates, so keying it
+-- by term would store the same four values once per legislature the person served in.
+--
+-- It exists because these four fields are the only thing the partido screen needs that no
+-- listing endpoint returns. `/partidos/{id}/membros` gives name, party, state and photo; the
+-- charts need sex, age and birth state, and those live only in `/deputados/{id}`. That is one
+-- request per member, and the PL has 145 of them in the 57th legislature. Stored here, that
+-- cost is paid once per person instead of once per screen.
+CREATE TABLE DeputadoBio (
+    deputadoId TEXT NOT NULL PRIMARY KEY,
+    sexo TEXT,
+    dataNascimento TEXT,
+    ufNascimento TEXT,
+    municipioNascimento TEXT
+);
+
+insertDeputadoBio:
+INSERT OR REPLACE INTO DeputadoBio VALUES ?;
+
+getDeputadoBios:
+SELECT * FROM DeputadoBio WHERE deputadoId IN ?;
