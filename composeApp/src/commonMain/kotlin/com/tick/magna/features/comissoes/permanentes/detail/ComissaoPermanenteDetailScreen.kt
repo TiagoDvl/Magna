@@ -42,10 +42,10 @@ import com.tick.magna.data.source.local.mapper.toDisplayDate
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
+import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
-import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissao_membros_empty
 import magna.composeapp.generated.resources.comissao_membros_empty_description
@@ -94,27 +94,21 @@ private fun ComissaoPermanenteDetail(
     onTabSelected: (ComissaoTab) -> Unit = {},
     onDeputadoClick: (String) -> Unit = {},
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            Column {
-                MagnaMediumTopBar(
-                    titleText = state.comissaoPermanenteNomeResumido.orEmpty(),
-                    leftIcon = painterResource(Res.drawable.ic_arrow_back),
-                    leftIconClick = navigateBack
-                )
-
-                PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
-                    ComissaoTab.entries.forEach { tab ->
-                        Tab(
-                            selected = state.selectedTab == tab,
-                            onClick = { onTabSelected(tab) },
-                            text = { Text(text = stringResource(tab.label)) },
-                        )
-                    }
+    MagnaScreen(
+        modifier = modifier,
+        title = state.comissaoPermanenteNomeResumido.orEmpty(),
+        navigateBack = navigateBack,
+        belowTopBar = {
+            PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
+                ComissaoTab.entries.forEach { tab ->
+                    Tab(
+                        selected = state.selectedTab == tab,
+                        onClick = { onTabSelected(tab) },
+                        text = { Text(text = stringResource(tab.label)) },
+                    )
                 }
             }
-        }
+        },
     ) { paddingValues ->
         // Both halves are already loading by the time this runs, so switching tabs never
         // starts a request. Only one of them is expensive: the votes cost a window plus one

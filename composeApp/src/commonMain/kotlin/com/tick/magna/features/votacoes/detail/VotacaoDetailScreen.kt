@@ -36,8 +36,8 @@ import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
+import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
-import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
 import magna.composeapp.generated.resources.votacao_nao_encontrada
@@ -74,15 +74,10 @@ private fun VotacaoDetail(
 ) {
     val dimensions = LocalDimensions.current
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            MagnaMediumTopBar(
-                titleText = stringResource(Res.string.votacao_title),
-                leftIcon = painterResource(Res.drawable.ic_arrow_back),
-                leftIconClick = navigateBack,
-            )
-        },
+    MagnaScreen(
+        modifier = modifier,
+        title = stringResource(Res.string.votacao_title),
+        navigateBack = navigateBack,
     ) { paddingValues ->
         when (val current = state.state) {
             VotacaoDetailState.Loading ->

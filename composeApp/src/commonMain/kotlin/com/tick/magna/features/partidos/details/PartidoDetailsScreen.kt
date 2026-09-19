@@ -85,7 +85,7 @@ fun PartidoDetailsScreen(
     PartidoDetailsContent(
         state = state,
         onAction = { viewModel.processAction(it) },
-        onBack = { navController.popBackStack() },
+        navigateBack = { navController.popBackStack() },
         onMemberClick = { deputadoId ->
             viewModel.onMemberOpened()
             navController.navigate(DeputadoDetailsArgs(deputadoId))
@@ -112,7 +112,7 @@ private fun PartidoDetailsContent(
     modifier: Modifier = Modifier,
     state: PartidoDetailsState,
     onAction: (PartidoDetailsAction) -> Unit = {},
-    onBack: () -> Unit = {},
+    navigateBack: () -> Unit = {},
     onMemberClick: (String) -> Unit = {},
     onWebsiteOpened: () -> Unit = {},
     labelGender: String,
@@ -146,7 +146,7 @@ private fun PartidoDetailsContent(
             MagnaMediumTopBar(
                 titleText = topBarTitle,
                 leftIcon = painterResource(Res.drawable.ic_arrow_back),
-                leftIconClick = onBack,
+                leftIconClick = navigateBack,
                 actions = {
                     IconButton(onClick = { onAction(PartidoDetailsAction.ToggleFavorito) }) {
                         Icon(
@@ -592,7 +592,7 @@ private fun PartidoDetailsLoadingPreview() {
             labelLoadingDetails = "Carregando…",
             labelNoMembers = "Nenhum deputado",
             labelMembros = "membros",
-            onBack = {},
+            navigateBack = {},
         )
     }
 }
@@ -654,7 +654,7 @@ private fun PartidoDetailsContentPreview() {
             labelLoadingDetails = "Carregando…",
             labelNoMembers = "Nenhum deputado",
             labelMembros = "membros",
-            onBack = {},
+            navigateBack = {},
         )
     }
 }

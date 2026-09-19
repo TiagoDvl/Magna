@@ -27,9 +27,9 @@ import androidx.navigation.NavController
 import com.tick.magna.features.comissoes.permanentes.component.domain.ComissaoPermanente
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
+import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
-import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissoes_list_empty
 import magna.composeapp.generated.resources.comissoes_list_empty_description
@@ -70,16 +70,10 @@ private fun ComissoesListContent(
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = colorScheme.surface,
-        topBar = {
-            MagnaMediumTopBar(
-                titleText = stringResource(Res.string.comissoes_list_title),
-                leftIcon = painterResource(Res.drawable.ic_arrow_back),
-                leftIconClick = navigateBack,
-            )
-        }
+    MagnaScreen(
+        modifier = modifier,
+        title = stringResource(Res.string.comissoes_list_title),
+        navigateBack = navigateBack,
     ) { paddingValues ->
         when {
             state.isLoading && state.comissoes.isEmpty() ->

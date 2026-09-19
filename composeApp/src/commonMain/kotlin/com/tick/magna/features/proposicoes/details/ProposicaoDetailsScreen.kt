@@ -33,9 +33,9 @@ import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.domain.proposicoesMock
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.LoadingComponent
+import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
-import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_chevron_left
 import magna.composeapp.generated.resources.proposicao_details_approved
@@ -100,14 +100,9 @@ private fun ProposicaoDetailsContent(
 ) {
     val dimensions = LocalDimensions.current
 
-    Scaffold(
-        topBar = {
-            MagnaMediumTopBar(
-                titleText = titleText,
-                leftIcon = painterResource(Res.drawable.ic_chevron_left),
-                leftIconClick = navigateBack,
-            )
-        }
+    MagnaScreen(
+        title = titleText,
+        navigateBack = navigateBack,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier

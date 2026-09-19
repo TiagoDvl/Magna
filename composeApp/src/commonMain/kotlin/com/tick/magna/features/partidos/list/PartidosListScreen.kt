@@ -30,8 +30,8 @@ import androidx.navigation.NavController
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.partidosMock
 import com.tick.magna.ui.component.LoadingComponent
+import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
-import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
 import magna.composeapp.generated.resources.ic_star
@@ -76,15 +76,10 @@ private fun PartidosListContent(
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            MagnaMediumTopBar(
-                titleText = stringResource(Res.string.partidos_list_title),
-                leftIcon = painterResource(Res.drawable.ic_arrow_back),
-                leftIconClick = navigateBack,
-            )
-        }
+    MagnaScreen(
+        modifier = modifier,
+        title = stringResource(Res.string.partidos_list_title),
+        navigateBack = navigateBack,
     ) { paddingValues ->
         if (state.isLoading && state.partidos.isEmpty()) {
             LoadingComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))

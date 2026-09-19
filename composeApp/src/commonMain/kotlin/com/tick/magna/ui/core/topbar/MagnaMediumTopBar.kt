@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import com.tick.magna.ui.core.theme.MagnaTheme
@@ -28,8 +29,18 @@ fun MagnaMediumTopBar(
     leftIconContentDescription: String = stringResource(Res.string.action_back),
     /** Trailing controls that belong to the screen, such as a favourite toggle. */
     actions: @Composable RowScope.() -> Unit = {},
+    /**
+     * Makes the bar collapse as the content scrolls under it.
+     *
+     * Null keeps it static, which is what every screen in this app did until now: there was
+     * not one `scrollBehavior` or `nestedScroll` in the whole of commonMain. Handing it in
+     * rather than creating it here is deliberate — the same object has to reach the Scaffold's
+     * `nestedScroll` modifier, and a bar that owns its own state silently does nothing.
+     */
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     MediumTopAppBar(
+        scrollBehavior = scrollBehavior,
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors().copy(
             containerColor = MaterialTheme.colorScheme.background,

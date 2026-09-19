@@ -62,7 +62,27 @@ Um papel por função, o mesmo em todas as telas.
 
 Escala curta de propósito: raio que precisa ser consultado é raio que vai ser chutado.
 
-## 5. Estados
+## 5. Andaime de tela
+
+`MagnaScreen` — Scaffold, top bar, e o comportamento de scroll. Uma tela nova começa com a identidade pronta em vez de ser montada à mão outra vez.
+
+```kotlin
+MagnaScreen(
+    title = stringResource(Res.string.titulo),
+    navigateBack = navigateBack,
+    belowTopBar = { /* aba, filtro */ },
+) { paddingValues -> /* conteúdo */ }
+```
+
+- `navigateBack` nulo não desenha seta, para tela que não foi empilhada em nada.
+- `belowTopBar` fica sob a barra e colapsa junto: é onde vive uma `PrimaryTabRow`.
+- A barra usa **`enterAlwaysScrollBehavior`**, não `exitUntilCollapsed`: ela volta no primeiro scroll para cima, em vez de obrigar a subir uma lista inteira para saber onde se está.
+
+O callback de voltar chama-se **`navigateBack`** em todo lugar. Eram 23 contra 11 `onBack`.
+
+`MagnaLargeTopBar` foi apagado. Tinha zero usos fora dos próprios previews, e dar top bar à Home é decisão de desenho que ainda não foi tomada — manter os dois sem usar um era o pior dos três caminhos.
+
+## 6. Estados
 
 Quatro, compartilhados, e ninguém escreve o seu:
 
@@ -75,7 +95,7 @@ Quatro, compartilhados, e ninguém escreve o seu:
 
 **Vazio não é erro e não é carregando.** Comissão sem votação, deputado sem voto nominal e legislatura sem dado baixado são fatos, e cada um já custou um giro infinito neste app.
 
-## 6. Sem emoji
+## 7. Sem emoji
 
 Removidos dos 13 pontos onde estavam. Eles renderizam diferente em cada aparelho, o leitor de tela anuncia o nome do emoji em voz alta, e "prédio, porta, telefone, envelope" não é o que um gabinete é. Ícone com rótulo diz a mesma coisa e diz igual em todo lugar.
 
@@ -85,10 +105,8 @@ Removidos dos 13 pontos onde estavam. Eles renderizam diferente em cada aparelho
 
 - `MagnaScreen` — Scaffold + top bar + padding + comportamento de scroll padrão
 - `MagnaSection` — regra de separação entre seções
-- Comportamento de scroll: **zero** `scrollBehavior` ou `nestedScroll` no app hoje
+- Aplicar `MagnaScreen` nas telas que faltam: Home, busca, detalhe do deputado (usa `BottomSheetScaffold`) e detalhe do partido
 - Transições de navegação: o `NavHost` usa o padrão, e não há nenhuma
-- `MagnaLargeTopBar` está morto (0 usos). Ou a Home ganha top bar, ou ele sai
-- `navigateBack` (23) contra `onBack` (11) — escolher um
 - `background` e `surface` são a mesma cor no claro **e** no escuro, o que apaga a distinção entre fundo e card
 - Aplicar o inventário do §14.2, tela por tela
 
