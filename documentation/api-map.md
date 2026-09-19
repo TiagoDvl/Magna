@@ -224,7 +224,18 @@ O detalhe da votação (`/votacoes/{id}`) devolve bem mais do que o app lê. `Vo
 
 `ultimaApresentacaoProposicao.descricao` é o campo que contém a frase de verdade — quem relatou e o que defendeu — enquanto `descricao` é o carimbo processual. **O app já paga as 21 requisições e joga fora justamente a parte que teria conteúdo.**
 
-E há um recurso inteiro sem uso: `GET /orgaos/{id}/membros` devolve a composição, com `titulo` e `codTitulo` (Presidente, Vice-Presidente, Titular, Suplente), `siglaPartido`, `urlFoto`, `idLegislatura` e as datas de entrada e saída de cada membro. É a ponte natural entre comissões e as telas de deputado e partido que o app já tem, e hoje ela não existe.
+E há um recurso inteiro sem uso: `GET /orgaos/{id}/membros`. Ele não devolve uma lista de membros — devolve **um registro por passagem**, uma linha por (deputado, título, período), com `dataInicio`, `dataFim`, `idLegislatura`, `titulo`, `codTitulo`, `siglaPartido`, `siglaUf` e `urlFoto`.
+
+E ele tem dois modos, o que é fácil de interpretar errado:
+
+| Chamada | O que volta | CCJC medida |
+|---|---|---|
+| sem parâmetros | **só a composição vigente** (todos com `dataFim` nulo) | 130 registros: 1 Presidente, 3 Vice-Presidentes, 60 Titulares, 66 Suplentes |
+| com `dataInicio`/`dataFim` | **o histórico de passagens** da janela | legislatura 57 → 902 registros, 293 deputados distintos |
+
+Duas consequências: a composição vigente é **anual**, não do quadriênio — os 130 registros atuais começam todos em 2026; e o histórico precisa ser agrupado por deputado antes de virar tela, senão repete a mesma pessoa.
+
+A presidência rotaciona e tem mandato. A CCJC teve quatro presidentes na legislatura 57: Rui Falcão (2023-03-15 → 2024-03-06), Caroline de Toni (→ 2025-03-18), Paulo Azi (→ 2026-02-09) e Leur Lomanto Júnior (atual). É uma linha do tempo pronta, com nomes que o app já tem.
 
 `GET /orgaos/{id}` também não é chamado — o app acha o órgão na lista que já baixou. Ele traz `dataInstalacao`, `sala`, `urlWebsite` e as datas de funcionamento.
 
