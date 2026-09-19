@@ -94,17 +94,17 @@ internal fun LegislaturaSyncBanner(
                     text = stringResource(Res.string.home_legislatura_incomplete),
                     style = typography.titleSmall.copy(color = content),
                 )
-                // Read off the enum rather than the set so the order is the same every time.
-                val sections = SyncStep.entries
-                    .filter { step -> step in state.failedSteps }
-                    .map { step -> stringResource(step.label()) }
-
                 Text(
                     // Naming the sections is the whole difference between "this failed" and
                     // "this term has none of it", which look the same from the database.
-                    text = if (sections.isEmpty()) {
+                    text = if (state.isEverythingDown) {
                         stringResource(Res.string.home_legislatura_incomplete_offline)
                     } else {
+                        // Read off the enum rather than the set so the order never shuffles.
+                        val sections = SyncStep.entries
+                            .filter { step -> step in state.failedSteps }
+                            .map { step -> stringResource(step.label()) }
+
                         stringResource(
                             Res.string.home_legislatura_incomplete_sections,
                             sections.joinToString(),
@@ -153,6 +153,8 @@ private fun LegislaturaSyncBannerPartialPreview() {
 @Composable
 private fun LegislaturaSyncBannerOfflinePreview() {
     MagnaTheme {
-        LegislaturaSyncBanner(state = LegislaturaSyncState.Incomplete(emptySet()))
+        LegislaturaSyncBanner(
+            state = LegislaturaSyncState.Incomplete(SyncStep.entries.toSet()),
+        )
     }
 }

@@ -41,10 +41,18 @@ sealed interface LegislaturaSyncState {
     data object Syncing : LegislaturaSyncState
 
     /**
-     * [failedSteps] is empty when the sync gave up before running any step — no network at
-     * all, usually — which is a different sentence from naming the sections that failed.
+     * [failedSteps] is empty when the sync gave up before running any step at all.
      */
-    data class Incomplete(val failedSteps: Set<SyncStep>) : LegislaturaSyncState
+    data class Incomplete(val failedSteps: Set<SyncStep>) : LegislaturaSyncState {
+
+        /**
+         * Nothing arrived, which is a connection problem and reads as one. Listing all five
+         * section names would be technically accurate and useless — the person does not have a
+         * committee problem, they have no network.
+         */
+        val isEverythingDown: Boolean
+            get() = failedSteps.isEmpty() || failedSteps.containsAll(SyncStep.entries)
+    }
 }
 
 /**

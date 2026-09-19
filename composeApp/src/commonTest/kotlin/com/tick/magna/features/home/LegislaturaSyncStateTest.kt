@@ -57,12 +57,21 @@ class LegislaturaSyncStateTest {
 
     @Test
     fun a_switch_with_no_network_at_all_carries_no_sections() {
-        // Nothing ran, so there is no section to name and the screen has a different sentence
-        // for it than the one that lists what failed.
         assertEquals(
             LegislaturaSyncState.Incomplete(emptySet()),
             legislaturaSyncStateFor(SyncUserInformationState.Retry(), switching = true),
         )
+    }
+
+    @Test
+    fun everything_failing_reads_as_a_connection_problem_not_as_five_sections() {
+        // With no network every step fails on its own, so the honest set is all five. Listing
+        // them would be accurate and useless: nobody has a committee problem, they have no
+        // network. The empty set is the same situation seen one step earlier.
+        assertTrue(LegislaturaSyncState.Incomplete(SyncStep.entries.toSet()).isEverythingDown)
+        assertTrue(LegislaturaSyncState.Incomplete(emptySet()).isEverythingDown)
+
+        assertFalse(LegislaturaSyncState.Incomplete(setOf(SyncStep.ORGAOS)).isEverythingDown)
     }
 
     @Test
