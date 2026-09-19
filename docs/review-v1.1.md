@@ -640,6 +640,8 @@ Os três casos de rede, como ficaram:
 | recorte já baixado | `Done` direto, zero requisição — coberto por teste que afirma `stepsRun` vazio |
 | sync parcial | banner nomeia as seções que falharam; o resto da tela continua funcionando |
 
+**Verificado em aparelho.** Troca com rede, volta para um recorte já baixado e troca em modo avião com retry depois — os três se comportam como a tabela descreve, e o diálogo modal ficou restrito ao primeiro run.
+
 Não implementado de propósito: TTL por legislatura (segue sendo ganho, não requisito) e estado vazio por seção, que é o bloco 11.
 
 ---
