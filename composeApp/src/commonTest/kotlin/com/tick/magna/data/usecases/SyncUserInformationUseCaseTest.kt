@@ -222,10 +222,13 @@ class SyncUserInformationUseCaseTest {
             override fun observeRecentProposicoes(limite: Int): Flow<Resource<List<Proposicao>>> =
                 throw UnsupportedOperationException("not part of the sync")
 
-            override fun observeProposicoesDoBucket(
-                bucket: ProposicaoBucket,
+            override fun observeProposicoesPaginadas(
+                bucket: ProposicaoBucket?,
                 limite: Int,
-            ): Flow<Resource<List<Proposicao>>> =
+            ): Flow<List<Proposicao>> =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override suspend fun carregarPagina(bucket: ProposicaoBucket?, pagina: Int): Boolean =
                 throw UnsupportedOperationException("not part of the sync")
 
             override suspend fun contarNaJanela(siglaTipos: List<String>): ProposicoesNaJanela? =

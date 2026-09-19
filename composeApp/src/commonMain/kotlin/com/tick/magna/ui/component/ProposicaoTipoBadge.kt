@@ -31,7 +31,12 @@ import org.jetbrains.compose.resources.stringResource
  * the sigla and the bucket's name from this badge.
  */
 @Composable
-fun ProposicaoTipoBadge(siglaTipo: String, modifier: Modifier = Modifier) {
+fun ProposicaoTipoBadge(
+    siglaTipo: String,
+    modifier: Modifier = Modifier,
+    /** What the badge reads; the sigla alone on its own, "PL 1589/2026" on a card. */
+    label: String = siglaTipo,
+) {
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
     val bucket = remember(siglaTipo) { proposicaoBucket(siglaTipo) }
@@ -51,7 +56,7 @@ fun ProposicaoTipoBadge(siglaTipo: String, modifier: Modifier = Modifier) {
         )
 
         Text(
-            text = siglaTipo,
+            text = label,
             style = typography.labelMedium.copy(
                 color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,

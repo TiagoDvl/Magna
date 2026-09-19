@@ -24,16 +24,31 @@ interface ProposicoesRepositoryInterface {
     fun observeRecentProposicoes(limite: Int): Flow<Resource<List<Proposicao>>>
 
     /**
-     * One bucket of instruments, for the screen that filters.
+     * The cache alone, for the screen that pages. No refresh runs inside it.
      *
-     * A bucket rather than a sigla because a sigla is the wrong unit to offer: the filter used
-     * to be PEC, MPV and PLP, three of the Camara's 544 siglas, and between them they held 87
-     * of the 11333 propositions in a measured window. The four buckets cover all of it.
+     * The paging screen drives the network itself with [carregarPagina], because the two
+     * questions have different rhythms: the rows on screen change whenever SQL says so, and
+     * the network is asked once per page the reader scrolls into. Wiring a refresh into this
+     * flow would re-fetch page one every time the limit grew.
+     *
+     * @param bucket null for every type mixed.
+     * @param limite grows with the pages loaded. SQL returns what exists, so asking for more
+     * than the cache holds is not an error — it is how Tramitacao, which is a `NOT IN` over
+     * unfiltered pages, ends up shorter than the others.
      */
-    fun observeProposicoesDoBucket(
-        bucket: ProposicaoBucket,
+    fun observeProposicoesPaginadas(
+        bucket: ProposicaoBucket?,
         limite: Int,
-    ): Flow<Resource<List<Proposicao>>>
+    ): Flow<List<Proposicao>>
+
+    /**
+     * Fetches one page into the cache.
+     *
+     * @return true when the Camara says another page exists, read from `links[rel=next]`
+     * rather than by comparing sizes — the endpoints disagree on default page size, and a
+     * caller that guesses either stops early or asks for a page that is not there.
+     */
+    suspend fun carregarPagina(bucket: ProposicaoBucket?, pagina: Int): Boolean
 
     /**
      * How many were filed in the window, which is what tells four-of-four from four-of-11333.

@@ -1,6 +1,7 @@
 package com.tick.magna.features.proposicoes.list
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,16 +10,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -56,6 +63,7 @@ fun ProposicoesListScreen(
         state = state,
         navigateBack = { navController.popBackStack() },
         onFiltroSelected = viewModel::onFiltroSelected,
+        onCarregarMais = viewModel::onCarregarMais,
         onProposicaoClick = { id ->
             viewModel.onProposicaoOpened()
             navController.navigate(ProposicaoDetailsArgs(id))
@@ -78,9 +86,29 @@ private fun ProposicoesList(
     state: ProposicoesListState,
     navigateBack: () -> Unit = {},
     onFiltroSelected: (ProposicaoBucket?) -> Unit = {},
+    onCarregarMais: () -> Unit = {},
     onProposicaoClick: (String) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
+    val listState = rememberLazyListState()
+
+    // The chips promise the whole window — 8848 for Tramitacao — and the list used to stop at
+    // one page of twenty, or at the eleven of those twenty that survived its NOT IN. This is
+    // what makes the number a promise the screen can keep.
+    val deveCarregar by remember(state.proposicoes.size, state.carregandoMais, state.temMais) {
+        derivedStateOf {
+            deveCarregarMais(
+                ultimoVisivel = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1,
+                total = state.proposicoes.size,
+                carregando = state.carregandoMais,
+                temMais = state.temMais,
+            )
+        }
+    }
+
+    LaunchedEffect(deveCarregar) {
+        if (deveCarregar) onCarregarMais()
+    }
 
     MagnaScreen(
         modifier = modifier,
@@ -133,6 +161,7 @@ private fun ProposicoesList(
 
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
+                state = listState,
                 contentPadding = PaddingValues(dimensions.grid16),
                 verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
             ) {
@@ -141,6 +170,17 @@ private fun ProposicoesList(
                         proposicao = proposicao,
                         onClick = { onProposicaoClick(proposicao.id) },
                     )
+                }
+
+                if (state.carregandoMais) {
+                    item(key = CARREGANDO_KEY) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(dimensions.grid16),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(dimensions.grid24))
+                        }
+                    }
                 }
             }
         }
@@ -176,6 +216,9 @@ private fun FiltroChip(
 }
 
 private val CHIP_ICON = 18.dp
+
+/** Stable, so the spinner is not rebuilt as rows arrive under it. */
+private const val CARREGANDO_KEY = "carregando-mais"
 
 @Preview
 @Composable

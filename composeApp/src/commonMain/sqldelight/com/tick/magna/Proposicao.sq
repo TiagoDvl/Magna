@@ -6,6 +6,20 @@ CREATE TABLE Proposicao (
     dataApresentacao TEXT,
     autores TEXT,
     url TEXT,
+    -- Added in 12.sqm. All nullable: a row stored before the API had classified the
+    -- proposition keeps whatever it did have, and the card draws what is there.
+    numero INTEGER,
+    ano INTEGER,
+    -- The first signature, by name, plus how many there are. /autores returns the name and
+    -- the kind of author directly, and the kind matters: a third of the PLs in a measured
+    -- window are signed by an orgao, not by a deputado.
+    autorNome TEXT,
+    autorTipo TEXT,
+    autoresTotal INTEGER,
+    situacao TEXT,
+    orgaoSigla TEXT,
+    -- Joined with TEMA_SEPARATOR. Two on the median, five at most, out of a vocabulary of 25.
+    temas TEXT,
     PRIMARY KEY (id, legislaturaId),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );

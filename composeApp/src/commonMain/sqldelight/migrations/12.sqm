@@ -1,0 +1,19 @@
+-- What a proposition card shows besides its ementa.
+--
+-- Measured on 40 recent PLs, 21 ementas begin with "Altera" and 8 with "Dispoe": 72% open
+-- with one of two words, and "Altera a Lei n. 10.826, de 22 de dezembro de 2003, para" spends
+-- 55 characters before saying anything. The card had nothing else to tell two of them apart.
+--
+-- numero and ano come free in the listing and are the name people actually use for a
+-- proposition. autorNome and autorTipo come from /autores, which already returns both: 190 of
+-- 197 sampled propositions have exactly one author, and a third of the PLs are signed by an
+-- orgao rather than a deputado, which the avatar row silently drew as nothing.
+-- situacao, orgaoSigla and temas fill in later, as a proposition moves.
+ALTER TABLE Proposicao ADD COLUMN numero INTEGER;
+ALTER TABLE Proposicao ADD COLUMN ano INTEGER;
+ALTER TABLE Proposicao ADD COLUMN autorNome TEXT;
+ALTER TABLE Proposicao ADD COLUMN autorTipo TEXT;
+ALTER TABLE Proposicao ADD COLUMN autoresTotal INTEGER;
+ALTER TABLE Proposicao ADD COLUMN situacao TEXT;
+ALTER TABLE Proposicao ADD COLUMN orgaoSigla TEXT;
+ALTER TABLE Proposicao ADD COLUMN temas TEXT;

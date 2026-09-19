@@ -2,6 +2,7 @@ package com.tick.magna.data.source.remote.api
 
 import com.tick.magna.data.source.remote.response.ProposicaoAutoresResponse
 import com.tick.magna.data.source.remote.response.ProposicaoDetailResponse
+import com.tick.magna.data.source.remote.response.ProposicaoTemasResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesSiglaTipoResponse
 import com.tick.magna.data.source.remote.response.VotacoesResponse
@@ -21,9 +22,11 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
         dataApresentacaoInicio: String,
         dataApresentacaoFim: String,
         itens: Int,
+        pagina: Int,
     ): ProposicoesResponse {
         return httpClient.get("proposicoes") {
             parameter("itens", itens)
+            parameter("pagina", pagina)
             // Not dataInicio/dataFim: those filter by tramitação, and asking them for late
             // 2018 returns propositions filed in 1991. These two filter by filing date, which
             // is what a legislatura window means here. The endpoint refuses idLegislatura
@@ -46,6 +49,10 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
 
     override suspend fun getProposicaoAutores(idProposicao: String): ProposicaoAutoresResponse {
         return httpClient.get("proposicoes/$idProposicao/autores").body()
+    }
+
+    override suspend fun getProposicaoTemas(idProposicao: String): ProposicaoTemasResponse {
+        return httpClient.get("proposicoes/$idProposicao/temas").body()
     }
 
     override suspend fun getProposicaoVotacoes(idProposicao: String): VotacoesResponse {

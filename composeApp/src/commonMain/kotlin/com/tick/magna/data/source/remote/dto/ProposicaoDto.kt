@@ -12,4 +12,8 @@ data class ProposicaoDto(
     val codTipo: Int = 0,
     val ementa: String? = null,
     val dataApresentacao: String? = null,
+    // "PL 1589/2026" is the name a proposition is looked up by, and both halves come free in
+    // the listing. The card used to show the sigla alone, which every card of a type shares.
+    val numero: Int? = null,
+    val ano: Int? = null,
 )

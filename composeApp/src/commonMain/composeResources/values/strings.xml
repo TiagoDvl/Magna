@@ -73,6 +73,8 @@
     <string name="recent_proposicoes_janela">%1$d apresentadas nos últimos %2$d meses</string>
     <string name="section_ver_todos">Ver todos</string>
     <string name="proposicao_bucket_constituicao">Constituição</string>
+    <string name="proposicao_autoria_outros">e mais %1$d</string>
+    <string name="proposicao_temas_restantes">+%1$d</string>
     <string name="proposicao_bucket_lei">Lei</string>
     <string name="proposicao_bucket_ato">Ato do Congresso</string>
     <string name="proposicao_bucket_tramitacao">Tramitação</string>

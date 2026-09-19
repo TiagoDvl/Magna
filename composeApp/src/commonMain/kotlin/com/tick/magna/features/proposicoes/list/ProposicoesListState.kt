@@ -19,4 +19,19 @@ data class ProposicoesListState(
      * measured over one window the Constitution had 1 and procedure had 8848.
      */
     val contagens: Map<ProposicaoBucket?, Int> = emptyMap(),
+    /**
+     * A page is on its way while rows are already on screen.
+     *
+     * Separate from [isLoading] because they draw differently: one is an empty screen, the
+     * other is a spinner under twenty cards the reader is still looking at.
+     */
+    val carregandoMais: Boolean = false,
+    /**
+     * Whether the Camara says there is another page.
+     *
+     * Starts true and is only ever turned off by a response with no `next` link. A chip
+     * reading 8848 over a list of eleven was what made paging necessary in the first place;
+     * this is the flag that lets the list actually get there.
+     */
+    val temMais: Boolean = true,
 )

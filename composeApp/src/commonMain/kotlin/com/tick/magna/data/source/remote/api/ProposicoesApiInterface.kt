@@ -2,6 +2,7 @@ package com.tick.magna.data.source.remote.api
 
 import com.tick.magna.data.source.remote.response.ProposicaoAutoresResponse
 import com.tick.magna.data.source.remote.response.ProposicaoDetailResponse
+import com.tick.magna.data.source.remote.response.ProposicaoTemasResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesSiglaTipoResponse
 import com.tick.magna.data.source.remote.response.VotacoesResponse
@@ -22,6 +23,8 @@ interface ProposicoesApiInterface {
         dataApresentacaoInicio: String,
         dataApresentacaoFim: String,
         itens: Int = DEFAULT_ITENS,
+        /** 1-based, as the Camara counts. Page 2 onwards is what the list screen scrolls into. */
+        pagina: Int = 1,
     ): ProposicoesResponse
 
     companion object {
@@ -32,6 +35,9 @@ interface ProposicoesApiInterface {
     suspend fun getProposicaoDetail(idProposicao: String): ProposicaoDetailResponse
 
     suspend fun getProposicaoAutores(idProposicao: String): ProposicaoAutoresResponse
+
+    /** Empty until the proposition has been classified, which takes weeks. */
+    suspend fun getProposicaoTemas(idProposicao: String): ProposicaoTemasResponse
 
     suspend fun getProposicaoVotacoes(idProposicao: String): VotacoesResponse
 }

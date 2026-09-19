@@ -7,6 +7,7 @@ import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.ProposicaoDetail
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.domain.ProposicoesNaJanela
+import com.tick.magna.data.source.remote.response.hasNextPage
 import com.tick.magna.data.source.remote.response.totalFromLastPage
 import com.tick.magna.data.repository.Resource
 import com.tick.magna.data.repository.cachedList
@@ -16,6 +17,7 @@ import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.ProposicaoDaoInterface
 import com.tick.magna.data.source.local.dao.SiglaTipoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
+import com.tick.magna.data.source.local.mapper.TEMA_SEPARATOR
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.ProposicoesApiInterface
 import kotlin.coroutines.cancellation.CancellationException
@@ -78,16 +80,23 @@ internal class ProposicoesRepository(
         }
     }
 
-    override fun observeProposicoesDoBucket(
-        bucket: ProposicaoBucket,
+    override fun observeProposicoesPaginadas(
+        bucket: ProposicaoBucket?,
         limite: Int,
-    ): Flow<Resource<List<Proposicao>>> {
+    ): Flow<List<Proposicao>> {
         return userDao.getUser().flatMapLatest { user ->
-            val legislaturaId = user?.legislaturaId
-                ?: return@flatMapLatest flowOf(Resource.Content(emptyList()))
+            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest flowOf(emptyList())
 
-            recentProposicoes(legislaturaId, bucket = bucket, limite = limite)
+            cacheDe(legislaturaId, bucket, limite).map { proposicoes ->
+                proposicoes.map { proposicao -> comAutores(legislaturaId, proposicao) }
+            }
         }
+    }
+
+    override suspend fun carregarPagina(bucket: ProposicaoBucket?, pagina: Int): Boolean {
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return false
+
+        return refreshProposicoes(legislaturaId, bucket, pagina)
     }
 
     override suspend fun contarNaJanela(siglaTipos: List<String>): ProposicoesNaJanela? {
@@ -124,32 +133,45 @@ internal class ProposicoesRepository(
         bucket: ProposicaoBucket?,
         limite: Int,
     ): Flow<Resource<List<Proposicao>>> {
-        val cache = when {
-            bucket == null -> proposicoesDao.getProposicoes(legislaturaId, limite.toLong())
-
-            bucket.siglas.isNotEmpty() ->
-                proposicoesDao.getProposicoesNosTipos(legislaturaId, bucket.siglas, limite.toLong())
-
-            else -> proposicoesDao.getProposicoesForaDosTipos(
-                legislaturaId = legislaturaId,
-                tipos = ProposicaoBucket.siglasClassificadas,
-                limite = limite.toLong(),
-            )
-        }
-
         return cachedList(
-            cache = cache.map { proposicoes ->
-                proposicoes.map { proposicao ->
-                    val autores = proposicao.autores
-                        ?.split(AUTHOR_SEPARATOR)
-                        ?.let { ids -> deputadosDao.getDeputados(legislaturaId, ids).mapNotNull { it.toDomain() } }
-                        .orEmpty()
-
-                    proposicao.toDomain(autores)
-                }
+            cache = cacheDe(legislaturaId, bucket, limite).map { proposicoes ->
+                proposicoes.map { proposicao -> comAutores(legislaturaId, proposicao) }
             },
-            refresh = { refreshProposicoes(legislaturaId, bucket) },
+            refresh = { refreshProposicoes(legislaturaId, bucket, pagina = 1) },
         )
+    }
+
+    /** The right query for the bucket: everything, `IN` its siglas, or `NOT IN` the others. */
+    private fun cacheDe(
+        legislaturaId: String,
+        bucket: ProposicaoBucket?,
+        limite: Int,
+    ): Flow<List<ProposicaoEntity>> = when {
+        bucket == null -> proposicoesDao.getProposicoes(legislaturaId, limite.toLong())
+
+        bucket.siglas.isNotEmpty() ->
+            proposicoesDao.getProposicoesNosTipos(legislaturaId, bucket.siglas, limite.toLong())
+
+        else -> proposicoesDao.getProposicoesForaDosTipos(
+            legislaturaId = legislaturaId,
+            tipos = ProposicaoBucket.siglasClassificadas,
+            limite = limite.toLong(),
+        )
+    }
+
+    /**
+     * The stored row plus whichever of its authors this term's deputado table knows.
+     *
+     * Only the photograph and the party come from here now; the name is on the row itself,
+     * which is what lets a proposition signed by a comissao render at all.
+     */
+    private fun comAutores(legislaturaId: String, proposicao: ProposicaoEntity): Proposicao {
+        val autores = proposicao.autores
+            ?.split(AUTHOR_SEPARATOR)
+            ?.let { ids -> deputadosDao.getDeputados(legislaturaId, ids).mapNotNull { it.toDomain() } }
+            .orEmpty()
+
+        return proposicao.toDomain(autores)
     }
 
     override fun getProposicaoDetail(id: String): Flow<Resource<ProposicaoDetail>> = networkResource {
@@ -190,7 +212,11 @@ internal class ProposicoesRepository(
      * supervisorScope keeps one failing branch from cancelling its siblings; awaitAll still
      * surfaces the first failure, which becomes Resource.Error for the whole section.
      */
-    private suspend fun refreshProposicoes(legislaturaId: String, bucket: ProposicaoBucket?) {
+    private suspend fun refreshProposicoes(
+        legislaturaId: String,
+        bucket: ProposicaoBucket?,
+        pagina: Int,
+    ): Boolean {
         // Empty for "todas" and for Tramitacao alike: one asks for everything on purpose, and
         // the other cannot be asked for at all, so it takes the unfiltered page and lets the
         // NOT IN in SQL do the filtering. Tramitacao is 8848 of the 11333 in a measured
@@ -200,16 +226,18 @@ internal class ProposicoesRepository(
         val window = window(legislaturaId)
             ?: run {
                 loggerInterface.w("refreshProposicoes: no window for legislatura $legislaturaId", TAG)
-                return
+                return false
             }
 
-        val proposicoes = proposicoesApi.getProposicoes(
+        val resposta = proposicoesApi.getProposicoes(
             siglaTipos = siglaTipos,
             dataApresentacaoInicio = window.start,
             dataApresentacaoFim = window.end,
-        ).dados
+            pagina = pagina,
+        )
+        val proposicoes = resposta.dados
         loggerInterface.d(
-            "refreshProposicoes: fetched ${proposicoes.size} for bucket=$bucket " +
+            "refreshProposicoes: fetched ${proposicoes.size} of page $pagina for bucket=$bucket " +
                 "between ${window.start} and ${window.end}",
             TAG,
         )
@@ -217,20 +245,38 @@ internal class ProposicoesRepository(
         val entities = supervisorScope {
             proposicoes.map { proposicao ->
                 async {
+                    val id = proposicao.id.toString()
                     val tipo = siglaTipoDao.getSiglaTipoById(proposicao.codTipo.toString())
-                    val detail = proposicoesApi.getProposicaoDetail(proposicao.id.toString())
-                    val autores = proposicoesApi.getProposicaoAutores(proposicao.id.toString()).dados
+                    val detail = proposicoesApi.getProposicaoDetail(id).dados
+                    val assinaturas = proposicoesApi.getProposicaoAutores(id).dados
                         .sortedBy { it.ordemAssinatura }
-                        .joinToString(AUTHOR_SEPARATOR) { autor -> autor.uri.substringAfterLast('/') }
+
+                    // The third request per proposition, and the only one that can come back
+                    // empty on purpose: a proposition filed this month has no tema yet.
+                    val temas = runCatching { proposicoesApi.getProposicaoTemas(id).dados }
+                        .getOrElse { emptyList() }
+                        .mapNotNull { it.tema?.trim()?.takeIf(String::isNotEmpty) }
 
                     ProposicaoEntity(
-                        id = proposicao.id.toString(),
+                        id = id,
                         legislaturaId = legislaturaId,
                         codTipo = tipo.sigla,
                         ementa = proposicao.ementa,
                         dataApresentacao = proposicao.dataApresentacao,
-                        autores = autores,
-                        url = detail.dados.urlInteiroTeor
+                        autores = assinaturas.joinToString(AUTHOR_SEPARATOR) { autor ->
+                            autor.uri.substringAfterLast('/')
+                        },
+                        url = detail.urlInteiroTeor,
+                        numero = proposicao.numero?.toLong(),
+                        ano = proposicao.ano?.toLong(),
+                        // The first signature is the proponent; the rest are support. On a PEC
+                        // that is one name and 171 others.
+                        autorNome = assinaturas.firstOrNull()?.nome,
+                        autorTipo = assinaturas.firstOrNull()?.tipo,
+                        autoresTotal = assinaturas.size.toLong(),
+                        situacao = detail.statusProposicao?.descricaoSituacao,
+                        orgaoSigla = detail.statusProposicao?.siglaOrgao,
+                        temas = temas.takeIf { it.isNotEmpty() }?.joinToString(TEMA_SEPARATOR),
                     )
                 }
             }.awaitAll()
@@ -238,6 +284,8 @@ internal class ProposicoesRepository(
 
         proposicoesDao.insertProposicoes(entities)
         loggerInterface.d("refreshProposicoes: saved ${entities.size} for bucket=$bucket", TAG)
+
+        return resposta.links.hasNextPage()
     }
 
     /**
