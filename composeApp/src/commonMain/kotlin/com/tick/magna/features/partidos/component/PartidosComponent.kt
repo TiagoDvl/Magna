@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,9 +30,12 @@ import com.tick.magna.data.domain.partidosMock
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.partidos_members_suffix
+import magna.composeapp.generated.resources.ic_star_filled
+import magna.composeapp.generated.resources.partido_favorite_remove
+import magna.composeapp.generated.resources.partidos_deputados_suffix
 import magna.composeapp.generated.resources.partidos_section_title
 import magna.composeapp.generated.resources.partidos_see_all
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -49,7 +54,7 @@ fun PartidosComponent(
         partidos = partidos.value,
         sectionTitle = stringResource(Res.string.partidos_section_title),
         seeAllText = stringResource(Res.string.partidos_see_all),
-        membersSuffix = stringResource(Res.string.partidos_members_suffix),
+        membersSuffix = stringResource(Res.string.partidos_deputados_suffix),
         onVerTodosClick = onVerTodosClick,
         onPartidoClick = { partidoId ->
             viewModel.onPartidoOpened()
@@ -144,15 +149,33 @@ private fun PartidoChip(
                 ),
             verticalArrangement = Arrangement.spacedBy(dimensions.grid2),
         ) {
-            Text(
-                text = partido.sigla,
-                style = typography.titleMedium.copy(
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = partido.sigla,
+                    style = typography.titleMedium.copy(
+                        color = colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                // Shown, not pressable. The carousel is for going somewhere; marking a party
+                // happens on its own screen or on the full list.
+                if (partido.isFavorito) {
+                    Icon(
+                        modifier = Modifier.size(dimensions.grid16),
+                        painter = painterResource(Res.drawable.ic_star_filled),
+                        contentDescription = stringResource(Res.string.partido_favorite_remove),
+                        tint = colorScheme.tertiary,
+                    )
+                }
+            }
 
             Text(
                 text = partido.nome,
@@ -163,15 +186,13 @@ private fun PartidoChip(
                 overflow = TextOverflow.Ellipsis,
             )
 
-            partido.totalMembros?.let { total ->
-                Text(
-                    text = "$total $membersSuffix",
-                    style = typography.labelSmall.copy(
-                        color = colorScheme.tertiary,
-                        fontWeight = FontWeight.Medium,
-                    )
+            Text(
+                text = "${partido.deputados} $membersSuffix",
+                style = typography.labelSmall.copy(
+                    color = colorScheme.tertiary,
+                    fontWeight = FontWeight.Medium,
                 )
-            }
+            )
         }
     }
 }

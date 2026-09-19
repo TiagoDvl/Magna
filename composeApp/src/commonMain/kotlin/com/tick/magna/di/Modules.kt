@@ -11,6 +11,7 @@ import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
 import com.tick.magna.OrgaoQueries
+import com.tick.magna.PartidoFavoritoQueries
 import com.tick.magna.PartidoQueries
 import com.tick.magna.ProposicaoQueries
 import com.tick.magna.SiglaTipoQueries
@@ -98,6 +99,7 @@ val databaseModule = module {
     single<DeputadoBioQueries> { get<MagnaDatabase>().deputadoBioQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
+    single<PartidoFavoritoQueries> { get<MagnaDatabase>().partidoFavoritoQueries }
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
     single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }
@@ -107,7 +109,7 @@ val databaseModule = module {
     single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get(), get()) }
     single<DeputadoBioDaoInterface> { DeputadoBioDao(get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
-    single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
+    single<PartidoDaoInterface> { PartidoDao(get(), get(), get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get()) }
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }

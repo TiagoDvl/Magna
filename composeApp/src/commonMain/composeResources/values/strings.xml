@@ -81,6 +81,9 @@
     <string name="partidos_see_all">Ver todos</string>
     <string name="partidos_list_title">Partidos</string>
     <string name="partidos_members_suffix">membros</string>
+    <string name="partidos_deputados_suffix">deputados</string>
+    <string name="partido_favorite_add">Marcar como favorito</string>
+    <string name="partido_favorite_remove">Desmarcar favorito</string>
 
     <string name="partido_details_gender">Gênero</string>
     <string name="partido_details_age">Idade</string>

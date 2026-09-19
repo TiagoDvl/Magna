@@ -299,6 +299,20 @@ Vale checar se `/proposicoes` sozinho já traz o suficiente para a lista, deixan
 
 Declarado em `ProposicoesApiInterface`, sem chamador. Ou vira feature, ou sai junto do próximo lote de código morto.
 
+### 4.7 [MÉDIO] Não existe tamanho de bancada que sirva para legislatura antiga — CORRIGIDO
+
+Achado ao implementar favoritos de partido, porque ordenar exige um tamanho.
+
+Três medições, todas em 2026-09-19:
+
+- **`/partidos` não devolve tamanho nenhum.** O item da lista tem só `id`, `nome`, `sigla`, `uri`. E vem em ordem alfabética por sigla.
+- **`/partidos/{id}` devolve `status.totalMembros`**, mas só da legislatura corrente: `status.idLegislatura` volta `57` sempre, e **`/partidos/{id}?idLegislatura=56` responde HTTP 400**. Para o PT: `totalMembros: "65"` (bancada de hoje) e `totalPosse: "68"` (eleitos).
+- **Contar da tabela `Deputado` local custa zero requisição e funciona em qualquer legislatura.** PL 116, PT 79, UNIÃO 66, PSD 63, PP 62. É outro número: conta quem ocupou cadeira pelo partido durante a legislatura, suplente incluído, então fica acima da bancada do dia.
+
+O que estava acontecendo no app: os dois lugares que mostram a lista faziam `sortedByDescending { it.totalMembros }`, e `syncPartidos` grava essa coluna como `null`. Ordenar por null não reordena nada, então sobrava a ordem de inserção — que é a ordem da API — **que é alfabética**. O carrossel da Home pegava os 8 primeiros e mostrava AVANTE, CIDADANIA, DC onde queria mostrar os maiores. O chip também nunca exibia número, pelo mesmo motivo.
+
+Resolvido com a contagem local, feita em SQL junto da leitura (`getPartidos` em `Partido.sq`), que ordena favoritos primeiro, depois por tamanho, e desempata pela sigla. O rótulo passou a ser "deputados" e não "membros", porque é o que o número é. O header do detalhe continua mostrando "membros" com o `totalMembros` oficial — dois números diferentes, dois rótulos diferentes.
+
 ---
 
 ## 5. Comissões: por que a tela é sem graça, medido

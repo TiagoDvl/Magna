@@ -1,0 +1,8 @@
+-- Adds PartidoFavorito. Plain CREATE, nothing dropped, nothing converted.
+--
+-- No legislaturaId, unlike the tables migration 4 had to re-key. What the person marked as
+-- theirs is not a fact about a mandate.
+CREATE TABLE PartidoFavorito (
+    partidoId TEXT NOT NULL PRIMARY KEY,
+    favoritedAt INTEGER NOT NULL
+);

@@ -25,6 +25,7 @@ class AnalyticsEventTest {
         AnalyticsEvent.ComissaoOpened(sigla = "CCJC"),
         AnalyticsEvent.ApiError(endpoint = "deputados", status = 503),
         AnalyticsEvent.LegislaturaChanged(from = "57", to = "56"),
+        AnalyticsEvent.PartidoFavorited(favorited = true, source = AnalyticsEvent.Source.DETAIL),
     )
 
     private val firebaseNamePattern = Regex("^[a-z][a-z0-9_]*$")
@@ -130,6 +131,7 @@ class AnalyticsEventTest {
             AnalyticsEvent.Source.AUTORES,
             AnalyticsEvent.Source.HOME_SECTION,
             AnalyticsEvent.Source.LIST,
+            AnalyticsEvent.Source.DETAIL,
         )
 
         assertEquals(wiredSources, AnalyticsEvent.Source.entries.toSet())

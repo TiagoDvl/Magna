@@ -3,20 +3,25 @@ package com.tick.magna.features.partidos.list
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,8 +34,12 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
+import magna.composeapp.generated.resources.ic_star
+import magna.composeapp.generated.resources.ic_star_filled
+import magna.composeapp.generated.resources.partido_favorite_add
+import magna.composeapp.generated.resources.partido_favorite_remove
+import magna.composeapp.generated.resources.partidos_deputados_suffix
 import magna.composeapp.generated.resources.partidos_list_title
-import magna.composeapp.generated.resources.partidos_members_suffix
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -51,6 +60,7 @@ fun PartidosListScreen(
             viewModel.onPartidoOpened()
             onPartidoClick(partidoId)
         },
+        onToggleFavorito = viewModel::onToggleFavorito,
     )
 }
 
@@ -60,6 +70,7 @@ private fun PartidosListContent(
     state: PartidosListState,
     navigateBack: () -> Unit = {},
     onPartidoClick: (partidoId: String) -> Unit = {},
+    onToggleFavorito: (Partido) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -98,7 +109,11 @@ private fun PartidosListContent(
                 }
 
                 items(state.partidos) { partido ->
-                    PartidoCard(partido = partido, onClick = { onPartidoClick(partido.id.toString()) })
+                    PartidoCard(
+                        partido = partido,
+                        onClick = { onPartidoClick(partido.id.toString()) },
+                        onToggleFavorito = { onToggleFavorito(partido) },
+                    )
                 }
             }
         }
@@ -110,6 +125,7 @@ private fun PartidoCard(
     modifier: Modifier = Modifier,
     partido: Partido,
     onClick: () -> Unit = {},
+    onToggleFavorito: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -129,13 +145,40 @@ private fun PartidoCard(
                 .padding(dimensions.grid16),
             verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
         ) {
-            Text(
-                text = partido.sigla,
-                style = typography.headlineSmall.copy(
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = partido.sigla,
+                    style = typography.headlineSmall.copy(
+                        color = colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    )
                 )
-            )
+
+                // Here as well as on the party's own screen, so marking five parties does not
+                // mean opening five screens.
+                IconButton(
+                    modifier = Modifier.size(dimensions.grid24),
+                    onClick = onToggleFavorito,
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (partido.isFavorito) Res.drawable.ic_star_filled else Res.drawable.ic_star
+                        ),
+                        contentDescription = stringResource(
+                            if (partido.isFavorito) {
+                                Res.string.partido_favorite_remove
+                            } else {
+                                Res.string.partido_favorite_add
+                            }
+                        ),
+                        tint = if (partido.isFavorito) colorScheme.tertiary else colorScheme.outline,
+                    )
+                }
+            }
 
             Text(
                 text = partido.nome,
@@ -144,15 +187,13 @@ private fun PartidoCard(
                 )
             )
 
-            partido.totalMembros?.let { total ->
-                Text(
-                    text = "$total ${stringResource(Res.string.partidos_members_suffix)}",
-                    style = typography.labelSmall.copy(
-                        color = colorScheme.tertiary,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+            Text(
+                text = "${partido.deputados} ${stringResource(Res.string.partidos_deputados_suffix)}",
+                style = typography.labelSmall.copy(
+                    color = colorScheme.tertiary,
+                    fontWeight = FontWeight.SemiBold,
                 )
-            }
+            )
         }
     }
 }

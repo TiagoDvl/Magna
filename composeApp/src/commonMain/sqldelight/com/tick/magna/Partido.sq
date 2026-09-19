@@ -43,5 +43,27 @@ ON CONFLICT(id, legislaturaId) DO UPDATE SET
 getPartido:
 SELECT * FROM Partido WHERE legislaturaId = :legislaturaId AND id = :partidoId;
 
+-- Ordered here rather than in Kotlin, and for a reason: the two screens that show this list
+-- both did `sortedByDescending { totalMembros }` over a column the sync never fills, so every
+-- value was null, the sort changed nothing, and what was left was insertion order — which is
+-- the order the API returns, which is alphabetical. The Home carousel then took the first
+-- eight of that and showed AVANTE, CIDADANIA, DC where it meant to show the largest parties.
+--
+-- deputadoCount is counted from the Deputado table instead of read from a column, because no
+-- endpoint gives a size that works for an older term: /partidos does not return one at all,
+-- and /partidos/{id} answers 400 for any legislatura but the current one. Counting locally
+-- costs no request and works everywhere. It counts everyone who held a seat for the party
+-- during the term, suplentes included, so it runs a little above the bench of the day.
 getPartidos:
-SELECT * FROM Partido WHERE legislaturaId = :legislaturaId;
+SELECT
+    Partido.*,
+    (
+        SELECT COUNT(*) FROM Deputado
+        WHERE Deputado.legislaturaId = Partido.legislaturaId
+          AND Deputado.partido = Partido.sigla
+    ) AS deputadoCount,
+    (PartidoFavorito.partidoId IS NOT NULL) AS isFavorito
+FROM Partido
+LEFT JOIN PartidoFavorito ON PartidoFavorito.partidoId = Partido.id
+WHERE Partido.legislaturaId = :legislaturaId
+ORDER BY isFavorito DESC, deputadoCount DESC, Partido.sigla ASC;

@@ -108,6 +108,18 @@ sealed class AnalyticsEvent(
         params = mapOf(PARAM_FROM to from, PARAM_TO to to),
     )
 
+    /**
+     * Marking a party as yours, and unmarking it. [favorited] carries which of the two, so one
+     * event answers both "does anybody use this" and "do they keep it".
+     *
+     * [source] says whether it happened on the party's own screen or from the full list, which
+     * is what tells us if the star in the list was worth adding.
+     */
+    data class PartidoFavorited(val favorited: Boolean, val source: Source) : AnalyticsEvent(
+        name = "partido_favorited",
+        params = mapOf(PARAM_FAVORITED to favorited, PARAM_SOURCE to source.value),
+    )
+
     /** [status] is null when the request never got an answer, such as a timeout. */
     data class ApiError(val endpoint: String, val status: Int?) : AnalyticsEvent(
         name = "api_error",
@@ -129,6 +141,7 @@ sealed class AnalyticsEvent(
         MEMBROS("membros"),
         HOME_SECTION("home_section"),
         LIST("list"),
+        DETAIL("detail"),
     }
 
     enum class SyncStep(val value: String) {
@@ -171,6 +184,7 @@ sealed class AnalyticsEvent(
         const val PARAM_CONTENT = "content"
         const val PARAM_ENDPOINT = "endpoint"
         const val PARAM_STATUS = "status"
+        const val PARAM_FAVORITED = "favorited"
         const val PARAM_FROM = "from"
         const val PARAM_TO = "to"
 

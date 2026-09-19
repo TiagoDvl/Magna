@@ -10,6 +10,14 @@ data class Partido(
     val lider: Lider?,
     val urlLogo: String?,
     val urlWebSite: String?,
+    /**
+     * Deputados who held a seat for this party during the selected term, counted locally.
+     *
+     * Not the same number as the bench of the day, which no endpoint gives for an older term:
+     * this one includes suplentes who took a seat at some point, so it runs a little above.
+     */
+    val deputados: Int = 0,
+    val isFavorito: Boolean = false,
 )
 
 val partidosMock = listOf(

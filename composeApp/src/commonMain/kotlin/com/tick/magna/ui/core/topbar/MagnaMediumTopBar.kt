@@ -1,6 +1,7 @@
 package com.tick.magna.ui.core.topbar
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,8 +26,11 @@ fun MagnaMediumTopBar(
     leftIconClick: () -> Unit = {},
     /** Every screen uses this icon to go back; override it if one ever does not. */
     leftIconContentDescription: String = stringResource(Res.string.action_back),
+    /** Trailing controls that belong to the screen, such as a favourite toggle. */
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     MediumTopAppBar(
+        actions = actions,
         colors = TopAppBarDefaults.topAppBarColors().copy(
             containerColor = MaterialTheme.colorScheme.background,
             navigationIconContentColor = MaterialTheme.colorScheme.primary,

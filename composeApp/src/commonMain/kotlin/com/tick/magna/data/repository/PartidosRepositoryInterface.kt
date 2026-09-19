@@ -10,7 +10,12 @@ interface PartidosRepositoryInterface {
     /** One-shot, used by the first-run sync. */
     suspend fun syncPartidos(): Boolean
 
+    /** Favourites first, then by size. The ordering is the query's, not the caller's. */
     fun getPartidos(): Flow<List<Partido>>
+
+    fun observeIsFavorito(partidoId: String): Flow<Boolean>
+
+    suspend fun setFavorito(partidoId: String, favorito: Boolean)
 
     fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>>
 

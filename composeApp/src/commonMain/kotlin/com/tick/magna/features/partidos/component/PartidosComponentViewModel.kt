@@ -31,10 +31,11 @@ class PartidosComponentViewModel(
     init {
         viewModelScope.launch(dispatcher.io) {
             try {
+                // No sorting here any more. The repository answers favourites first and then
+                // by size; this used to sort by a column the sync never fills, so it changed
+                // nothing and the carousel showed the first eight parties alphabetically.
                 partidosRepository.getPartidos().collect { partidos ->
-                    _state.value = partidos
-                        .sortedByDescending { it.totalMembros }
-                        .take(PREVIEW_COUNT)
+                    _state.value = partidos.take(PREVIEW_COUNT)
                 }
             } catch (e: Exception) {
                 logger.e("state: failed to load partidos for component", e, TAG)

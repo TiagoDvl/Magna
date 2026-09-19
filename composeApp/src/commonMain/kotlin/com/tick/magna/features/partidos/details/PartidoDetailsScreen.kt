@@ -22,6 +22,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -51,6 +53,8 @@ import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
+import magna.composeapp.generated.resources.ic_star
+import magna.composeapp.generated.resources.ic_star_filled
 import magna.composeapp.generated.resources.partido_details_age
 import magna.composeapp.generated.resources.partido_details_birth_state
 import magna.composeapp.generated.resources.partido_details_facebook
@@ -63,6 +67,8 @@ import magna.composeapp.generated.resources.partido_details_members
 import magna.composeapp.generated.resources.partido_details_no_members
 import magna.composeapp.generated.resources.partido_details_situacao
 import magna.composeapp.generated.resources.partido_details_website
+import magna.composeapp.generated.resources.partido_favorite_add
+import magna.composeapp.generated.resources.partido_favorite_remove
 import magna.composeapp.generated.resources.partidos_members_suffix
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -141,6 +147,23 @@ private fun PartidoDetailsContent(
                 titleText = topBarTitle,
                 leftIcon = painterResource(Res.drawable.ic_arrow_back),
                 leftIconClick = onBack,
+                actions = {
+                    IconButton(onClick = { onAction(PartidoDetailsAction.ToggleFavorito) }) {
+                        Icon(
+                            painter = painterResource(
+                                if (state.isFavorito) Res.drawable.ic_star_filled else Res.drawable.ic_star
+                            ),
+                            contentDescription = stringResource(
+                                if (state.isFavorito) {
+                                    Res.string.partido_favorite_remove
+                                } else {
+                                    Res.string.partido_favorite_add
+                                }
+                            ),
+                            tint = if (state.isFavorito) colorScheme.tertiary else colorScheme.primary,
+                        )
+                    }
+                },
             )
         }
     ) { paddingValues ->

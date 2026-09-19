@@ -7,6 +7,8 @@ data class PartidoDetailsState(
     val headerState: PartidoHeaderState = PartidoHeaderState.Loading,
     val membersState: PartidoMembersState = PartidoMembersState.Loading,
     val selectedChart: PartidoChartType = PartidoChartType.GENDER,
+    /** Read from the database, so it is already right when the screen opens. */
+    val isFavorito: Boolean = false,
 )
 
 sealed interface PartidoHeaderState {
@@ -37,4 +39,5 @@ enum class PartidoChartType { GENDER, AGE, BIRTH_STATE }
 
 sealed interface PartidoDetailsAction {
     data class SelectChart(val type: PartidoChartType) : PartidoDetailsAction
+    data object ToggleFavorito : PartidoDetailsAction
 }

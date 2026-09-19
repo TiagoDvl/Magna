@@ -1,6 +1,7 @@
 package com.tick.magna.data.repository
 
 import com.tick.magna.DeputadoBio
+import com.tick.magna.GetPartidos
 import com.tick.magna.User
 import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.logger.AppLoggerInterface
@@ -251,13 +252,19 @@ class PartidoMembrosTest {
     }
 
     private class UnusedPartidoDao : PartidoDaoInterface {
-        override suspend fun getPartidos(legislaturaId: String): Flow<List<PartidoEntity>?> =
+        override suspend fun getPartidos(legislaturaId: String): Flow<List<GetPartidos>?> =
             throw UnsupportedOperationException("not part of this test")
 
         override suspend fun getPartido(legislaturaId: String, partidoId: String): Flow<PartidoEntity> =
             throw UnsupportedOperationException("not part of this test")
 
         override suspend fun insertPartidos(deputadosDetails: List<PartidoEntity>) =
+            throw UnsupportedOperationException("not part of this test")
+
+        override fun observeIsFavorito(partidoId: String): Flow<Boolean> =
+            throw UnsupportedOperationException("not part of this test")
+
+        override suspend fun setFavorito(partidoId: String, favorito: Boolean) =
             throw UnsupportedOperationException("not part of this test")
     }
 

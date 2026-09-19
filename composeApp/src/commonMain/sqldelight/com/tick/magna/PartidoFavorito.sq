@@ -1,0 +1,22 @@
+-- Parties the person marked as theirs.
+--
+-- No legislaturaId, for the same reason DeputadoLastSeen and DeputadoBio have none: this is
+-- something the person said, not something the Camara returned. "The PT is my party" does not
+-- stop being true because you went to look at the 56th legislature.
+--
+-- favoritedAt is kept so the order among favourites can be the order they were chosen, if that
+-- ever matters. Today they are ordered by size like everything else.
+CREATE TABLE PartidoFavorito (
+    partidoId TEXT NOT NULL PRIMARY KEY,
+    favoritedAt INTEGER NOT NULL
+);
+
+favoritePartido:
+INSERT OR REPLACE INTO PartidoFavorito(partidoId, favoritedAt)
+VALUES (?, ?);
+
+unfavoritePartido:
+DELETE FROM PartidoFavorito WHERE partidoId = :partidoId;
+
+isPartidoFavorito:
+SELECT EXISTS(SELECT 1 FROM PartidoFavorito WHERE partidoId = :partidoId);
