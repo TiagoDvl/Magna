@@ -34,7 +34,6 @@ fun DeputadoDto.toLocal(legislaturaId: String): DeputadoEntity {
         id = id,
         legislaturaId = legislaturaId,
         partido = siglaPartido,
-        last_seen = 0,
         name = nome,
         uf = siglaUf,
         profile_picture = urlFoto,

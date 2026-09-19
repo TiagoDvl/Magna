@@ -170,13 +170,49 @@ Vale como lembrete do item 0: um 200 não quer dizer que o parâmetro faz o que 
 
 ## 4. O que o mapa revelou como trabalho
 
+### 4.0 [ALTO] `legislaturaId` era coluna e não chave — CORRIGIDO
+
+Não é pegadinha da API; é do banco, mas é o que a medição da API escancarou, então fica registrado aqui.
+
+`Deputado`, `Partido` e `DeputadoDetails` tinham `PRIMARY KEY` só no id, com `legislaturaId` como coluna comum. Como o upsert sobrescrevia a coluna, cada reeleito era **uma linha** que pertencia à legislatura sincronizada por último.
+
+Medido em 2026-09-19 percorrendo `/deputados` página a página:
+
+| | 57 | 56 | em comum |
+|---|---|---|---|
+| deputados | 648 | 613 | **332** |
+
+Trocar 57 → 56 tirava 332 pessoas da 57. Voltar encontrava 316 e não re-sincronizava, porque a lista não estava vazia — estava pela metade, que é o estado que nada no app sabia distinguir de "já baixei tudo". Os 27 partidos existem em toda legislatura, mesmo defeito.
+
+Corrigido na migração `4.sqm`, que recria as três com chave `(id, legislaturaId)` e move `last_seen` para `DeputadoLastSeen`.
+
 ### 4.1 [ALTO] Membros do partido são truncados em 15
 
 `PartidosApi.getPartidoMembros` (`PartidosApi.kt:24`) não manda `itens`, e o padrão do endpoint é 15. O partido 36844 na legislatura 57 tem **6 páginas**; a tela mostra a primeira e não indica que há mais.
 
-Isso não é problema futuro: **está em produção hoje, na legislatura atual.** Mandar `itens=100` como `getPartidos` já faz resolve a maioria dos casos; o correto é paginar.
+Isso não é problema futuro: **está em produção hoje, na legislatura atual.**
 
-Efeito colateral bom: o leque de 15 `deputados/{id}` da tela de detalhe existe porque só 15 membros chegam. Resolver a paginação sem resolver o leque troca 17 requisições por ~90.
+Medido em 2026-09-19, com `itens=100` em todos os 27 partidos da 57:
+
+| | membros na 57 |
+|---|---|
+| PL | **145** (2 páginas) |
+| UNIÃO | **mais de 100** (2 páginas) |
+| REPUBLICANOS | 84 |
+| PSD | 81 |
+| PT | 80 |
+
+Dois pontos que a medição fechou:
+
+- **`itens` tem teto de 100.** Pedir `itens=200` devolve 100 e um `rel=next`. Então `itens=100` não é atalho suficiente: paginar é obrigatório.
+- **Os números passam do total de cadeiras** porque o endpoint devolve todo mundo que passou pelo partido durante a legislatura, não a bancada de hoje.
+
+O leque de `deputados/{id}` continua sendo o problema caro: os campos que a tela de partido usa nos gráficos — `siglaSexo`, `dataNascimento`, `ufNascimento`, `municipioNascimento` — **não vêm na listagem de membros**, só no detalhe individual. Paginar sem resolver isso troca 16 requisições por 146 no PL.
+
+Dois caminhos, e o segundo é novo:
+
+1. **Persistir a biografia.** Os quatro campos não mudam e não dependem de legislatura, então cabem numa tabela própria preenchida sob demanda. Primeira abertura do PL custa 145 requisições, as seguintes custam zero, e o custo é pago uma vez por pessoa em vez de uma vez por tela.
+2. **`arquivos/deputados/csv/deputados.csv`** (ver seção 6): **1,3 MB, 7889 linhas, todos os deputados da história**, com exatamente esses quatro campos. Um download substitui o leque inteiro, em qualquer legislatura. Cai nas regras de download do bloco 10 do plano — pedir permissão avisando o peso, marcar validade —, então não é decisão do item 4.1.
 
 ### 4.2 [ALTO] A segunda página de deputados some em legislaturas antigas — CORRIGIDO
 
@@ -318,6 +354,23 @@ Três propriedades que mudam como usá-los:
 - **`Range` é aceito mas inútil**: o arquivo não está em ordem cronológica, então não dá para baixar só o que é novo.
 
 Usar CSV e não JSON: mesma informação, quase metade do peso.
+
+### 6.1 `deputados.csv` — pequeno, sem ano, e cobre um buraco do item 4.1
+
+Nem todo arquivo é anual. `arquivos/deputados/csv/deputados.csv` não tem `-{ano}` no nome e é a lista completa: **1,3 MB, 7889 linhas, todos os deputados da história da Câmara.** Colunas, verificadas em 2026-09-19:
+
+```
+uri;nome;idLegislaturaInicial;idLegislaturaFinal;nomeCivil;cpf;siglaSexo;
+urlRedeSocial;urlWebsite;dataNascimento;dataFalecimento;ufNascimento;municipioNascimento
+```
+
+Não há `id` em coluna própria — o id sai do fim do `uri`.
+
+Por que importa: `siglaSexo`, `dataNascimento`, `ufNascimento` e `municipioNascimento` são exatamente os quatro campos que a tela de partido busca hoje com uma requisição por membro, e que **não existem em nenhuma listagem da API**. Um download de 1,3 MB substitui até 145 requisições por partido, em toda legislatura, e o conteúdo praticamente não muda: onde e quando alguém nasceu é fato fixo.
+
+O JSON equivalente tem 3,6 MB — 2,8× o CSV, a maior diferença medida entre os dois formatos aqui.
+
+Isso é bem menor que os arquivos de votação, mas continua sendo download, então segue as mesmas regras de produto: pedir permissão, avisar o peso, marcar validade.
 
 ---
 

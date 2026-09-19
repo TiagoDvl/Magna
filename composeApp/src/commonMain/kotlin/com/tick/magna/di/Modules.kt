@@ -5,6 +5,7 @@ package com.tick.magna.di
 import androidx.lifecycle.SavedStateHandle
 import app.cash.sqldelight.db.SqlDriver
 import com.tick.magna.DeputadoDetailsQueries
+import com.tick.magna.DeputadoLastSeenQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
@@ -90,6 +91,7 @@ val databaseModule = module {
 
     single<UserQueries> { get<MagnaDatabase>().userQueries }
     single<DeputadoQueries> { get<MagnaDatabase>().deputadoQueries }
+    single<DeputadoLastSeenQueries> { get<MagnaDatabase>().deputadoLastSeenQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
@@ -98,7 +100,7 @@ val databaseModule = module {
     single<LegislaturaQueries> { get<MagnaDatabase>().legislaturaQueries }
 
     single<UserDaoInterface> { UserDao(get(), get()) }
-    single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get()) }
+    single<DeputadoDaoInterface> { DeputadoDao(get(), get(), get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get()) }

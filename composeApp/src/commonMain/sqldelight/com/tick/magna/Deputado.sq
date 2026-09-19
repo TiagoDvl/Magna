@@ -1,12 +1,19 @@
+-- Keyed by deputado and legislatura together, not by deputado alone.
+--
+-- Half the Camara is re-elected: of the 648 deputados of the 57th, 332 also served in the
+-- 56th. With id as the sole primary key those 332 were one row, and the upsert moved that row
+-- to whichever term was synced last — so switching to the 56th took them out of the 57th, and
+-- coming back found a term with half its people and no way to notice. The legislaturaId column
+-- was already here; it just was not part of the key.
 CREATE TABLE Deputado (
-    id TEXT NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL,
     legislaturaId TEXT NOT NULL,
     partido TEXT,
-    last_seen INTEGER NOT NULL DEFAULT 0,
     name TEXT,
     uf TEXT,
     profile_picture TEXT,
     email TEXT,
+    PRIMARY KEY (id, legislaturaId),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
 
@@ -15,24 +22,27 @@ INSERT INTO Deputado(
     id,
     legislaturaId,
     partido,
-    last_seen,
     name,
     uf,
     profile_picture,
     email
 )
 VALUES ?
-ON CONFLICT(id) DO UPDATE SET
-    legislaturaId = COALESCE(excluded.legislaturaId, legislaturaId),
+ON CONFLICT(id, legislaturaId) DO UPDATE SET
     partido = COALESCE(excluded.partido, partido),
     name = COALESCE(excluded.name, name),
     uf = COALESCE(excluded.uf, uf),
     profile_picture = COALESCE(excluded.profile_picture, profile_picture),
     email = COALESCE(excluded.email, email);
 
-
+-- Scoped to a term like every other read here. Without it a deputado who served twice would
+-- come back twice, once per row.
 getDeputadosOrderedByLastSeen:
-SELECT * FROM Deputado WHERE last_seen > 0 ORDER BY last_seen DESC;
+SELECT Deputado.*
+FROM Deputado
+JOIN DeputadoLastSeen ON DeputadoLastSeen.deputadoId = Deputado.id
+WHERE Deputado.legislaturaId = :legislaturaId
+ORDER BY DeputadoLastSeen.lastSeen DESC;
 
 getDeputados:
 SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId;
@@ -41,10 +51,7 @@ getDeputadosByQuery:
 SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId AND name LIKE :query;
 
 getDeputadosByIds:
-SELECT * FROM Deputado WHERE id IN ?;
+SELECT * FROM Deputado WHERE legislaturaId = :legislaturaId AND id IN ?;
 
 getDeputado:
 SELECT * FROM Deputado WHERE id = :deputadoId AND legislaturaId = :legislaturaId;
-
-updateLastSeen:
-UPDATE Deputado SET last_seen = ? WHERE id = ?;

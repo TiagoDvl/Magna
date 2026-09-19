@@ -1,5 +1,8 @@
+-- Keyed by partido and legislatura together, for the same reason Deputado is: the same
+-- twenty-seven parties exist across terms, so with id alone each one was a single row and
+-- INSERT OR REPLACE handed it to whichever term synced last.
 CREATE TABLE Partido (
-    id TEXT NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL,
     legislaturaId TEXT NOT NULL,
     liderDeputadoId TEXT,
     sigla TEXT NOT NULL,
@@ -9,13 +12,13 @@ CREATE TABLE Partido (
     totalMembros TEXT,
     logo TEXT,
     website TEXT,
-    FOREIGN KEY(liderDeputadoId) REFERENCES Deputado(id),
+    PRIMARY KEY (id, legislaturaId),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
 
 
 insertPartido:
-INSERT OR REPLACE INTO Partido (
+INSERT INTO Partido (
     id,
     legislaturaId,
     liderDeputadoId,
@@ -26,7 +29,16 @@ INSERT OR REPLACE INTO Partido (
     totalMembros,
     logo,
     website
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id, legislaturaId) DO UPDATE SET
+    liderDeputadoId = COALESCE(excluded.liderDeputadoId, liderDeputadoId),
+    sigla = excluded.sigla,
+    nome = excluded.nome,
+    situacao = COALESCE(excluded.situacao, situacao),
+    totalPosse = COALESCE(excluded.totalPosse, totalPosse),
+    totalMembros = COALESCE(excluded.totalMembros, totalMembros),
+    logo = COALESCE(excluded.logo, logo),
+    website = COALESCE(excluded.website, website);
 
 getPartido:
 SELECT * FROM Partido WHERE legislaturaId = :legislaturaId AND id = :partidoId;

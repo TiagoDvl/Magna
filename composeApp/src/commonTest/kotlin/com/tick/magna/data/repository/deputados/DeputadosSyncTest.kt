@@ -136,9 +136,9 @@ class DeputadosSyncTest {
 
         override fun getDeputados(legislaturaId: String): Flow<List<Deputado>> = flowOf(stored.toList())
         override fun getDeputados(legislaturaId: String, query: String): Flow<List<Deputado>> = flowOf(emptyList())
-        override fun getDeputados(deputadosIds: List<String>): List<Deputado> = emptyList()
+        override fun getDeputados(legislaturaId: String, deputadosIds: List<String>): List<Deputado> = emptyList()
         override fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado> = flowOf()
-        override fun getRecentDeputados(): Flow<List<Deputado>> = flowOf(emptyList())
+        override fun getRecentDeputados(legislaturaId: String): Flow<List<Deputado>> = flowOf(emptyList())
         override suspend fun updateLastSeen(deputadoId: String) = Unit
     }
 

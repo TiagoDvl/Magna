@@ -9,11 +9,12 @@ interface DeputadoDaoInterface {
 
     fun getDeputados(legislaturaId: String, query:String): Flow<List<Deputado>>
 
-    fun getDeputados(deputadosIds: List<String>): List<Deputado>
+    fun getDeputados(legislaturaId: String, deputadosIds: List<String>): List<Deputado>
 
     fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado>
 
-    fun getRecentDeputados(): Flow<List<Deputado>>
+    /** Scoped like the rest: somebody who served twice has one row per term. */
+    fun getRecentDeputados(legislaturaId: String): Flow<List<Deputado>>
 
     suspend fun insertDeputados(deputados: List<Deputado>)
 

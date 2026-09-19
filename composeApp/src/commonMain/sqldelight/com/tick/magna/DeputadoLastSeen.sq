@@ -1,0 +1,15 @@
+-- Which deputados this person has opened, and when.
+--
+-- The only table here that holds something the user produced rather than something the Camara
+-- returned. It lives apart from Deputado for two reasons: it must survive a rebuild of that
+-- cache, and "I looked at this person" is not a fact about a legislature. Somebody who served
+-- in two terms was still opened once.
+CREATE TABLE DeputadoLastSeen (
+    deputadoId TEXT NOT NULL PRIMARY KEY,
+    lastSeen INTEGER NOT NULL
+);
+
+upsertLastSeen:
+INSERT INTO DeputadoLastSeen(deputadoId, lastSeen)
+VALUES (?, ?)
+ON CONFLICT(deputadoId) DO UPDATE SET lastSeen = excluded.lastSeen;

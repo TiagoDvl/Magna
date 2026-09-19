@@ -601,15 +601,21 @@ O que **não** vale fazer: filtrar a lista por "faixa confiável". A API entrega
 
 Este é o ponto que decide se o bloco 8 funciona ou só parece funcionar. Das tabelas do banco:
 
-| Tabela | Tem `legislaturaId` | Ao trocar de legislatura |
-|---|---|---|
-| `Deputado` | sim | re-consulta certo |
-| `DeputadoDetails` | sim | re-consulta certo |
-| `DeputadoExpense` | sim | re-consulta certo |
-| `Partido` | sim | re-consulta certo |
-| `Proposicao` | **não** | **mostra o dado da legislatura anterior** |
-| `Orgao` | **não** | idem |
-| `SiglaTipo` | não | tudo bem — é tabela de referência, não muda |
+| Tabela | Tem `legislaturaId` | Está na chave | Ao trocar de legislatura |
+|---|---|---|---|
+| `Deputado` | sim | **não — CORRIGIDO na `4.sqm`** | **a linha migrava de legislatura** |
+| `DeputadoDetails` | sim | **não — CORRIGIDO na `4.sqm`** | idem |
+| `DeputadoExpense` | sim | sim | re-consulta certo |
+| `Partido` | sim | **não — CORRIGIDO na `4.sqm`** | **a linha migrava de legislatura** |
+| `Proposicao` | **não** | — | **mostra o dado da legislatura anterior** |
+| `Orgao` | **não** | — | idem |
+| `SiglaTipo` | não | — | tudo bem — é tabela de referência, não muda |
+
+> **A coluna "Está na chave" não existia nesta tabela, e a falta dela escondeu um bug por todo o bloco 8.** A versão original dizia só "tem `legislaturaId`: sim" para `Deputado`, `DeputadoDetails` e `Partido`, e concluía "re-consulta certo". Ter a coluna não é ter a chave. Com `id` como `PRIMARY KEY` sozinho, um deputado reeleito era **uma linha**, e o upsert a entregava para a legislatura sincronizada por último.
+>
+> Medido na API em 2026-09-19: a legislatura 57 tem 648 deputados, a 56 tem 613, e **332 são os mesmos**. Trocar 57 → 56 tirava 332 pessoas da 57; voltar encontrava 316. E o sync não corrigia, porque a lista não estava vazia — ela só estava pela metade, que é o estado que nenhuma verificação deste app sabia distinguir de "está tudo baixado". Os 27 partidos existem em toda legislatura, então o `Partido` tinha o mesmo defeito com `INSERT OR REPLACE`.
+>
+> A `4.sqm` recria as três com chave `(id, legislaturaId)`. `last_seen` sai de `Deputado` para uma tabela própria, `DeputadoLastSeen`: é o único dado do app que a pessoa produziu, e ter aberto alguém não é fato de uma legislatura.
 
 E não é só o banco: `ProposicoesApi.getProposicoes` (`ProposicoesApi.kt:19`) manda só `ordem=desc` e um `siglaTipo` opcional. As "proposições recentes" da Home são as mais recentes da Casa, ponto — trocar para a 55 continuaria mostrando proposição de 2026.
 
@@ -641,6 +647,8 @@ Os três casos de rede, como ficaram:
 | sync parcial | banner nomeia as seções que falharam; o resto da tela continua funcionando |
 
 **Verificado em aparelho.** Troca com rede, volta para um recorte já baixado e troca em modo avião com retry depois — os três se comportam como a tabela descreve, e o diálogo modal ficou restrito ao primeiro run.
+
+Uma ressalva que só apareceu depois: o caso "recorte já baixado" funcionava no sentido de não ir à rede, mas o conteúdo voltava incompleto, porque `Deputado` e `Partido` não tinham `legislaturaId` na chave (ver o quadro do item 11.3). O teste manual não tinha como mostrar isso — ninguém conta 648 cards. Corrigido na `4.sqm`; a partir dela a frase "voltar é instantâneo porque o dado ficou lá" passou a ser verdade.
 
 Não implementado de propósito: TTL por legislatura (segue sendo ganho, não requisito) e estado vazio por seção, que é o bloco 11.
 
@@ -1181,7 +1189,17 @@ Isso responde na prática o que o item 16.3 não conseguia responder: a ausênci
 
 Verificado junto, na mesma instalação: trocar de legislatura filtra proposições pela janela do mandato e remove a comissão criada depois do fim dele.
 
-### 16.5 O que continua sem verificação
+### 16.5 As migrações passaram a ser verificadas por teste, sem aparelho
+
+O `verifyMigrations` do plugin continua desligado no Windows pelo motivo do item 16.3 — ele abre a conexão SQLite dentro de um worker forkado cujo tmpdir vem errado. Mas isso é um problema do *plugin*, não do SQLite: um teste JVM comum abre `JdbcSqliteDriver` no próprio processo de teste e funciona.
+
+Daí `Migration4Test`, em `src/jvmTest`: monta o schema da versão 4 à mão, roda `MagnaDatabase.Schema.migrate(driver, 4, 5)` e afirma o resultado. É a primeira migração deste projeto verificada sem aparelho, e o padrão vale para as próximas.
+
+O schema antigo escrito à mão dentro do teste é uma cópia congelada do passado — é o papel que os arquivos `.db` teriam. Ele **não** deve acompanhar os `.sq`; se alguém o "atualizar" para bater com o schema atual, o teste passa a não testar nada.
+
+Junto veio `TermScopedTablesTest`, que exercita as tabelas contra SQLite real em vez de fakes. O bug do item 11.3 estava no schema, e nenhum fake o teria reproduzido.
+
+### 16.6 O que continua sem verificação
 
 Os alvos iOS e o build de release com R8. Nenhum dos dois foi compilado ainda.
 

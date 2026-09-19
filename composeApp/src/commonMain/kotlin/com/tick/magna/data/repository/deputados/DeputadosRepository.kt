@@ -45,9 +45,18 @@ internal class DeputadosRepository(
     private val loggerInterface: AppLoggerInterface,
 ) : DeputadosRepositoryInterface {
 
+    /**
+     * Scoped to the chosen term, like every other read here. Having opened somebody is not a
+     * fact about a legislature — it is stored apart for exactly that reason — but the card on
+     * the Home shows their party and state, and those belong to the mandate being looked at.
+     */
     override fun getRecentDeputados(): Flow<List<Deputado>> {
-        return deputadoDao.getRecentDeputados().map { recentDeputados ->
-            recentDeputados.mapNotNull { it.toDomain() }
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest flowOf(emptyList())
+
+            deputadoDao.getRecentDeputados(legislaturaId).map { recentDeputados ->
+                recentDeputados.mapNotNull { it.toDomain() }
+            }
         }
     }
 

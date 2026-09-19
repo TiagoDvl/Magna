@@ -1,0 +1,71 @@
+-- Makes legislaturaId part of the key in Deputado, Partido and DeputadoDetails, where until
+-- now it was only a column.
+--
+-- The difference is not cosmetic. Half the Camara is re-elected: of the 648 deputados of the
+-- 57th legislature, 332 also served in the 56th. Keyed by id alone they were a single row, and
+-- the upsert moved that row to whichever term was synced last. Switching to the 56th therefore
+-- took 332 people out of the 57th, and coming back found a term with half its deputados — and
+-- nothing that could tell, because the list was not empty, so the sync reported it as already
+-- downloaded. The same held for the twenty-seven parties, which exist in every term.
+--
+-- The three tables are rebuilt rather than converted. They are caches of the Camara endpoints
+-- and the rows they hold are attributed to whatever term happened to write them last, which is
+-- exactly the information that cannot be trusted. Starting over is also what makes the sync
+-- run again and fill each term correctly, which converting the rows would not do.
+--
+-- What is not thrown away is last_seen. It is the only thing in the database that the person
+-- produced rather than the Camara, so it is copied out first, into a table that no longer
+-- pretends that having opened someone belongs to a legislature.
+CREATE TABLE DeputadoLastSeen (
+    deputadoId TEXT NOT NULL PRIMARY KEY,
+    lastSeen INTEGER NOT NULL
+);
+
+INSERT INTO DeputadoLastSeen(deputadoId, lastSeen)
+SELECT id, last_seen FROM Deputado WHERE last_seen > 0;
+
+DROP TABLE Deputado;
+
+CREATE TABLE Deputado (
+    id TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    partido TEXT,
+    name TEXT,
+    uf TEXT,
+    profile_picture TEXT,
+    email TEXT,
+    PRIMARY KEY (id, legislaturaId),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);
+
+DROP TABLE Partido;
+
+CREATE TABLE Partido (
+    id TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    liderDeputadoId TEXT,
+    sigla TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    situacao TEXT,
+    totalPosse TEXT,
+    totalMembros TEXT,
+    logo TEXT,
+    website TEXT,
+    PRIMARY KEY (id, legislaturaId),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);
+
+DROP TABLE DeputadoDetails;
+
+CREATE TABLE DeputadoDetails(
+    deputadoId TEXT NOT NULL,
+    legislaturaId TEXT NOT NULL,
+    gabineteBuilding TEXT,
+    gabineteRoom TEXT,
+    gabineteTelephone TEXT,
+    gabineteEmail TEXT,
+    urlWebsite TEXT,
+    socials TEXT,
+    PRIMARY KEY (deputadoId, legislaturaId),
+    FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+);

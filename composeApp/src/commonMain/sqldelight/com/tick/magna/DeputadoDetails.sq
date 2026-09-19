@@ -1,5 +1,8 @@
+-- Keyed by deputado and legislatura together. The office, the phone and the website belong to
+-- a mandate, not to a person, and with deputadoId alone the row followed the last term synced
+-- exactly the way the Deputado row did.
 CREATE TABLE DeputadoDetails(
-    deputadoId TEXT NOT NULL PRIMARY KEY,
+    deputadoId TEXT NOT NULL,
     legislaturaId TEXT NOT NULL,
     gabineteBuilding TEXT,
     gabineteRoom TEXT,
@@ -7,7 +10,7 @@ CREATE TABLE DeputadoDetails(
     gabineteEmail TEXT,
     urlWebsite TEXT,
     socials TEXT,
-    FOREIGN KEY(deputadoId) REFERENCES Deputado(id),
+    PRIMARY KEY (deputadoId, legislaturaId),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
 

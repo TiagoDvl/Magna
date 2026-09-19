@@ -6,6 +6,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import com.tick.magna.Deputado
+import com.tick.magna.DeputadoLastSeenQueries
 import com.tick.magna.DeputadoQueries
 import com.tick.magna.MagnaDatabase
 import com.tick.magna.data.dispatcher.DispatcherInterface
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 class DeputadoDao(
     private val database: MagnaDatabase,
     private val deputadoQueries: DeputadoQueries,
+    private val deputadoLastSeenQueries: DeputadoLastSeenQueries,
     private val dispatcherInterface: DispatcherInterface
 ): DeputadoDaoInterface {
 
@@ -33,9 +35,9 @@ class DeputadoDao(
             .mapToList(dispatcherInterface.io)
     }
 
-    override fun getDeputados(deputadosIds: List<String>): List<Deputado> {
+    override fun getDeputados(legislaturaId: String, deputadosIds: List<String>): List<Deputado> {
         return deputadoQueries
-            .getDeputadosByIds(deputadosIds)
+            .getDeputadosByIds(legislaturaId, deputadosIds)
             .executeAsList()
     }
 
@@ -46,8 +48,8 @@ class DeputadoDao(
             .mapToOne(dispatcherInterface.io)
     }
 
-    override fun getRecentDeputados(): Flow<List<Deputado>> {
-        return deputadoQueries.getDeputadosOrderedByLastSeen()
+    override fun getRecentDeputados(legislaturaId: String): Flow<List<Deputado>> {
+        return deputadoQueries.getDeputadosOrderedByLastSeen(legislaturaId)
             .asFlow()
             .mapToList(dispatcherInterface.io)
     }
@@ -61,9 +63,11 @@ class DeputadoDao(
     }
 
     override suspend fun updateLastSeen(deputadoId: String) {
-        deputadoQueries.updateLastSeen(
-            id = deputadoId,
-            last_seen = Clock.System.now().toEpochMilliseconds()
+        // Written to its own table so it survives a rebuild of the deputado cache, which is
+        // what the term-scoping migration did to it.
+        deputadoLastSeenQueries.upsertLastSeen(
+            deputadoId = deputadoId,
+            lastSeen = Clock.System.now().toEpochMilliseconds()
         )
     }
 }

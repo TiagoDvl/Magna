@@ -86,7 +86,7 @@ internal class ProposicoesRepository(
                 proposicoes.map { proposicao ->
                     val autores = proposicao.autores
                         ?.split(AUTHOR_SEPARATOR)
-                        ?.let { ids -> deputadosDao.getDeputados(ids).mapNotNull { it.toDomain() } }
+                        ?.let { ids -> deputadosDao.getDeputados(legislaturaId, ids).mapNotNull { it.toDomain() } }
                         .orEmpty()
 
                     proposicao.toDomain(autores)
@@ -118,7 +118,12 @@ internal class ProposicoesRepository(
             .sortedBy { it.ordemAssinatura }
             .map { autor -> autor.uri.substringAfterLast('/') }
 
-        deputadosDao.getDeputados(deputadoIds).mapNotNull { it.toDomain() }
+        // An author who is not in the selected term is not in the table under it, so the list
+        // can come back shorter than the signatures. That is the honest answer: the card shows
+        // the party and state of a mandate, and there is none here to show.
+        val legislaturaId = userDao.getUser().first()?.legislaturaId.orEmpty()
+
+        deputadosDao.getDeputados(legislaturaId, deputadoIds).mapNotNull { it.toDomain() }
     }
 
     /**
