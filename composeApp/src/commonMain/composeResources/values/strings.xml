@@ -76,6 +76,8 @@
 
     <string name="comissoes_permanentes_section_title">Comissões Permanentes</string>
     <string name="comissoes_permanentes_votacoes_title">Votações recentes</string>
+    <string name="comissao_votacoes_empty">Nenhuma votação registrada</string>
+    <string name="comissao_votacoes_empty_description">A Câmara não publicou votações desta comissão. Isso acontece: nem toda comissão vota com frequência.</string>
 
     <string name="partidos_section_title">Partidos</string>
     <string name="partidos_see_all">Ver todos</string>

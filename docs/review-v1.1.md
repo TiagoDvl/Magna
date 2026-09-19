@@ -1030,6 +1030,8 @@ O bloco 4 unificou `Resource<T>` na camada de dados, mas a **aparência** dos tr
 
 Faltando de propósito: **não existe um componente de estado vazio.** O bloco 8 torna isso obrigatório — trocar de legislatura vai produzir listas legitimamente vazias, e o item 11.4 depende de "vazio" e "sincronizando" serem visualmente distintos.
 
+> **Já existe — **, criado junto da correção do item 4.3.1 do mapa, que era o mesmo defeito com outra cara: a tela de comissão decidia entre carregar e mostrar com , então comissão sem votação girava para sempre. Título obrigatório e descrição opcional. O bloco 11 revisa a aparência dele como revisa o resto, mas o componente não precisa ser inventado.
+
 ### 14.10 Como fechar o bloco — e como não perder o sistema depois
 
 O risco deste bloco é virar refactor infinito. Duas amarras:

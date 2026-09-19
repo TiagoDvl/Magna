@@ -279,11 +279,20 @@ A conclusão não é "mostrar as 30". É que **o critério pode ser dado em vez 
 
 (Contagem de toda a série disponível, não só da legislatura 57 — é o que explica a distância da CCJC.)
 
-### 4.3.1 [ALTO] Comissão sem votação carrega para sempre
+### 4.3.1 [ALTO] Comissão sem votação carrega para sempre — CORRIGIDO
 
-`ComissaoPermanenteDetailScreen.kt:73` usa `if (state.votacoes.isEmpty())` para decidir mostrar `LoadingComponent`. Não existe estado de lista vazia: uma comissão sem votação nenhuma fica girando indefinidamente.
+`ComissaoPermanenteDetailScreen.kt:73` usava `if (state.votacoes.isEmpty())` para decidir mostrar `LoadingComponent`. Não existia estado de lista vazia: uma comissão sem votação nenhuma ficava girando indefinidamente.
 
-Hoje isso não aparece porque as seis fixas todas têm votação. **Qualquer mexida na curadoria expõe o bug na hora** — CASP tem zero. É o mesmo erro do item 5.1 do plano, e o componente de estado vazio que o bloco 9 vai criar é o que resolve.
+**Eram três caminhos para o mesmo spinner eterno, não um.** Além da lista vazia:
+
+- **falha de rede**: o ViewModel gravava `isError = true` e **nenhum ramo da tela lia esse campo**;
+- **órgão não encontrado**: o `init` fazia `return@launch` sem tocar no estado. É alcançável de verdade — a lista de comissões é filtrada por legislatura desde o bloco 8, então uma comissão criada depois do fim do mandato selecionado não está nela.
+
+Corrigido com `VotacoesState` (`Loading` / `Empty` / `Error` / `Content`), no formato que o `CLAUDE.md` define para estado assíncrono, montado pela função pura `votacoesStateFor(Result<List<Votacao>>)`. `Content` carrega os próprios totais de aprovadas e rejeitadas, que antes eram calculados ao lado do ramo — num lugar onde lista vazia nunca chegava.
+
+Nasceu daí o **`EmptyComponent`**, que o app não tinha. A ausência dele é o que empurrava telas para o `if (lista.vazia) carregando`, e o plano já previa que o bloco 9 precisaria dele (seção 14 do plano).
+
+Continua valendo o aviso original: **qualquer mexida na curadoria do item 4.3 dependia disto** — CASP tem zero votações.
 
 ### 4.4 [MÉDIO] 31 requisições para 15 proposições
 

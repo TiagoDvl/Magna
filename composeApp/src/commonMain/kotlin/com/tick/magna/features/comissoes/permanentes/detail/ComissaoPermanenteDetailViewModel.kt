@@ -42,7 +42,11 @@ class ComissaoPermanenteDetailViewModel(
             val orgao = comissoesPermanentes.find { it.id == args.comissaoPermanenteId }
 
             if (orgao == null) {
+                // Reachable: the list is scoped by term, so a committee created after the
+                // selected one ended is not in it. Returning without touching the state left
+                // the screen spinning on nothing.
                 logger.w("init: orgao not found for id=${args.comissaoPermanenteId}", TAG)
+                _state.update { it.copy(votacoesState = VotacoesState.Error) }
                 return@launch
             }
 
@@ -50,7 +54,8 @@ class ComissaoPermanenteDetailViewModel(
             _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
             analytics.track(AnalyticsEvent.ComissaoOpened(sigla = orgao.sigla.orEmpty()))
 
-            orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
+            val result = orgaosRepository.getComissaoPermanenteVotacoes(orgao.id)
+            result
                 .onSuccess { votacoes ->
                     logger.d("init: ${votacoes.size} votacoes loaded for orgao=${orgao.nomeResumido}", TAG)
                     if (votacoes.isEmpty()) {
@@ -58,18 +63,12 @@ class ComissaoPermanenteDetailViewModel(
                             AnalyticsEvent.ContentEmpty(AnalyticsEvent.EmptyContent.COMISSAO_VOTACOES)
                         )
                     }
-                    _state.update { it.copy(votacoes = votacoes) }
                 }
                 .onFailure { e ->
                     logger.e("init: failed to load votacoes for orgao=${orgao.nomeResumido}", e, TAG)
-                    _state.update { it.copy(isError = true) }
                 }
+
+            _state.update { it.copy(votacoesState = votacoesStateFor(result)) }
         }
     }
 }
-
-data class ComissaoPermanenteState(
-    val comissaoPermanenteNomeResumido: String? = null,
-    val votacoes: List<Votacao> = emptyList(),
-    val isError: Boolean = false,
-)
