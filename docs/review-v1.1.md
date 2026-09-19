@@ -486,6 +486,8 @@ O diagnóstico que originou o bloco é honesto e vale registrar: partes do app f
 
 **A premissa da 1.0 sobre a API está revista.** Não se trata de dados não confiáveis para trás; a API entrega. O que precisa ser tratado é **conexão** — a experiência de quem está offline, com rede ruim ou no meio de um sync. Isso muda o item 11.2 e muda o desenho de estados do bloco 11.
 
+**Aviso que vale para tudo abaixo e para o mapa inteiro:** a API não se comporta igual em todas as legislaturas, e muda com o tempo sem aviso. O que está medido aqui é retrato da legislatura 57 em 2026-09-19. **Antes de começar a trabalhar em qualquer domínio do app, rode alguns exemplos dos endpoints daquele domínio, na legislatura em que o trabalho vai acontecer.** A seção 0 do mapa explica o método e o porquê. Quando a medição não bater, corrija o mapa e anote a legislatura, em vez de contornar no código.
+
 ### 10.1 A varredura — FEITA
 
 Concluída em 2026-09-19 contra `https://dadosabertos.camara.leg.br/api/v2`, com requisição real em todos os quinze endpoints que o app usa. O resultado está em **[`documentation/api-map.md`](../documentation/api-map.md)** e não é repetido aqui.

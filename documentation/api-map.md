@@ -8,6 +8,26 @@ O objetivo é responder, sem abrir o navegador: *para mostrar X na legislatura Y
 
 ---
 
+## 0. Leia isto antes de confiar em qualquer linha abaixo
+
+**Este documento é um retrato, não um contrato.**
+
+A API da Câmara **não se comporta igual em todas as legislaturas**. O mesmo endpoint, com os mesmos parâmetros, pode devolver campo que existe numa legislatura e é nulo em outra, paginar diferente, mudar de volume em ordens de grandeza, ou simplesmente não ter o dado. Boa parte do que está aqui foi medido na **legislatura 57**, a atual, e o pouco que foi conferido em legislaturas anteriores já mostrou diferença — a paginação de `/deputados`, por exemplo, só quebra da 55 para trás, e a composição de comissão muda de forma conforme a janela de datas pedida.
+
+Some-se a isso que a própria API muda com o tempo, sem aviso e sem versionamento visível.
+
+Então a regra de trabalho é:
+
+> **Ao começar a mexer em qualquer domínio do app, rode você mesmo alguns exemplos dos endpoints daquele domínio, na legislatura em que o trabalho vai acontecer, antes de confiar no que está escrito aqui.**
+
+Não é desconfiança do documento: é que a pergunta "isso vale para a legislatura X?" só tem uma resposta honesta, e ela custa três requisições. A seção 8 tem o método — em resumo, o campo `instance` do erro 400 nomeia o parâmetro recusado, e o link `rel="last"` dá o volume sem baixar nada.
+
+Quando uma medição aqui não bater com a realidade, **corrija esta linha e anote a legislatura**, em vez de contornar no código. Retrato desatualizado que ninguém corrige vira armadilha, e este documento existe justamente para acabar com uma delas.
+
+Data e escopo de cada medição estão junto do número. Onde não houver legislatura indicada, leia "legislatura 57, em 2026-09-19".
+
+---
+
 ## 1. Tabela mestre
 
 | Endpoint | Parâmetros usados hoje | Quem chama | Vai para o banco | Custo por abertura |
