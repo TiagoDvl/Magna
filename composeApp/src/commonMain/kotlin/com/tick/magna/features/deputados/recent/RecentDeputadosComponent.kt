@@ -41,7 +41,6 @@ import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.ic_person_hand_raised
 import magna.composeapp.generated.resources.recent_deputados_feature_discovery_title
 import magna.composeapp.generated.resources.recent_deputados_find_more
@@ -79,7 +78,7 @@ private fun RecentDeputadosComponentContent(
     onSearchClick: () -> Unit = {},
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().height(200.dp)
+        modifier = modifier.fillMaxWidth().height(SECTION_HEIGHT)
     ) {
         when (state) {
             RecentDeputadosState.Empty -> FeatureDiscovery()
@@ -161,7 +160,7 @@ private fun RecentDeputados(
         ) {
             items(deputados) { deputado ->
                 Card(
-                    modifier = Modifier.fillMaxHeight().width(80.dp),
+                    modifier = Modifier.fillMaxHeight().width(CARD_WIDTH),
                     elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainer,
@@ -178,13 +177,18 @@ private fun RecentDeputados(
                     ) {
                         Avatar(
                             modifier = Modifier
-                                .weight(0.8f)
+                                .weight(0.7f)
                                 .fillMaxWidth(),
                             photoUrl = deputado.profilePicture
                         )
+
+                        // Two lines, because 475 of the 600 names in the 57th are exactly two
+                        // words and Compose breaks on the space: "Tabata" over "Amaral" reads
+                        // whole. One line at 80dp fitted about thirteen characters against a
+                        // median name of fourteen, so most cards cut a surname in half.
                         Text(
                             modifier = Modifier
-                                .weight(0.2f)
+                                .weight(0.3f)
                                 .fillMaxWidth()
                                 .padding(top = dimensions.grid4),
                             text = deputado.name,
@@ -193,7 +197,7 @@ private fun RecentDeputados(
                                 textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Medium
                             ),
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
@@ -202,7 +206,7 @@ private fun RecentDeputados(
 
             item {
                 Card(
-                    modifier = Modifier.fillMaxHeight().width(80.dp),
+                    modifier = Modifier.fillMaxHeight().width(CARD_WIDTH),
                     elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainerLow,
@@ -220,9 +224,12 @@ private fun RecentDeputados(
                             Alignment.CenterVertically
                         )
                     ) {
+                        // The same icon the section header carries, and the same destination.
+                        // It was a chevron reading "Ver todos", which promised a list of every
+                        // deputado; what is behind it is a search.
                         Icon(
                             modifier = Modifier.size(28.dp).alpha(0.7f),
-                            painter = painterResource(Res.drawable.ic_chevron_right),
+                            imageVector = Icons.Outlined.PersonSearch,
                             contentDescription = null,
                             tint = colorScheme.secondary
                         )
@@ -255,3 +262,9 @@ fun PreviewRecentDeputadosComponentConfigurationPeak() {
         RecentDeputadosComponentContent(state = RecentDeputadosState.Peak(deputadosMock.subList(0, 4)))
     }
 }
+
+/** 96 rather than 80: the extra sixteen is about three characters a line. */
+private val CARD_WIDTH = 96.dp
+
+/** Tall enough for the avatar plus two lines of name under the section header. */
+private val SECTION_HEIGHT = 216.dp

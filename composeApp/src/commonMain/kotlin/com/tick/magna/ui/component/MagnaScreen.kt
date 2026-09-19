@@ -35,6 +35,8 @@ fun MagnaScreen(
     modifier: Modifier = Modifier,
     /** Null draws no back arrow, for a screen that is not pushed onto anything. */
     navigateBack: (() -> Unit)? = null,
+    /** Fills the navigation row of a screen with no back arrow. See MagnaMediumTopBar. */
+    navigationLabel: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
     /** Sits under the bar and scrolls with it: a tab row, a filter strip. */
     belowTopBar: @Composable () -> Unit = {},
@@ -52,6 +54,7 @@ fun MagnaScreen(
                     titleText = title,
                     leftIcon = navigateBack?.let { painterResource(Res.drawable.ic_arrow_back) },
                     leftIconClick = navigateBack ?: {},
+                    navigationLabel = navigationLabel,
                     actions = actions,
                     scrollBehavior = scrollBehavior,
                 )

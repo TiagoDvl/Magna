@@ -1,13 +1,11 @@
 package com.tick.magna.features.home
 
-import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Legislatura
 import com.tick.magna.data.usecases.SyncStep
 import com.tick.magna.data.usecases.SyncUserInformationState
 
 data class HomeState(
     val syncState: SyncUserInformationState = SyncUserInformationState.Initial,
-    val filteredDeputados: List<Deputado>? = null,
     /** Null until the user row is written, which is why the selector can be absent. */
     val legislaturaId: String? = null,
     val legislaturas: List<Legislatura> = emptyList(),
@@ -22,8 +20,8 @@ data class HomeState(
      * Whether the screen has nothing to show yet and should say so with the whole surface.
      *
      * A cold start has no data of any term, so covering the screen costs nothing. A term switch
-     * does: the selector is on that surface, and hiding it is hiding the control the person
-     * just used — including the way back to the term that did work.
+     * does: the banner that reports it lives on that surface, and the way back to the term that
+     * did work is the icon in the bar, which stays either way.
      */
     val isBlockingSync: Boolean
         get() = syncState !is SyncUserInformationState.Done && legislaturaSync == null
@@ -80,10 +78,6 @@ internal fun legislaturaSyncStateFor(
 
 sealed interface HomeAction {
     data object RetrySync : HomeAction
-    data class SearchDeputado(val query: String) : HomeAction
-
-    /** Reported only; opening the deputado is the navigation controller's job. */
-    data object SearchResultOpened : HomeAction
 
     data class SelectLegislatura(val legislaturaId: String) : HomeAction
 }

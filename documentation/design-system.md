@@ -40,11 +40,24 @@ Um papel por função, o mesmo em todas as telas.
 | Função | Papel |
 |---|---|
 | Título de seção | `titleLarge`, **Bold**, na cor da área — via `MagnaSectionHeader` |
-| Título de tela | `MagnaMediumTopBar` |
+| Título de tela | `MagnaMediumTopBar` — **Light**, `onSurface` |
 | Nome de pessoa em lista | `bodyMedium` SemiBold |
 | Rótulo de metadado | `labelSmall`, `onSurfaceVariant` |
 | Corpo | `bodyMedium` |
 | Nota de rodapé / ressalva | `labelSmall`, `onSurfaceVariant` |
+
+### Barra de topo não é cabeçalho de seção
+
+A barra diz **onde você está**; a seção diz **de que área** ela é. Eram a mesma coisa em dois tamanhos: título de tela em `headlineLarge` **Bold** na cor `primary`, título de seção em `titleLarge` **Bold** na cor da área — e `MagnaArea.DEPUTADOS.accent` é `primary`. Mesmo verde, mesmo peso, 32sp contra 22sp.
+
+A separação usa quatro eixos e nenhuma fonte nova:
+
+| | peso | cor | ícone |
+|---|---|---|---|
+| Barra de topo | Light | `onSurface` | nenhum |
+| Cabeçalho de seção | Bold | cor da área | o da área |
+
+**Uma família só.** Magna Sans Display já ocupa 785 KB em seis pesos, e o app renderizava Bold nos dois papéis — ExtraLight, Light e SemiBold estavam praticamente parados. Uma segunda família aproximadamente dobraria esse peso para comprar uma distinção que peso e cor dão de graça. Uma segunda voz tipográfica se justifica quando existem duas vozes de verdade, produto e texto editorial; este app não tem texto longo, e o título da Home é um dado — `57ª legislatura` — não uma marca.
 
 `titleLarge.copy(color = primary, fontWeight = Bold)` estava escrito à mão em quatro componentes e `titleMedium` fazia o mesmo trabalho em outros três. **Expressão repetida é token que ainda não foi nomeado** — virou `MagnaSectionHeader`.
 

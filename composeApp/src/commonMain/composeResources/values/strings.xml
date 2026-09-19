@@ -18,11 +18,10 @@
     <string name="home_sync_dialog_done_button">Vamos lá</string>
     <string name="home_sync_title">Buscando dados sobre a legislatura</string>
     <string name="home_retry_sync_title">Algo deu errado durante sua configuração. Quer tentar novamente?</string>
-    <string name="home_search_deputados_placeholder">Pesquisar deputados</string>
-    <string name="home_search_no_deputados">Nenhum deputado encontrado</string>
 
     <string name="home_legislatura_label">Legislatura</string>
-    <string name="home_legislatura_change">Trocar de legislatura</string>
+    <string name="home_title_legislatura">%1$sª legislatura</string>
+    <string name="home_legislatura_change_to">Legislatura %1$s. Trocar de legislatura</string>
     <string name="home_legislatura_sheet_title">Escolha a legislatura</string>
     <string name="home_legislatura_sheet_subtitle">Os dados de deputados, partidos e despesas mudam conforme o período escolhido.</string>
     <string name="home_legislatura_current">Atual</string>
@@ -42,7 +41,7 @@
 
     <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes </string>
     <string name="recent_deputados_title">Deputados recentes</string>
-    <string name="recent_deputados_find_more">Ver todos</string>
+    <string name="recent_deputados_find_more">Pesquisar</string>
 
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
     <string name="deputados_search_title">Pesquisar deputados</string>

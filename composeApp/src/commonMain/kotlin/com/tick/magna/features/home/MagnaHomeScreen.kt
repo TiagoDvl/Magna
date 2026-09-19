@@ -1,29 +1,20 @@
 package com.tick.magna.features.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,7 +22,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,21 +33,21 @@ import com.tick.magna.features.comissoes.permanentes.component.ComissoesPermanen
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
 import com.tick.magna.features.comissoes.permanentes.list.ComissoesListArgs
 import com.tick.magna.features.proposicoes.list.ProposicoesListArgs
-import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.features.deputados.recent.RecentDeputadosComponent
 import com.tick.magna.features.partidos.component.PartidosComponent
 import com.tick.magna.features.partidos.details.PartidoDetailsArgs
 import com.tick.magna.features.partidos.list.PartidosListArgs
 import com.tick.magna.features.proposicoes.component.RecentProposicoesComponent
 import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
+import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaArea
+import com.tick.magna.ui.core.theme.icon
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.action_back
-import magna.composeapp.generated.resources.action_clear_search
-import magna.composeapp.generated.resources.action_search
-import magna.composeapp.generated.resources.home_search_deputados_placeholder
-import magna.composeapp.generated.resources.home_search_no_deputados
+import magna.composeapp.generated.resources.app_name
+import magna.composeapp.generated.resources.home_legislatura_change_to
+import magna.composeapp.generated.resources.home_title_legislatura
 import magna.composeapp.generated.resources.home_sync_dialog_done
 import magna.composeapp.generated.resources.home_sync_dialog_done_button
 import magna.composeapp.generated.resources.home_sync_dialog_downloading_button
@@ -65,10 +55,6 @@ import magna.composeapp.generated.resources.home_sync_dialog_loading
 import magna.composeapp.generated.resources.home_sync_dialog_retry
 import magna.composeapp.generated.resources.home_sync_dialog_retry_button
 import magna.composeapp.generated.resources.home_sync_dialog_title
-import magna.composeapp.generated.resources.ic_arrow_back
-import magna.composeapp.generated.resources.ic_close
-import magna.composeapp.generated.resources.ic_search
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -185,90 +171,39 @@ private fun MagnaHomeContent(
         )
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            var expanded by rememberSaveable { mutableStateOf(false) }
-            val textFieldState = rememberTextFieldState()
-            val searchResults = homeState.filteredDeputados
+    // A title and the one control that is not content, which is what a Home header is. It used
+    // to be a SearchBar over the whole width — the most prominent thing on the screen, and the
+    // weaker of the app's two searches: name only, results without party or state, while
+    // DeputadosSearchScreen filters by UF and partido. Deputados is where looking a deputado up
+    // belongs, and that is where the two remaining doors are.
+    var showLegislaturaSheet by remember { mutableStateOf(false) }
+    val selectedLegislatura = homeState.selectedLegislatura
 
-            Box(
-                modifier = Modifier.fillMaxWidth().background(colorScheme.background)
-            ) {
-                SearchBar(
-                    modifier = Modifier.align(Alignment.Center),
-                    colors = SearchBarDefaults.colors(
-                        containerColor = colorScheme.surfaceContainer,
-                        dividerColor = colorScheme.tertiary
-                    ),
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = textFieldState.text.toString(),
-                            onQueryChange = {
-                                textFieldState.edit { replace(0, length, it) }
-                                sendAction(HomeAction.SearchDeputado(textFieldState.text.toString()))
-                            },
-                            onSearch = {},
-                            expanded = expanded,
-                            onExpandedChange = { expanded = it },
-                            leadingIcon = {
-                                if (expanded) {
-                                    Icon(
-                                        modifier = Modifier.clickable { expanded = false },
-                                        painter = painterResource(Res.drawable.ic_arrow_back),
-                                        contentDescription = stringResource(Res.string.action_back)
-                                    )
-                                } else {
-                                    Icon(
-                                        // Used to append an empty string, which did nothing at all.
-                                        modifier = Modifier.clickable { expanded = true },
-                                        painter = painterResource(Res.drawable.ic_search),
-                                        contentDescription = stringResource(Res.string.action_search)
-                                    )
-                                }
-                            },
-                            placeholder = { Text(stringResource(Res.string.home_search_deputados_placeholder)) },
-                            trailingIcon = {
-                                if (expanded) {
-                                    Icon(
-                                        modifier = Modifier.clickable { textFieldState.clearText() },
-                                        painter = painterResource(Res.drawable.ic_close),
-                                        contentDescription = stringResource(Res.string.action_clear_search)
-                                    )
-                                }
-                            }
-                        )
-                    },
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                ) {
-                    if (!searchResults.isNullOrEmpty()) {
-                        LazyColumn {
-                            items(searchResults) {
-                                ListItem(
-                                    headlineContent = { Text(text = it.name) },
-                                    modifier = Modifier
-                                        .clickable {
-                                            textFieldState.edit { replace(0, length, it.name) }
-                                            expanded = false
-                                            sendAction(HomeAction.SearchResultOpened)
-                                            navigateTo(DeputadoDetailsArgs(it.id))
-                                        }
-                                        .fillMaxWidth()
-                                )
-                            }
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Text(
-                                modifier = Modifier.align(Alignment.Center),
-                                text = stringResource(Res.string.home_search_no_deputados)
-                            )
-                        }
-                    }
+    MagnaScreen(
+        modifier = modifier,
+        // The term rather than the app's name. Every list on this screen is scoped to it —
+        // propositions, deputados, comissoes, partidos — and with the selector reduced to an
+        // icon there was nowhere left that said which term you were reading.
+        title = selectedLegislatura
+            ?.let { stringResource(Res.string.home_title_legislatura, it.id) }
+            ?: stringResource(Res.string.app_name),
+        navigationLabel = stringResource(Res.string.app_name),
+        actions = {
+            // Only once there is a list to choose from: before the first sync there is
+            // genuinely nothing to switch to, and an icon that opens an empty sheet is worse
+            // than no icon.
+            if (selectedLegislatura != null && homeState.legislaturas.size > 1) {
+                IconButton(onClick = { showLegislaturaSheet = true }) {
+                    Icon(
+                        imageVector = MagnaArea.LEGISLATURA.icon,
+                        tint = colorScheme.onSurfaceVariant,
+                        // The term is in the description rather than on screen, so the one
+                        // place it is still spoken is a screen reader.
+                        contentDescription = stringResource(
+                            Res.string.home_legislatura_change_to,
+                            selectedLegislatura.id,
+                        ),
+                    )
                 }
             }
         },
@@ -291,20 +226,14 @@ private fun MagnaHomeContent(
             ) {
                 val sectionsBaseModifier = Modifier.fillMaxWidth().padding(LocalDimensions.current.grid16)
 
-                LegislaturaSelector(
-                    legislaturas = homeState.legislaturas,
-                    selected = homeState.selectedLegislatura,
-                    onSelect = { sendAction(HomeAction.SelectLegislatura(it)) },
-                )
-
                 homeState.legislaturaSync?.let { legislaturaSync ->
                     LegislaturaSyncBanner(
                         state = legislaturaSync,
                         onRetry = { sendAction(HomeAction.RetrySync) },
                     )
-                }
 
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+                }
 
                 RecentDeputadosComponent(
                     modifier = sectionsBaseModifier,
@@ -336,6 +265,18 @@ private fun MagnaHomeContent(
                 )
             }
         }
+    }
+
+    if (showLegislaturaSheet && selectedLegislatura != null) {
+        LegislaturaSheet(
+            legislaturas = homeState.legislaturas,
+            selectedId = selectedLegislatura.id,
+            onSelect = { id ->
+                showLegislaturaSheet = false
+                sendAction(HomeAction.SelectLegislatura(id))
+            },
+            onDismiss = { showLegislaturaSheet = false },
+        )
     }
 }
 

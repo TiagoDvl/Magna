@@ -17,94 +17,33 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import com.tick.magna.data.domain.Legislatura
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.home_legislatura_change
 import magna.composeapp.generated.resources.home_legislatura_current
 import magna.composeapp.generated.resources.home_legislatura_label
 import magna.composeapp.generated.resources.home_legislatura_period
 import magna.composeapp.generated.resources.home_legislatura_sheet_subtitle
 import magna.composeapp.generated.resources.home_legislatura_sheet_title
-import magna.composeapp.generated.resources.ic_chevron_right
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The chosen term, and the way to change it.
+ * The list of terms, as a sheet.
  *
- * It sits at the top of the Home content rather than in the top bar because the top bar is
- * the search field, and crowding it would cost the search more than the selector gains.
+ * It used to be reached from a full-width row at the top of the Home content: a label, the
+ * term in titleMedium, a chevron and a divider, some 70dp before any content began. That is a
+ * section's worth of room for a control almost nobody touches — the app opens on the current
+ * term and most people never leave it.
  *
- * Nothing renders until the list has arrived from the first sync: a selector that opens an
- * empty sheet is worse than no selector, and before that sync there is genuinely nothing to
- * switch to.
+ * The row is gone and a calendar icon in the top bar opens this directly. Nothing renders
+ * until the list has arrived from the first sync: a selector that opens an empty sheet is
+ * worse than no selector, and before that sync there is genuinely nothing to switch to.
  */
 @Composable
-fun LegislaturaSelector(
-    legislaturas: List<Legislatura>,
-    selected: Legislatura?,
-    onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (selected == null || legislaturas.isEmpty()) return
-
-    val dimensions = LocalDimensions.current
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
-    var showSheet by remember { mutableStateOf(false) }
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { showSheet = true }
-            .padding(horizontal = dimensions.grid16, vertical = dimensions.grid12),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(dimensions.grid2)) {
-            Text(
-                text = stringResource(Res.string.home_legislatura_label),
-                style = typography.labelMedium.copy(color = colorScheme.onSurfaceVariant),
-            )
-            Text(
-                text = "${selected.id} · ${selected.period()}",
-                style = typography.titleMedium.copy(
-                    color = colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold,
-                ),
-            )
-        }
-
-        Icon(
-            painter = painterResource(Res.drawable.ic_chevron_right),
-            contentDescription = stringResource(Res.string.home_legislatura_change),
-            tint = colorScheme.onSurfaceVariant,
-        )
-    }
-
-    if (showSheet) {
-        LegislaturaSheet(
-            legislaturas = legislaturas,
-            selectedId = selected.id,
-            onSelect = { id ->
-                showSheet = false
-                onSelect(id)
-            },
-            onDismiss = { showSheet = false },
-        )
-    }
-}
-
-@Composable
-private fun LegislaturaSheet(
+fun LegislaturaSheet(
     legislaturas: List<Legislatura>,
     selectedId: String,
     onSelect: (String) -> Unit,
