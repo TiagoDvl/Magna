@@ -216,15 +216,20 @@ internal class VotosRepository(
         }
 
         val votos = baixadas.flatMap { (votacao, dados, _) ->
-            dados.map { voto ->
-                VotoEntity(
-                    votacaoId = votacao.id,
-                    deputadoId = voto.deputado.id,
-                    legislaturaId = legislaturaId,
-                    voto = voto.tipoVoto,
-                    dataHoraVoto = voto.dataRegistroVoto,
-                )
-            }
+            dados
+                // A vote with no vote in it is not information, and a blank chip on a card is
+                // worse than the person not being listed. The votacao itself is still stored,
+                // with nothing under it, so the sweep stops asking about it.
+                .filter { !it.tipoVoto.isNullOrBlank() }
+                .map { voto ->
+                    VotoEntity(
+                        votacaoId = votacao.id,
+                        deputadoId = voto.deputado.id,
+                        legislaturaId = legislaturaId,
+                        voto = voto.tipoVoto.orEmpty(),
+                        dataHoraVoto = voto.dataRegistroVoto,
+                    )
+                }
         }
 
         loggerInterface.i("sweep: gravando ${votos.size} votos de ${votacoes.size} votacoes", TAG)

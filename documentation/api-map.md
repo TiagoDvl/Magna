@@ -558,6 +558,28 @@ Duas armadilhas menores:
 
 A CASP é um caso à parte: 2 registros no mandato todo, e os "presidentes" são Arthur Lira e Hugo Motta — presidentes da Câmara, não de comissão.
 
+### 6.2 `votacoesVotos-{ano}.csv` — a forma medida, e uma votação que derruba o parse
+
+Medido em 2026-09-19 sobre 24.082 linhas amostradas em quatro pontos do arquivo de 2026 (16,4 MB, 51.832 linhas):
+
+| | |
+|---|---|
+| Codificação | UTF-8 **com BOM** |
+| Separador | `;`, todo campo entre aspas |
+| Fim de linha | **LF puro**, sem CR |
+| Colunas | **12**, constantes em todas as linhas |
+| Aspas escapadas (`""`) | nenhuma |
+| `;` dentro de campo | nenhum |
+| Campo atravessando duas linhas | **nenhum** — ler linha a linha é seguro |
+
+**O plano listava 11 colunas e o arquivo tem 12**: falta `deputado_uri`, que fica entre `deputado_id` e `deputado_nome`. Parser posicional escrito a partir daquela lista gravaria a URI de cada deputado na coluna do id e pareceria funcionar.
+
+**O achado que era bug:** o campo `voto` vem vazio em 466 linhas, e **as 466 são da mesma votação**, a `2645346-18`. Cruzando com a API: `GET /votacoes/2645346-18/votos` devolve 466 votos com **`tipoVoto: null` em todos**.
+
+É uma votação nominal cujo registro individual a Câmara não preencheu. Com `tipoVoto` declarado não-nulo o parse estourava, o `catch` por votação engolia, e como votação pulada não é gravada ela era **rebuscada e re-perdida a cada refresh**. Corrigido: campo nulável, e linha sem voto é descartada — voto sem voto não é informação.
+
+**O que o arquivo não tem:** `descricao`. Ele dá os votos, não o que foi votado. Uma importação do ano inteiro precisa das descrições por outro caminho — varredura de `/votacoes` por janela (~24 requisições para o ano) ou o índice `votacoes-{ano}.csv` (4,28 MB).
+
 ---
 
 ## 7. O que este documento ainda não cobre

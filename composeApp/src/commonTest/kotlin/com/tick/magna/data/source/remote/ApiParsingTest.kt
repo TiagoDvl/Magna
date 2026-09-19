@@ -470,4 +470,27 @@ class ApiParsingTest {
         assertEquals(1, votacao.aprovacao)
         assertEquals("PLEN", votacao.siglaOrgao)
     }
+
+    @Test
+    fun a_votacao_whose_votes_have_no_vote_still_parses() {
+        // Votacao 2645346-18 of 2026 returns 466 votes and every one has a null tipoVoto.
+        // Declared non-null this threw, the sweep caught it per votacao and skipped it, and a
+        // skipped votacao is never stored — so it was re-fetched and re-lost on every refresh.
+        val payload = """
+            {
+              "dados": [
+                {
+                  "tipoVoto": null,
+                  "dataRegistroVoto": "2026-09-02T11:44:54",
+                  "deputado_": { "id": 204501, "nome": "Acácio Favacho", "siglaPartido": "MDB", "siglaUf": "AP" }
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val voto = json.decodeFromString<VotosResponse>(payload).dados.single()
+
+        assertNull(voto.tipoVoto)
+        assertEquals("204501", voto.deputado.id)
+    }
 }
