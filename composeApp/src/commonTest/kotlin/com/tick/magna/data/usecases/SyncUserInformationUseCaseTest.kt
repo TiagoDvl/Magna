@@ -7,6 +7,7 @@ import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.domain.Legislatura
+import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Orgao
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.PartidoDetail
@@ -247,6 +248,9 @@ class SyncUserInformationUseCaseTest {
             override suspend fun hasComissoesPermanentes() = hasComissoes
             override suspend fun needsAtividade() = needsAtividadeCount
             override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>> =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override suspend fun getComissaoMembros(idOrgao: String): Result<List<MembroComissao>> =
                 throw UnsupportedOperationException("not part of the sync")
         }
 

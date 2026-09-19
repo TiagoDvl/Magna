@@ -1,5 +1,6 @@
 package com.tick.magna.data.source.remote.api
 
+import com.tick.magna.data.source.remote.response.MembrosOrgaoResponse
 import com.tick.magna.data.source.remote.response.OrgaoDetalheResponse
 import com.tick.magna.data.source.remote.response.OrgaosResponse
 import io.ktor.client.HttpClient
@@ -20,6 +21,21 @@ class OrgaosApi(private val httpClient: HttpClient) : OrgaosApiInterface {
 
     override suspend fun getOrgao(id: String): OrgaoDetalheResponse {
         return httpClient.get("orgaos/$id").body()
+    }
+
+    override suspend fun getMembrosOrgao(
+        id: String,
+        dataInicio: String,
+        dataFim: String,
+        pagina: Int,
+    ): MembrosOrgaoResponse {
+        return httpClient.get("orgaos/$id/membros") {
+            parameter("dataInicio", dataInicio)
+            parameter("dataFim", dataFim)
+            parameter("pagina", pagina)
+            // Asking for more is answered with a hundred anyway, so the CCJC is two pages.
+            parameter("itens", ITEMS_PER_PAGE)
+        }.body()
     }
 
     private companion object {

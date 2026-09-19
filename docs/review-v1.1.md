@@ -726,9 +726,11 @@ Três coisas tornam isso pobre, e nenhuma é culpa do layout:
 
 A ementa, que é a única parte com substância, já é exibida — `OrgaosRepository.kt:79` mapeia `proposicoesAfetadas.map { it.ementa }`.
 
-### 12.2 Composição: a API organiza diferente do que parece
+### 12.2 Composição: a API organiza diferente do que parece — FEITO (composição) / PENDENTE (histórico)
 
 Confirmado por medição, porque a intuição de que "as comissões se organizavam de outro jeito" estava certa.
+
+**Uma correção ao que está escrito abaixo, achada ao implementar.** A linha "sem parâmetros → só a composição vigente" está certa e é uma armadilha: vigente é *hoje*, não o fim da legislatura selecionada. Numa legislatura antiga essa chamada devolve as pessoas certas de hoje sob o título certo de ontem, sem erro nenhum, e `idLegislatura` aqui é HTTP 400. A tela usa sempre janela de datas — a mesma dos votos, últimos 3 meses do mandato ou de hoje — e filtra por `dataFim == null || dataFim >= referência`. Conferida contra a forma sem datas na CCJC: 130 de 130. Detalhe completo no item 5.7 do mapa, incluindo duas coisas que a medição original não viu: gente listada duas vezes, e `siglaPartido` nulo em 42% dos registros da legislatura 56.
 
 `GET /orgaos/{id}/membros` **não devolve uma lista de membros.** Devolve **um registro por passagem** — uma linha por (deputado, título, período), cada uma com `dataInicio`, `dataFim`, `idLegislatura`, `titulo`, `codTitulo`, `siglaPartido`, `siglaUf` e `urlFoto`.
 
@@ -764,7 +766,7 @@ E o achado que sozinho já justifica a tela: **a presidência tem mandato e rota
 
 Isso é uma linha do tempo pronta, com nomes que o app já tem nas telas de deputado, e liga comissão a deputado e a partido — as três entidades que hoje vivem separadas.
 
-### 12.3 A votação: o que já está pago e é descartado
+### 12.3 A votação: o que já está pago e é descartado — FEITO
 
 `GET /votacoes/{id}` devolve mais do que `VotacaoDetailDto` mapeia. Os campos ignorados hoje:
 
@@ -790,7 +792,7 @@ Duas mudanças, e a segunda depende da primeira:
 
 **Pré-requisito do item 2, e não é opcional:** `ComissaoPermanenteDetailScreen.kt:73` usa `if (state.votacoes.isEmpty())` para decidir mostrar o `LoadingComponent`. Não existe estado de vazio, e **CASP tem zero votações**. Além disso, `OrgaosRepository.kt:81` filtra votações sem `proposicoesAfetadas`, então uma comissão pode esvaziar depois do filtro mesmo tendo votações. Nos dois casos a tela gira para sempre. O componente de estado vazio do bloco 11 é o que destrava abrir a curadoria.
 
-### 12.5 Custo e cache
+### 12.5 Custo e cache — PENDENTE
 
 Hoje a tela gasta 21 requisições e **não guarda nada** — `OrgaosRepository.getComissaoPermanenteVotacoes` devolve direto para a UI, sem passar pelo banco. Sem rede, a tela não abre nem depois de já ter aberto uma vez.
 
@@ -802,15 +804,16 @@ O que este bloco acrescenta, medido:
 | histórico de passagens da legislatura | 10 | 902 registros, agrupar por deputado |
 | linha do tempo de presidentes | 0 extra | sai do histórico acima |
 
-A composição vigente é barata e vale a pena; o histórico só se a tela de fato o usar. **Nada disso deveria ser feito sem cache**: composição de comissão muda uma vez por ano, e é o tipo de dado que pertence ao banco. As tabelas precisam de `legislaturaId`, o que conecta este bloco ao item 11.3 e a uma migração — ver o item 16.3 antes, porque migração é o que não compila no Windows hoje.
+A composição vigente é barata e vale a pena, e **está feita**: 2 requisições, junto das votações em vez de depois delas. O histórico só se a tela de fato o usar. **Nada disso deveria ser feito sem cache**: composição de comissão muda uma vez por ano, e é o tipo de dado que pertence ao banco. As tabelas precisam de `legislaturaId`, o que conecta este bloco ao item 11.3 e a uma migração — ver o item 16.3 antes, porque migração é o que não compila no Windows hoje.
 
 Aproveitar para resolver as 21 requisições: buscar votações por data com paginação honesta em vez de `ordenarPor=idProposicaoObjeto&itens=20`, e considerar se o detalhe de cada votação precisa ser buscado na lista ou só quando a pessoa abre uma.
 
 ### 12.6 O que este bloco não resolve
 
 - **Votação nominal por deputado não existe aqui.** O bloco 5 removeu `getDeputadoVotacoes` porque custava 21 requisições para responder uma pergunta. Nada neste bloco o traz de volta.
-- **`/orgaos/{id}/eventos` devolveu vazio** para a CCJC sem parâmetros de data. Antes de contar com reuniões como conteúdo, verificar com janela de datas.
-- **`efeitosRegistrados` veio vazio** nas três votações inspecionadas. Pode ser da CCJC, pode ser geral — verificar antes de desenhar em cima.
+- ~~**`/orgaos/{id}/eventos` devolveu vazio**~~ — **verificado**: era falta de janela, não falta de dado. 0 itens sem datas, 14 com. Item 5.6 do mapa. Ainda não exibido.
+- ~~**`efeitosRegistrados` veio vazio**~~ — **verificado**: vazio em 6 votações de 3 comissões diferentes. É geral. Descartado.
+- **Histórico e linha do tempo de presidentes continuam de fora.** São 10 requisições por comissão contra 2 da composição vigente — tela própria, não extra desta.
 
 ---
 

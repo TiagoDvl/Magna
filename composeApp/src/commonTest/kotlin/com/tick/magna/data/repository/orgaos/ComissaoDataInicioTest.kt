@@ -1,10 +1,12 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.Deputado as DeputadoEntity
 import com.tick.magna.Legislatura
 import com.tick.magna.Orgao
 import com.tick.magna.SelectOrgaosByAtividade
 import com.tick.magna.User
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
@@ -13,6 +15,7 @@ import com.tick.magna.data.source.remote.api.VotacoesApiInterface
 import com.tick.magna.data.source.remote.dto.LinkDto
 import com.tick.magna.data.source.remote.dto.OrgaoDetalheDto
 import com.tick.magna.data.source.remote.dto.OrgaoDto
+import com.tick.magna.data.source.remote.response.MembrosOrgaoResponse
 import com.tick.magna.data.source.remote.response.OrgaoDetalheResponse
 import com.tick.magna.data.source.remote.response.OrgaosResponse
 import com.tick.magna.data.source.remote.response.VotacaoDetailResponse
@@ -162,6 +165,7 @@ class ComissaoDataInicioTest {
         votacoesApi = votacoesApi,
         userDao = userDao,
         legislaturaDao = Legislaturas(),
+        deputadoDao = NoDeputados(),
         loggerInterface = SilentLogger(),
     )
 
@@ -213,6 +217,33 @@ class ComissaoDataInicioTest {
             if (failDetails) throw IllegalStateException("detail $id is down")
             return OrgaoDetalheResponse(OrgaoDetalheDto(id = id, dataInicio = "2011-03-02"))
         }
+
+        override suspend fun getMembrosOrgao(
+            id: String,
+            dataInicio: String,
+            dataFim: String,
+            pagina: Int,
+        ): MembrosOrgaoResponse = throw UnsupportedOperationException("not part of the sync")
+    }
+
+    /**
+     * The party of a past term is looked up here, and none of these tests go near it. An
+     * empty table is also the honest answer for a term that was never downloaded.
+     */
+    private class NoDeputados : DeputadoDaoInterface {
+        override fun getDeputados(legislaturaId: String): Flow<List<DeputadoEntity>> = flowOf(emptyList())
+        override fun getDeputados(legislaturaId: String, query: String): Flow<List<DeputadoEntity>> =
+            flowOf(emptyList())
+
+        override fun getDeputados(legislaturaId: String, deputadosIds: List<String>): List<DeputadoEntity> =
+            emptyList()
+
+        override fun getDeputado(legislaturaId: String, deputadoId: String): Flow<DeputadoEntity> =
+            throw UnsupportedOperationException("not part of the sync")
+
+        override fun getRecentDeputados(legislaturaId: String): Flow<List<DeputadoEntity>> = flowOf(emptyList())
+        override suspend fun insertDeputados(deputados: List<DeputadoEntity>) = Unit
+        override suspend fun updateLastSeen(deputadoId: String) = Unit
     }
 
     private class CountingVotacoesApi(private val failCounts: Boolean = false) : VotacoesApiInterface {

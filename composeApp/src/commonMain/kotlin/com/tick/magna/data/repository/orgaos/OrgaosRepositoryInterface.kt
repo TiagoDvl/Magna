@@ -1,5 +1,6 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Orgao
 import com.tick.magna.data.domain.Votacao
 import kotlinx.coroutines.flow.Flow
@@ -26,4 +27,11 @@ interface OrgaosRepositoryInterface {
     suspend fun needsAtividade(): Boolean
 
     suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>>
+
+    /**
+     * Who sits on the committee, as of the end of the selected term or of today, whichever
+     * came first. Ordered president first, then the rest of the mesa, then titulares, then
+     * suplentes, and alphabetically inside each.
+     */
+    suspend fun getComissaoMembros(idOrgao: String): Result<List<MembroComissao>>
 }

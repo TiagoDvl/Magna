@@ -83,6 +83,13 @@
     <string name="comissoes_list_empty_description">As comissões permanentes de hoje foram criadas depois do fim deste mandato.</string>
     <string name="comissao_votacoes_empty">Nenhuma votação registrada</string>
     <string name="comissao_votacoes_empty_description">A Câmara não publicou votações desta comissão. Isso acontece: nem toda comissão vota com frequência.</string>
+    <string name="comissao_tab_votacoes">Votações</string>
+    <string name="comissao_tab_composicao">Composição</string>
+    <string name="comissao_membros_mesa">Mesa</string>
+    <string name="comissao_membros_titulares">Titulares</string>
+    <string name="comissao_membros_suplentes">Suplentes</string>
+    <string name="comissao_membros_empty">Composição não publicada</string>
+    <string name="comissao_membros_empty_description">A Câmara não publicou quem ocupava as cadeiras desta comissão no período.</string>
 
     <string name="partidos_section_title">Partidos</string>
     <string name="partidos_see_all">Ver todos</string>

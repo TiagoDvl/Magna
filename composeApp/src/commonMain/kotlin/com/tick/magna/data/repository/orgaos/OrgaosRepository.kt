@@ -1,8 +1,10 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Orgao
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.logger.AppLoggerInterface
+import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.OrgaoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
@@ -12,6 +14,7 @@ import com.tick.magna.data.source.remote.api.OrgaosApiInterface
 import com.tick.magna.data.source.remote.api.VotacoesApiInterface
 import com.tick.magna.data.source.remote.dto.toDomain
 import com.tick.magna.data.source.remote.dto.toLocal
+import com.tick.magna.data.source.remote.response.hasNextPage
 import com.tick.magna.data.source.remote.response.totalFromLastPage
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.async
@@ -34,6 +37,7 @@ internal class OrgaosRepository(
     private val votacoesApi: VotacoesApiInterface,
     private val userDao: UserDaoInterface,
     private val legislaturaDao: LegislaturaDaoInterface,
+    private val deputadoDao: DeputadoDaoInterface,
     private val loggerInterface: AppLoggerInterface,
 ) : OrgaosRepositoryInterface {
 
@@ -292,6 +296,101 @@ internal class OrgaosRepository(
             .filter { it.proposicoes.isNotEmpty() }
     }
 
+    /**
+     * The composition of the committee in the selected term.
+     *
+     * Two requests for a committee the size of the CCJC, and the window it asks about is the
+     * same one the votes use: the last three months of the mandate, or of today if the mandate
+     * is still running. The endpoint would answer without any window at all, and that answer
+     * is tempting because it is one request shorter — but it is the composition of today no
+     * matter which term was selected, so on the 56th it would quietly show the wrong people
+     * under the right title. Asking `idLegislatura` instead is a 400.
+     *
+     * The window is wide open here, unlike in [getComissaoPermanenteVotacoes]: this endpoint
+     * accepts an eight-year range without complaint. Three months is a choice about how many
+     * pages to pay for, not a limit being obeyed.
+     */
+    override suspend fun getComissaoMembros(idOrgao: String): Result<List<MembroComissao>> {
+        return try {
+            val legislaturaId = userDao.getUser().first()?.legislaturaId
+            val legislatura = legislaturaId?.let { legislaturaDao.getLegislaturaById(it) }
+                ?: return Result.success(emptyList())
+
+            val window = mandateWindows(legislatura.startDate, legislatura.endDate, today())
+                .firstOrNull()
+                ?: return Result.success(emptyList())
+
+            val membros = comissaoComposition(fetchMembros(idOrgao, window), window.end)
+            val completed = withPartidoFromLocal(membros, legislaturaId)
+
+            loggerInterface.d(
+                "getComissaoMembros: ${completed.size} membros for orgao=$idOrgao " +
+                    "on legislatura=$legislaturaId",
+                TAG,
+            )
+            Result.success(completed)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.e("getComissaoMembros: failed for orgao=$idOrgao", e, TAG)
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun fetchMembros(idOrgao: String, window: AtividadeWindow): List<MembroComissao> {
+        val membros = mutableListOf<MembroComissao>()
+        var pagina = 1
+
+        while (true) {
+            val response = orgaosApi.getMembrosOrgao(idOrgao, window.start, window.end, pagina)
+            membros += response.dados.map { it.toDomain() }
+
+            if (!response.links.hasNextPage()) break
+
+            if (pagina >= MAX_MEMBER_PAGES) {
+                loggerInterface.w("fetchMembros: stopped at page $pagina for orgao $idOrgao", TAG)
+                break
+            }
+            pagina++
+        }
+
+        return membros
+    }
+
+    /**
+     * Fills in the party and state the API leaves blank on past terms.
+     *
+     * Not an edge case: 58 of the 138 rows the CCJC returns for the 56th legislature have a
+     * null `siglaPartido`, and none of the ones for the current term do. Half a screen of
+     * members with no party reads as a broken screen, and the answer is already downloaded —
+     * the Deputado table is scoped by term and holds the party each of them had in it.
+     *
+     * Only ever fills a gap. A member whose party the API did state keeps it, because somebody
+     * who changed parties mid-term is described correctly by the committee record and only
+     * approximately by the roster.
+     */
+    private fun withPartidoFromLocal(
+        membros: List<MembroComissao>,
+        legislaturaId: String,
+    ): List<MembroComissao> {
+        val missing = membros.filter { it.siglaPartido == null }
+        if (missing.isEmpty()) return membros
+
+        val stored = deputadoDao
+            .getDeputados(legislaturaId, missing.map { it.deputadoId })
+            .associateBy { it.id }
+
+        return membros.map { membro ->
+            if (membro.siglaPartido != null) return@map membro
+
+            val deputado = stored[membro.deputadoId] ?: return@map membro
+            membro.copy(
+                siglaPartido = deputado.partido,
+                siglaUf = membro.siglaUf ?: deputado.uf,
+            )
+        }
+    }
+
     private companion object {
         const val TAG = "OrgaosRepository"
         const val MAX_PARALLEL_DETAIL_REQUESTS = 5
@@ -311,6 +410,12 @@ internal class OrgaosRepository(
          * endless one.
          */
         const val MAX_WINDOWS_PER_SCREEN = 4
+
+        /**
+         * A ceiling on the membership paging. The largest committee is two pages; this is
+         * only here so a `next` link that never stops cannot loop forever.
+         */
+        const val MAX_MEMBER_PAGES = 10
 
         /** Enough to compare `2023-02-15` with `2023-02-15T00:00`. */
         const val DATE_LENGTH = 10

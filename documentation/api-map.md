@@ -76,7 +76,7 @@ Esta é a pergunta que o bloco 8 depende, e a resposta não é uniforme.
 | `/partidos/{id}/membros` | **sim** | — | `idLegislatura` |
 | `/proposicoes` | **HTTP 400** | sim, mas filtram **tramitação** — ver item 3.8 | `dataApresentacaoInicio`/`dataApresentacaoFim`, janela de 3 meses |
 | `/orgaos` | **HTTP 400** | sim, mas ver item 3.3 | não dá pelo endpoint |
-| `/orgaos/{id}/membros` | **HTTP 400** | sim | cada registro traz `idLegislatura`; filtrar no cliente |
+| `/orgaos/{id}/membros` | **HTTP 400** | sim, **sem limite de largura** | janela do mandato; sem datas devolve a composição de *hoje* — ver item 5.7 |
 | `/votacoes` | **HTTP 400** | sim, **máximo 3 meses** | ver item 3.2 |
 
 O 400 vem no formato `{"status":400,"instance":"idLegislatura","detail":"Parâmetro(s) inválido(s)."}` — o campo `instance` nomeia o parâmetro recusado, o que torna a verificação barata de repetir.
@@ -496,12 +496,50 @@ O vazio não era ausência de dado, era ausência de janela. Campos: `dataHoraIn
 
 `situacao` carrega coisas como `Cancelada`, e `descricaoTipo` distingue `Reunião Deliberativa` de audiência pública. É conteúdo real, ainda não usado pelo app.
 
+### 5.7 `/orgaos/{id}/membros` — a composição, medida — CORRIGIDO
+
+Isto estava na seção 7 como dúvida aberta: "com faixa de datas ele devolve *mais* registros do que sem". Devolve mesmo, e o motivo é simples: **ele devolve todo vínculo que atravessa a janela**, não os vínculos que começam dentro dela. Medido em 2026-09-19.
+
+| Chamada | Resultado |
+|---|---|
+| `/orgaos/2003/membros` (sem datas) | 130 registros, **todos com `dataFim: null`** e `dataInicio` em 2026 |
+| `/orgaos/2003/membros?dataInicio=2026-06-19&dataFim=2026-09-19` | 149 registros — os 130 mais 19 cadeiras que terminaram dentro da janela |
+| `/orgaos/2003/membros?idLegislatura=56` | **HTTP 400**, `instance: idLegislatura` |
+| `/orgaos/2003/membros?dataInicio=2022-11-01&dataFim=2023-01-31` | 138 registros, **todos com `idLegislatura: 56`** |
+| janela de 8 anos (`2019-02-01` a `2027-01-31`) | 16 páginas, **sem recusa** |
+
+Quatro consequências:
+
+1. **Sem datas não é "a composição atual da legislatura selecionada", é "a composição de hoje".** Numa legislatura antiga ela mostraria gente certa com legislatura errada, em silêncio. A janela é a única forma de perguntar sobre um mandato passado, porque `idLegislatura` é 400.
+2. **A janela de 3 meses do `/votacoes` não vale aqui.** Este endpoint aceita 8 anos sem reclamar. Usar 3 meses é escolha de quantas páginas pagar, não limite obedecido.
+3. **A regra de quem está dentro é uma linha**: `dataFim == null || dataFim >= referência`. Conferida contra a forma sem datas na CCJC — 130 de 130, nenhum a mais, nenhum a menos.
+4. **`itens=200` é respondido com 100.** A CCJC são 2 requisições.
+
+Duas armadilhas a mais, as duas reais:
+
+- **Gente repetida.** O presidente da CSSF aparece duas vezes, como `Presidente` e como `Titular`; o da CCJC aparece só uma. Ordenar por `codTitulo` antes de tirar repetidos mantém o cargo.
+- **`siglaPartido: null` em 58 dos 138 registros da CCJC na legislatura 56**, e em nenhum da 57. Não é caso de borda, é metade da tela. O partido daquele mandato já está na tabela `Deputado` local — preenchido de lá, custo zero.
+
+`codTitulo`: `1` Presidente, `2`/`3`/`4` 1º/2º/3º Vice, `101` Titular, `102` Suplente. É a chave de ordenação; o `titulo` em texto é só para exibir.
+
+### 5.8 A presidência rotaciona, e a linha do tempo sai da mesma chamada
+
+Janela do mandato inteiro na CCJC: **10 requisições, 902 registros, 293 deputados distintos**. Filtrando `codTitulo == 1`:
+
+| Presidente | Período |
+|---|---|
+| Rui Falcão (PT) | 2023-03-15 → 2024-03-06 |
+| Caroline de Toni (PL) | 2024-03-06 → 2025-03-18 |
+| Paulo Azi (UNIÃO) | 2025-03-19 → 2026-02-09 |
+| Leur Lomanto Júnior (UNIÃO) | 2026-02-10 → atual |
+
+Ainda não exibido. São 10 requisições por comissão contra 2 da composição vigente, então é uma tela própria, não um extra da que existe.
+
 ---
 
 ## 7. O que este documento ainda não cobre
 
 - **Ordenação padrão de cada endpoint.** Só foi verificada onde o app passa `ordenarPor` explicitamente.
-- **Comportamento de `/orgaos/{id}/membros` com datas.** Com faixa de datas ele devolve *mais* registros do que sem, o que sugere que o filtro seleciona vínculos históricos em vez de restringir. Precisa ser entendido antes de virar base do escopo de comissões.
 - **Limites de intervalo nos demais endpoints.** `/votacoes` e `/proposicoes` foram testados até o erro e os dois recusam mais de três meses. Os outros não foram.
 - **`/legislaturas/{id}`** individual, que provavelmente evita baixar as 57.
 

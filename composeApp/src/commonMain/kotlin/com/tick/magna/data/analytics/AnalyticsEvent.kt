@@ -157,6 +157,7 @@ sealed class AnalyticsEvent(
         PARTIDO_MEMBROS("partido_membros"),
         PROPOSICAO_AUTORES("proposicao_autores"),
         COMISSAO_VOTACOES("comissao_votacoes"),
+        COMISSAO_MEMBROS("comissao_membros"),
     }
 
     enum class LinkKind(val value: String) {

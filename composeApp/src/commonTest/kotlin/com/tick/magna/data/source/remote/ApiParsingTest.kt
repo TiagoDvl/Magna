@@ -9,6 +9,7 @@ import com.tick.magna.data.source.remote.response.DeputadoByIdResponse
 import com.tick.magna.data.source.remote.response.DespesasResponse
 import com.tick.magna.data.source.remote.response.DeputadosResponse
 import com.tick.magna.data.source.remote.response.LegislaturasResponse
+import com.tick.magna.data.source.remote.response.MembrosOrgaoResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.VotacaoDetailResponse
 import kotlin.test.Test
@@ -344,5 +345,69 @@ class ApiParsingTest {
         assertEquals("57", entity.id)
         assertEquals("2023-02-01", entity.startDate)
         assertEquals("2027-01-31", entity.endDate)
+    }
+
+    @Test
+    fun a_committee_member_parses_with_the_id_the_api_sends_as_a_number() {
+        val payload = """
+            {
+              "dados": [
+                {
+                  "id": 178860,
+                  "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/178860",
+                  "nome": "Paulo Azi",
+                  "siglaPartido": "UNIÃO",
+                  "siglaUf": "BA",
+                  "idLegislatura": 57,
+                  "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/178860.jpg",
+                  "email": "dep.pauloazi@camara.leg.br",
+                  "titulo": "Titular",
+                  "codTitulo": 101,
+                  "dataInicio": "2026-02-09",
+                  "dataFim": null
+                }
+              ],
+              "links": []
+            }
+        """.trimIndent()
+
+        val response = json.decodeFromString<MembrosOrgaoResponse>(payload)
+        val membro = response.dados.single().toDomain()
+
+        assertEquals("178860", membro.deputadoId)
+        assertEquals(101, membro.codTitulo)
+        assertNull(membro.dataFim)
+    }
+
+    @Test
+    fun a_committee_member_of_a_past_term_parses_without_a_party() {
+        // 58 of the 138 rows the CCJC returns for the 56th legislature look like this, and
+        // none of the ones for the current term do. The party is filled in from the local
+        // roster afterwards; what matters here is that the record does not fail to parse.
+        val payload = """
+            {
+              "dados": [
+                {
+                  "id": 204379,
+                  "nome": "Darci de Matos",
+                  "siglaPartido": null,
+                  "siglaUf": null,
+                  "idLegislatura": 56,
+                  "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204379.jpg",
+                  "titulo": "1º Vice-Presidente",
+                  "codTitulo": 2,
+                  "dataInicio": "2022-04-27",
+                  "dataFim": "2023-01-31"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val membro = json.decodeFromString<MembrosOrgaoResponse>(payload).dados.single().toDomain()
+
+        assertNull(membro.siglaPartido)
+        assertNull(membro.siglaUf)
+        assertEquals("2023-01-31", membro.dataFim)
+        assertEquals("1º Vice-Presidente", membro.titulo)
     }
 }
