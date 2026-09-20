@@ -3,6 +3,7 @@ package com.tick.magna.features.deputados.recent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,12 +40,16 @@ import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
+import com.tick.magna.ui.core.theme.accent
+import com.tick.magna.ui.core.theme.container
+import com.tick.magna.ui.core.theme.onContainer
 import com.tick.magna.ui.core.theme.marcadorDeArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_person_hand_raised
-import magna.composeapp.generated.resources.recent_deputados_feature_discovery_title
-import magna.composeapp.generated.resources.recent_deputados_find_more
+import magna.composeapp.generated.resources.recent_deputados_empty_action
+import magna.composeapp.generated.resources.recent_deputados_empty_body
+import magna.composeapp.generated.resources.recent_deputados_empty_title
 import magna.composeapp.generated.resources.deputados_search_title
 import magna.composeapp.generated.resources.recent_deputados_title
 import org.jetbrains.compose.resources.painterResource
@@ -78,75 +83,20 @@ private fun RecentDeputadosComponentContent(
     onDeputadoClick: (deputadoId: String) -> Unit = {},
     onSearchClick: () -> Unit = {},
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth().height(SECTION_HEIGHT)
-    ) {
-        when (state) {
-            RecentDeputadosState.Empty -> FeatureDiscovery()
-            is RecentDeputadosState.Peak -> RecentDeputados(
-                deputados = state.deputados,
-                onDeputadoClick = onDeputadoClick,
-                onSearchClick = onSearchClick,
-            )
-        }
-    }
-}
-
-@Composable
-private fun FeatureDiscovery() {
-    val colorScheme = MaterialTheme.colorScheme
     val dimensions = LocalDimensions.current
 
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8, Alignment.CenterVertically)
+        modifier = modifier.fillMaxWidth().height(SECTION_HEIGHT),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
-        Surface(
-            modifier = Modifier.size(72.dp).alpha(0.6f),
-            shape = RoundedPentagonShape(cornerRadius = dimensions.grid8, rotationDegrees = 30f),
-            color = colorScheme.primary
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(Res.drawable.ic_person_hand_raised),
-                    contentDescription = null,
-                    tint = colorScheme.onPrimary
-                )
-            }
-        }
-
-        Text(
-            text = stringResource(Res.string.recent_deputados_feature_discovery_title),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-    }
-}
-
-@Composable
-private fun RecentDeputados(
-    deputados: List<Deputado>,
-    onDeputadoClick: (deputadoId: String) -> Unit,
-    onSearchClick: () -> Unit,
-) {
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
-    val dimensions = LocalDimensions.current
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
-    ) {
+        // Above the branch, not inside it. The header carries the only way into the search,
+        // and hanging it off the non-empty state meant that somebody with no recent deputados
+        // — which is everybody on a first run — got a sentence telling them to search
+        // and nothing anywhere in the section to search with.
+        //
         // Not a chevron: this one opens search, and it was labelled "Ver todos" while doing
-        // it. There is no list of all deputados behind this section — there is a way to look
-        // one up, which is a different promise.
+        // it. There is no list of all deputados behind this section — there is a way to
+        // look one up, which is a different promise.
         MagnaSectionHeader(
             title = stringResource(Res.string.recent_deputados_title),
             area = MagnaArea.DEPUTADOS,
@@ -155,7 +105,119 @@ private fun RecentDeputados(
             actionIcon = Icons.Outlined.PersonSearch,
         )
 
-        LazyRow(
+        when (state) {
+            RecentDeputadosState.Empty -> Convite(onSearchClick = onSearchClick)
+            is RecentDeputadosState.Peak -> RecentDeputados(
+                deputados = state.deputados,
+                onDeputadoClick = onDeputadoClick,
+            )
+        }
+    }
+}
+
+/**
+ * What stands where the recent deputados will be, before there are any.
+ *
+ * A card, not a caption. The old one drew the pentagon and a sentence onto the bare Home with
+ * nothing under the finger anywhere in the section: it described a feature to the one person
+ * guaranteed to have no way of reaching it, somebody opening the app for the first time.
+ * Everything here sits inside one tap target that lands on the search, so the instruction and
+ * the thing it instructs are the same object.
+ */
+@Composable
+private fun Convite(onSearchClick: () -> Unit) {
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+    val dimensions = LocalDimensions.current
+    val acento = MagnaArea.DEPUTADOS.accent
+
+    Card(
+        modifier = Modifier.fillMaxSize(),
+        elevation = magnaCardElevation(),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLow),
+        onClick = onSearchClick,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .marcadorDeArea(MagnaArea.DEPUTADOS, MaterialTheme.shapes.medium)
+                .padding(dimensions.grid16),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid16),
+        ) {
+            Surface(
+                modifier = Modifier.size(64.dp),
+                shape = RoundedPentagonShape(
+                    cornerRadius = dimensions.grid8,
+                    rotationDegrees = 30f,
+                ),
+                color = MagnaArea.DEPUTADOS.container,
+            ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(
+                        modifier = Modifier.size(32.dp),
+                        painter = painterResource(Res.drawable.ic_person_hand_raised),
+                        contentDescription = null,
+                        tint = MagnaArea.DEPUTADOS.onContainer,
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
+            ) {
+                Text(
+                    text = stringResource(Res.string.recent_deputados_empty_title),
+                    style = typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                )
+                Text(
+                    text = stringResource(Res.string.recent_deputados_empty_body),
+                    style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
+                )
+
+                // Says what the tap does, in the same words the header uses for the same place.
+                Row(
+                    modifier = Modifier.padding(top = dimensions.grid4),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(dimensions.grid16),
+                        imageVector = Icons.Outlined.PersonSearch,
+                        contentDescription = null,
+                        tint = acento,
+                    )
+                    Text(
+                        text = stringResource(Res.string.recent_deputados_empty_action),
+                        style = typography.labelMedium.copy(
+                            color = acento,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The deputados somebody looked at, most recent first.
+ *
+ * No trailing card offering the search. It repeated the section header's own action three
+ * inches below it, and at the end of a row somebody has to scroll to reach — the worst place
+ * to put a way in and the only one that was ever going to be missed.
+ */
+@Composable
+private fun RecentDeputados(
+    deputados: List<Deputado>,
+    onDeputadoClick: (deputadoId: String) -> Unit,
+) {
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
+    val dimensions = LocalDimensions.current
+
+    LazyRow(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
         ) {
@@ -216,47 +278,7 @@ private fun RecentDeputados(
                 }
             }
 
-            item {
-                Card(
-                    modifier = Modifier.fillMaxHeight().width(CARD_WIDTH),
-                    elevation = magnaCardElevation(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorScheme.surfaceContainerLow,
-                        contentColor = colorScheme.onSurface
-                    ),
-                    onClick = onSearchClick
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(dimensions.grid8),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(
-                            dimensions.grid8,
-                            Alignment.CenterVertically
-                        )
-                    ) {
-                        // The same icon the section header carries, and the same destination.
-                        // It was a chevron reading "Ver todos", which promised a list of every
-                        // deputado; what is behind it is a search.
-                        Icon(
-                            modifier = Modifier.size(28.dp).alpha(0.7f),
-                            imageVector = Icons.Outlined.PersonSearch,
-                            contentDescription = null,
-                            tint = colorScheme.secondary
-                        )
-                        Text(
-                            text = stringResource(Res.string.recent_deputados_find_more),
-                            style = typography.labelSmall.copy(
-                                color = colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        )
-                    }
-                }
-            }
         }
-    }
 }
 
 @Preview

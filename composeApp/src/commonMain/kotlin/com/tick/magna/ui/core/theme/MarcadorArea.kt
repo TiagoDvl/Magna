@@ -8,6 +8,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -24,8 +27,12 @@ import androidx.compose.ui.unit.dp
  * frame, a divider, a selection state. One with the surface still showing past it reads as
  * something laid over the card, which is what it is.
  *
- * Two are settled. The rest draw nothing until they are, because a marker invented to fill a
- * slot is a marker nobody can learn.
+ * Four of the six are settled. The two that are not draw nothing, because a marker invented
+ * to fill a slot is a marker nobody can learn.
+ *
+ * Each one holds a different part of the card rather than a different treatment of the same
+ * part. Two marks on the same edge are two things to compare; two marks on different edges are
+ * two places to look, and the eye finds a place faster than it compares a texture.
  */
 enum class MarcadorArea {
     /** A diagonal band across the top-right corner, stopping short of the corner itself. */
@@ -50,6 +57,17 @@ enum class MarcadorArea {
      */
     PONTOS,
 
+    /**
+     * Two short strokes meeting at the bottom-left corner, inset from both edges.
+     *
+     * The last corner left, and the one shape in the set that closes rather than runs: a
+     * committee is a standing body with a seat at the table, not a flow of items, and the
+     * bracket is the only mark here that reads as something held in place. It is short where
+     * the tarja is long and square where the cunha is diagonal, which is what keeps it apart
+     * from the two other marks made of solid strokes.
+     */
+    ESQUADRO,
+
     NENHUM,
 }
 
@@ -59,7 +77,7 @@ val MagnaArea.marcador: MarcadorArea
         MagnaArea.PROPOSICOES -> MarcadorArea.TARJA
         MagnaArea.VOTACOES -> MarcadorArea.TRACEJADO
         MagnaArea.PARTIDOS -> MarcadorArea.PONTOS
-        MagnaArea.COMISSOES,
+        MagnaArea.COMISSOES -> MarcadorArea.ESQUADRO
         MagnaArea.LEGISLATURA -> MarcadorArea.NENHUM
     }
 
@@ -159,6 +177,30 @@ fun Modifier.marcadorDeArea(
                 }
             }
 
+            // Drawn as one path with a joined corner rather than two lines, so the turn is
+            // a corner and not two ends that happen to touch.
+            MarcadorArea.ESQUADRO -> {
+                val folga = ESQUADRO_RECUO.toPx()
+                val braco = ESQUADRO_BRACO.toPx()
+                val base = size.height - folga
+
+                val caminho = Path().apply {
+                    moveTo(folga, base - braco)
+                    lineTo(folga, base)
+                    lineTo(folga + braco, base)
+                }
+
+                drawPath(
+                    path = caminho,
+                    color = cor,
+                    style = Stroke(
+                        width = ESQUADRO_ESPESSURA.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    ),
+                )
+            }
+
             MarcadorArea.NENHUM -> Unit
         }
 
@@ -208,3 +250,14 @@ private const val PONTOS_NO_CANTO = 5
 
 /** Where the far end of the row fades to. Not zero: a dot that vanishes ends the row. */
 private const val ALFA_MAIS_FRACO = 0.15f
+
+/**
+ * Far enough in that the rounded corner of the card turns outside the bracket, the same way
+ * the tarja leaves a strip of surface beside it.
+ */
+private val ESQUADRO_RECUO = 12.dp
+
+/** Short. Long enough and it stops being a corner and starts being a frame. */
+private val ESQUADRO_BRACO = 18.dp
+
+private val ESQUADRO_ESPESSURA = 3.dp

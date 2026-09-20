@@ -22,7 +22,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +45,9 @@ import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.component.SomethingWentWrongComponent
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
+import com.tick.magna.ui.core.theme.MagnaArea
+import com.tick.magna.ui.core.theme.accent
+import com.tick.magna.ui.core.theme.container
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.comissao_membros_empty
@@ -60,6 +62,7 @@ import magna.composeapp.generated.resources.comissao_presidentes_incompleto
 import magna.composeapp.generated.resources.comissao_tab_composicao
 import magna.composeapp.generated.resources.comissao_tab_presidentes
 import magna.composeapp.generated.resources.comissao_tab_votacoes
+import magna.composeapp.generated.resources.comissao_votacoes_resumo
 import magna.composeapp.generated.resources.comissao_votacoes_empty
 import magna.composeapp.generated.resources.comissao_votacoes_empty_description
 import magna.composeapp.generated.resources.comissoes_permanentes_votacoes_title
@@ -95,16 +98,27 @@ private fun ComissaoPermanenteDetail(
     onTabSelected: (ComissaoTab) -> Unit = {},
     onDeputadoClick: (String) -> Unit = {},
 ) {
+    val acento = MagnaArea.COMISSOES.accent
+
     MagnaScreen(
         modifier = modifier,
         title = state.comissaoPermanenteNomeResumido.orEmpty(),
         navigateBack = navigateBack,
+        area = MagnaArea.COMISSOES,
         belowTopBar = {
-            PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
+            // The tab row continues the bar rather than starting a new surface under it, so
+            // the area's colour does not stop halfway down the header.
+            PrimaryTabRow(
+                selectedTabIndex = state.selectedTab.ordinal,
+                containerColor = MagnaArea.COMISSOES.container,
+                contentColor = acento,
+            ) {
                 ComissaoTab.entries.forEach { tab ->
                     Tab(
                         selected = state.selectedTab == tab,
                         onClick = { onTabSelected(tab) },
+                        selectedContentColor = acento,
+                        unselectedContentColor = acento.copy(alpha = ALFA_DA_ABA_APAGADA),
                         text = { Text(text = stringResource(tab.label)) },
                     )
                 }
@@ -153,7 +167,10 @@ private fun VotacoesTab(
 
     when (val votacoes = votacoesState) {
         VotacoesState.Loading ->
-            LoadingComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
+            LoadingComponent(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                area = MagnaArea.COMISSOES,
+            )
 
         VotacoesState.Error ->
             SomethingWentWrongComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
@@ -186,12 +203,17 @@ private fun VotacoesTab(
                         Text(
                             text = stringResource(Res.string.comissoes_permanentes_votacoes_title),
                             style = typography.titleLarge.copy(
-                                color = colorScheme.primary,
+                                color = MagnaArea.COMISSOES.accent,
                                 fontWeight = FontWeight.SemiBold,
                             )
                         )
                         Text(
-                            text = "${votacoes.votacoes.size} total · ${votacoes.aprovadas} aprovadas · ${votacoes.rejeitadas} rejeitadas",
+                            text = stringResource(
+                                Res.string.comissao_votacoes_resumo,
+                                votacoes.votacoes.size,
+                                votacoes.aprovadas,
+                                votacoes.rejeitadas,
+                            ),
                             style = typography.bodySmall.copy(
                                 color = colorScheme.onSurfaceVariant
                             )
@@ -280,11 +302,17 @@ private fun VotacoesTab(
                                     }
                                 }
 
+                                // Capped, and a size down. A committee ementa runs to forty
+                                // words and this is a card in a two-column grid: at bodyMedium
+                                // one of them filled the column with a wall of bold text and
+                                // pushed everything under it off the screen.
                                 Text(
                                     text = proposicao.ementa,
-                                    style = typography.bodyMedium.copy(
+                                    style = typography.bodySmall.copy(
                                         fontWeight = FontWeight.SemiBold
-                                    )
+                                    ),
+                                    maxLines = LINHAS_DA_EMENTA,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
 
@@ -294,9 +322,11 @@ private fun VotacoesTab(
                             votacao.parecer?.let { parecer ->
                                 Text(
                                     text = parecer,
-                                    style = typography.bodySmall.copy(
+                                    style = typography.labelSmall.copy(
                                         color = colorScheme.onSurfaceVariant
-                                    )
+                                    ),
+                                    maxLines = LINHAS_DO_PARECER,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }
@@ -317,7 +347,10 @@ private fun ComposicaoTab(
 
     when (membrosState) {
         MembrosState.Loading ->
-            LoadingComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
+            LoadingComponent(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                area = MagnaArea.COMISSOES,
+            )
 
         MembrosState.Error ->
             SomethingWentWrongComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
@@ -401,7 +434,7 @@ private fun SectionHeader(title: String, count: Int) {
         Text(
             text = title,
             style = typography.titleMedium.copy(
-                color = colorScheme.primary,
+                color = MagnaArea.COMISSOES.accent,
                 fontWeight = FontWeight.SemiBold,
             ),
         )
@@ -460,7 +493,7 @@ private fun MembroRow(
                 modifier = Modifier
                     .background(
                         color = if (membro.isPresidente) {
-                            colorScheme.primaryContainer
+                            MagnaArea.COMISSOES.container
                         } else {
                             colorScheme.surfaceContainerHigh
                         },
@@ -472,7 +505,7 @@ private fun MembroRow(
                     text = membro.titulo,
                     style = typography.labelSmall.copy(
                         color = if (membro.isPresidente) {
-                            colorScheme.onPrimaryContainer
+                            MagnaArea.COMISSOES.accent
                         } else {
                             colorScheme.onSurfaceVariant
                         },
@@ -499,7 +532,10 @@ private fun PresidentesTab(
         // first moment of a screen that has not resolved its committee yet. A spinner is what
         // both of those are.
         PresidentesState.Idle, PresidentesState.Loading ->
-            LoadingComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
+            LoadingComponent(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                area = MagnaArea.COMISSOES,
+            )
 
         PresidentesState.Error ->
             SomethingWentWrongComponent(modifier = Modifier.fillMaxSize().padding(paddingValues))
@@ -585,7 +621,11 @@ private fun PresidenteRow(
             Text(
                 text = periodo,
                 style = typography.labelSmall.copy(
-                    color = if (isAtual) colorScheme.primary else colorScheme.onSurfaceVariant,
+                    color = if (isAtual) {
+                        MagnaArea.COMISSOES.accent
+                    } else {
+                        colorScheme.onSurfaceVariant
+                    },
                     fontWeight = if (isAtual) FontWeight.SemiBold else FontWeight.Normal,
                 ),
             )
@@ -669,3 +709,14 @@ private fun PreviewComissaoPermanenteError() {
         )
     )
 }
+
+/** Visible as a label, clearly not the one selected. The row's indicator carries the rest. */
+private const val ALFA_DA_ABA_APAGADA = 0.6f
+
+/**
+ * Enough to know what the vote was about, few enough that two cards side by side are roughly
+ * the same object. The whole text is one tap away on the proposition itself.
+ */
+private const val LINHAS_DA_EMENTA = 4
+
+private const val LINHAS_DO_PARECER = 3

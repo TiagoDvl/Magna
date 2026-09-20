@@ -39,9 +39,10 @@
     <string name="sync_step_orgaos">comissões</string>
     <string name="sync_step_legislaturas">lista de legislaturas</string>
 
-    <string name="recent_deputados_feature_discovery_title">Pesquise por deputados para guardar os mais recentes </string>
+    <string name="recent_deputados_empty_title">Comece por um deputado</string>
+    <string name="recent_deputados_empty_body">Quem você abrir fica guardado aqui.</string>
+    <string name="recent_deputados_empty_action">Pesquisar deputados</string>
     <string name="recent_deputados_title">Deputados recentes</string>
-    <string name="recent_deputados_find_more">Pesquisar</string>
 
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
     <string name="deputados_search_title">Deputados</string>
@@ -124,6 +125,7 @@
     <string name="comissoes_list_empty_description">As comissões permanentes de hoje foram criadas depois do fim deste mandato.</string>
     <string name="comissao_votacoes_empty">Nenhuma votação registrada</string>
     <string name="comissao_votacoes_empty_description">A Câmara não publicou votações desta comissão. Isso acontece: nem toda comissão vota com frequência.</string>
+    <string name="comissao_votacoes_resumo">%1$d total · %2$d aprovadas · %3$d rejeitadas</string>
     <string name="comissao_tab_votacoes">Votações</string>
     <string name="comissao_tab_composicao">Composição</string>
     <string name="comissao_membros_mesa">Mesa</string>
