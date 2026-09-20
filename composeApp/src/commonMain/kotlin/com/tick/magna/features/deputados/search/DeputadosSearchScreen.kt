@@ -74,6 +74,7 @@ import magna.composeapp.generated.resources.deputados_search_sheet_partido
 import magna.composeapp.generated.resources.deputados_search_sheet_regiao
 import magna.composeapp.generated.resources.deputados_search_sheet_uf
 import magna.composeapp.generated.resources.deputados_search_title
+import magna.composeapp.generated.resources.deputados_search_title_legislatura
 import magna.composeapp.generated.resources.deputados_search_uf_label
 import magna.composeapp.generated.resources.ic_chevron_right
 import org.jetbrains.compose.resources.painterResource
@@ -120,8 +121,15 @@ private fun DeputadosSearchContent(
 
     MagnaScreen(
         modifier = modifier,
-        title = stringResource(Res.string.deputados_search_title),
+        // The area, not the feature's verb: this screen is Deputados, scoped to a term that
+        // every count on it depends on. The bar takes the area's colour for the same reason
+        // the block below does — a green field that stops at the bar is a band, not an
+        // identity.
+        title = state.legislaturaId
+            ?.let { stringResource(Res.string.deputados_search_title_legislatura, it) }
+            ?: stringResource(Res.string.deputados_search_title),
         navigateBack = navigateBack,
+        area = MagnaArea.DEPUTADOS,
     ) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -145,7 +153,7 @@ private fun DeputadosSearchContent(
                             bottomEnd = dimensions.grid20,
                         ),
                     )
-                    .padding(bottom = dimensions.grid12),
+                    .padding(top = dimensions.grid8, bottom = dimensions.grid12),
                 verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
             ) {
                 CampoDeBusca(

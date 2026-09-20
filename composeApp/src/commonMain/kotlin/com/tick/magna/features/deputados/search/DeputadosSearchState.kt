@@ -25,6 +25,8 @@ data class DeputadosSearchState(
     val opcoesUf: List<OpcaoFiltro> = emptyList(),
     val opcoesPartido: List<OpcaoFiltro> = emptyList(),
     val opcoesRegiao: List<OpcaoFiltro> = emptyList(),
+    /** Null before the user row is read; the title then says only "Deputados". */
+    val legislaturaId: String? = null,
 ) {
 
     val temFiltro: Boolean

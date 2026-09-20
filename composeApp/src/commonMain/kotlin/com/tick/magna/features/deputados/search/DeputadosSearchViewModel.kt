@@ -7,6 +7,7 @@ import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.user.UserRepositoryInterface
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 class DeputadosSearchViewModel(
     private val dispatcher: DispatcherInterface,
     private val deputadosRepository: DeputadosRepositoryInterface,
+    private val userRepository: UserRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
 ) : ViewModel() {
@@ -33,11 +35,20 @@ class DeputadosSearchViewModel(
 
     init {
         trackSearchesAfterTypingStops()
+        observeLegislatura()
 
         viewModelScope.launch(dispatcher.io) {
             deputadosRepository.getDeputados().collect { deputados ->
                 logger.d("loaded ${deputados.size} deputados", TAG)
                 _state.update { current -> current.copy(isLoading = false, deputados = deputados).recalcular() }
+            }
+        }
+    }
+
+    private fun observeLegislatura() {
+        viewModelScope.launch(dispatcher.io) {
+            userRepository.observeLegislaturaId().collect { id ->
+                _state.update { it.copy(legislaturaId = id) }
             }
         }
     }

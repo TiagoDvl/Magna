@@ -10,6 +10,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_arrow_back
@@ -37,6 +38,8 @@ fun MagnaScreen(
     navigateBack: (() -> Unit)? = null,
     /** Fills the navigation row of a screen with no back arrow. See MagnaMediumTopBar. */
     navigationLabel: String? = null,
+    /** Paints the bar in this area's container, so the colour does not stop at the bar. */
+    area: MagnaArea? = null,
     actions: @Composable RowScope.() -> Unit = {},
     /** Sits under the bar and scrolls with it: a tab row, a filter strip. */
     belowTopBar: @Composable () -> Unit = {},
@@ -57,6 +60,7 @@ fun MagnaScreen(
                     navigationLabel = navigationLabel,
                     actions = actions,
                     scrollBehavior = scrollBehavior,
+                    area = area,
                 )
 
                 belowTopBar()

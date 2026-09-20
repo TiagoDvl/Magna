@@ -44,7 +44,8 @@
     <string name="recent_deputados_find_more">Pesquisar</string>
 
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
-    <string name="deputados_search_title">Pesquisar deputados</string>
+    <string name="deputados_search_title">Deputados</string>
+    <string name="deputados_search_title_legislatura">Deputados · Legislatura %1$s</string>
     <string name="deputados_search_search_placeholder">Pesquisa por nome</string>
     <string name="deputados_search_uf_label">UF</string>
     <string name="deputados_search_partido_label">Partido</string>

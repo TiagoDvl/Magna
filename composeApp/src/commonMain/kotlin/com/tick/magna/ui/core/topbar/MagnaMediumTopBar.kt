@@ -18,7 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
+import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
+import com.tick.magna.ui.core.theme.container
+import com.tick.magna.ui.core.theme.onContainer
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.action_back
 import magna.composeapp.generated.resources.ic_arrow_back
@@ -54,18 +57,27 @@ fun MagnaMediumTopBar(
      * `nestedScroll` modifier, and a bar that owns its own state silently does nothing.
      */
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    /**
+     * Paints the bar in the area's own container.
+     *
+     * Null keeps the page background, which is right for a screen that frames no single part
+     * of the Camara — the Home, which is all of them. On a feature screen the colour has to
+     * reach the bar: a green block under a cream bar is a band that stops halfway down.
+     */
+    area: MagnaArea? = null,
 ) {
     MediumTopAppBar(
         scrollBehavior = scrollBehavior,
         actions = actions,
         // The title used to be primary green and Bold, which is exactly what a section header
         // is — and MagnaArea.DEPUTADOS.accent is that same green, so the Home's bar and its
-        // first section were the same object at two sizes. The bar says where you are and
-        // stays neutral; a section says which part of the Camara it is and keeps the colour.
+        // first section were the same object at two sizes. The bar says where you are; a
+        // section says which part of the Camara it is and keeps the accent.
         colors = TopAppBarDefaults.topAppBarColors().copy(
-            containerColor = MaterialTheme.colorScheme.background,
-            navigationIconContentColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            containerColor = area?.container ?: MaterialTheme.colorScheme.background,
+            navigationIconContentColor = area?.onContainer ?: MaterialTheme.colorScheme.primary,
+            titleContentColor = area?.onContainer ?: MaterialTheme.colorScheme.onSurface,
+            scrolledContainerColor = area?.container ?: MaterialTheme.colorScheme.background,
         ),
         navigationIcon = {
             when {

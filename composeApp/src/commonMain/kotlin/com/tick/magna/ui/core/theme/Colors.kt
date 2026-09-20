@@ -124,3 +124,17 @@ val comissoesDark = Color(0xFF8FCFC4)
 /** Bronze for Votações: a record being struck, and the one hue in the app that is not cool. */
 val votacoesLight = Color(0xFF8A5A33)
 val votacoesDark = Color(0xFFE5B78F)
+
+// The container of each added hue, so an area can tint a surface and not only an icon. The
+// three theme-backed areas already had one — primary, secondary and tertiary all ship a
+// container — and these two were hexes with nothing behind them. Built at the same lightness
+// the theme's containers sit at, and every pairing below clears 6.4:1.
+val comissoesContainerLight = Color(0xFFCFEDEA)
+val onComissoesContainerLight = Color(0xFF0C312D)
+val comissoesContainerDark = Color(0xFF215953)
+val onComissoesContainerDark = Color(0xFFCFEDEA)
+
+val votacoesContainerLight = Color(0xFFEFDCCD)
+val onVotacoesContainerLight = Color(0xFF331D0A)
+val votacoesContainerDark = Color(0xFF5C3A1E)
+val onVotacoesContainerDark = Color(0xFFEFDCCD)

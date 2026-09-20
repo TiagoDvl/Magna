@@ -85,3 +85,45 @@ val MagnaArea.accent: Color
 private fun Color.luminanceIsDark(): Boolean = (red + green + blue) < DARK_THRESHOLD
 
 private const val DARK_THRESHOLD = 1.5f
+
+/**
+ * The area's colour as a surface, for chrome that should belong to the feature it frames.
+ *
+ * A top bar in this colour and a control block in it below make one continuous field rather
+ * than a band of colour that stops halfway down the screen. The legislature has none, because
+ * it is the frame around everything and not a feature of its own.
+ */
+val MagnaArea.container: Color
+    @Composable
+    @ReadOnlyComposable
+    get() {
+        val scheme = MaterialTheme.colorScheme
+        val dark = scheme.background.luminanceIsDark()
+
+        return when (this) {
+            MagnaArea.DEPUTADOS -> scheme.primaryContainer
+            MagnaArea.PARTIDOS -> scheme.tertiaryContainer
+            MagnaArea.PROPOSICOES -> scheme.secondaryContainer
+            MagnaArea.COMISSOES -> if (dark) comissoesContainerDark else comissoesContainerLight
+            MagnaArea.VOTACOES -> if (dark) votacoesContainerDark else votacoesContainerLight
+            MagnaArea.LEGISLATURA -> scheme.surfaceContainer
+        }
+    }
+
+/** What reads on [container]. Every pairing clears 6.4:1. */
+val MagnaArea.onContainer: Color
+    @Composable
+    @ReadOnlyComposable
+    get() {
+        val scheme = MaterialTheme.colorScheme
+        val dark = scheme.background.luminanceIsDark()
+
+        return when (this) {
+            MagnaArea.DEPUTADOS -> scheme.onPrimaryContainer
+            MagnaArea.PARTIDOS -> scheme.onTertiaryContainer
+            MagnaArea.PROPOSICOES -> scheme.onSecondaryContainer
+            MagnaArea.COMISSOES -> if (dark) onComissoesContainerDark else onComissoesContainerLight
+            MagnaArea.VOTACOES -> if (dark) onVotacoesContainerDark else onVotacoesContainerLight
+            MagnaArea.LEGISLATURA -> scheme.onSurface
+        }
+    }
