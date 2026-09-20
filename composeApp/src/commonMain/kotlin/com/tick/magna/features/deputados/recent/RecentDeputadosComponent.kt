@@ -39,6 +39,7 @@ import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.MagnaArea
+import com.tick.magna.ui.core.theme.marcadorDeArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_person_hand_raised
@@ -160,7 +161,13 @@ private fun RecentDeputados(
         ) {
             items(deputados) { deputado ->
                 Card(
-                    modifier = Modifier.fillMaxHeight().width(CARD_WIDTH),
+                    // The area's marker, because the Home is where the areas are mixed: four
+                    // sections of cards that are otherwise the same object. Inside the
+                    // deputados screen the rows carry none — there every row is this area.
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(CARD_WIDTH)
+                        .marcadorDeArea(MagnaArea.DEPUTADOS, MaterialTheme.shapes.medium),
                     elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainer,

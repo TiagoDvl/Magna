@@ -27,6 +27,24 @@ Daí três regras:
 2. O acento nunca é preenchimento atrás de um partido ou de um deputado. Ele é ícone, título de seção e no máximo um filete.
 3. A legislatura não tem cor. Ela é a moldura do resto, não mais uma coisa para olhar.
 
+### Marcador de área
+
+A cor sozinha não separa seis áreas: seis acentos dentro de uma paleta institucional não são seis matizes distinguíveis, e quem não separa os verdes dos teais fica sem nada. Uma forma é lida antes de uma cor ser comparada, e sobrevive em escala de cinza.
+
+| área | marcador |
+|---|---|
+| Deputados | cunha no canto superior direito |
+| Proposições | tarja de 4dp na borda esquerda |
+| Partidos, Comissões, Votações | ainda não definidos — não desenham nada |
+
+Uma marca inventada para preencher um slot é uma marca que ninguém aprende. As três em aberto ficam sem marcador até serem decididas.
+
+**Onde aparece:** nos itens da Home, que é onde as áreas se misturam e um card precisa dizer de qual delas é.
+
+**Onde não aparece:** nas linhas de lista dentro da própria feature. Numa lista em que toda linha é da mesma área, o marcador não diz nada e se repete quarenta e cinco vezes.
+
+Esteve no topbar da feature e saiu: a barra desenha de borda a borda, então o canto superior direito dela fica sob a barra de status e a cunha caiu em cima do ícone de bateria. Levar a identidade para dentro da feature é um problema separado — a barra já toma a cor da área.
+
 ## 2. Espaçamento
 
 `ui/core/theme/Dimensions.kt`, acessado por `LocalDimensions.current`. **Nenhum `.dp` cru em `features/` ou `ui/`.** Se o valor não existe na escala, ou ele vira token ou ele vira o token vizinho — o que não pode é ficar solto. Foi assim que apareceram os 31 de hoje.
