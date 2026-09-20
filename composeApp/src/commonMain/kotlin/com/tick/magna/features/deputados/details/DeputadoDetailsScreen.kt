@@ -3,7 +3,6 @@ package com.tick.magna.features.deputados.details
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -62,6 +60,7 @@ import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.MagnaScreen
 import com.tick.magna.ui.component.ProposicaoTipoBadge
+import com.tick.magna.ui.component.VotoTag
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
 import com.tick.magna.ui.core.theme.LocalDimensions
@@ -89,7 +88,7 @@ import magna.composeapp.generated.resources.deputado_tab_votos
 import magna.composeapp.generated.resources.deputado_votos_empty
 import magna.composeapp.generated.resources.deputado_votos_empty_description
 import magna.composeapp.generated.resources.deputado_votos_nota
-import magna.composeapp.generated.resources.deputado_votos_resumo
+import magna.composeapp.generated.resources.votos_resumo
 import magna.composeapp.generated.resources.folder_eye
 import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.ic_light_users
@@ -680,7 +679,7 @@ private fun DeputadoVotos(state: VotosState, onVotacaoClick: (String) -> Unit) {
                 Text(
                     modifier = Modifier.padding(bottom = dimensions.grid4),
                     text = stringResource(
-                        Res.string.deputado_votos_resumo,
+                        Res.string.votos_resumo,
                         state.votos.size,
                         state.sim,
                         state.nao,
@@ -758,56 +757,6 @@ private fun VotoCard(voto: VotoDeputado, onClick: () -> Unit) {
 
             Text(text = voto.descricao, style = typography.bodyMedium)
         }
-    }
-}
-
-/**
- * How this person voted, which is the first thing the card says.
- *
- * Sim and Não are told apart by colour as well as by the word, because the word is four
- * characters at eleven points and the list is read by scanning it. The pairing is the one the
- * plenary's own board uses, and it is about the vote and not about whether it was right —
- * whether the votacao passed is a separate fact and is deliberately not drawn against the
- * person. Everything else — abstenção, obstrução, artigo 17 — is neutral, because none of them
- * is a vote and colouring each would be five colours for one question.
- *
- * The word stays the primary signal, so the tag still reads with no colour vision at all.
- */
-@Composable
-private fun VotoTag(voto: String) {
-    val dimensions = LocalDimensions.current
-    val colorScheme = MaterialTheme.colorScheme
-    val typography = MaterialTheme.typography
-
-    val fundo: Color
-    val frente: Color
-
-    when (tomDoVoto(voto)) {
-        TomDoVoto.SIM -> {
-            fundo = colorScheme.primaryContainer
-            frente = colorScheme.onPrimaryContainer
-        }
-
-        TomDoVoto.NAO -> {
-            fundo = colorScheme.errorContainer
-            frente = colorScheme.onErrorContainer
-        }
-
-        TomDoVoto.OUTRO -> {
-            fundo = colorScheme.surfaceContainerHighest
-            frente = colorScheme.onSurfaceVariant
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .background(color = fundo, shape = MaterialTheme.shapes.extraSmall)
-            .padding(horizontal = dimensions.grid8, vertical = dimensions.grid2),
-    ) {
-        Text(
-            text = voto,
-            style = typography.labelSmall.copy(color = frente, fontWeight = FontWeight.Bold),
-        )
     }
 }
 

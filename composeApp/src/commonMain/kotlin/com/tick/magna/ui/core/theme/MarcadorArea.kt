@@ -6,6 +6,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -33,6 +34,9 @@ enum class MarcadorArea {
     /** A full-height band beside the left edge, with the card's colour still outside it. */
     TARJA,
 
+    /** A dashed rule above the bottom edge: a tally being kept rather than a thing being held. */
+    TRACEJADO,
+
     NENHUM,
 }
 
@@ -40,9 +44,9 @@ val MagnaArea.marcador: MarcadorArea
     get() = when (this) {
         MagnaArea.DEPUTADOS -> MarcadorArea.CUNHA
         MagnaArea.PROPOSICOES -> MarcadorArea.TARJA
+        MagnaArea.VOTACOES -> MarcadorArea.TRACEJADO
         MagnaArea.PARTIDOS,
         MagnaArea.COMISSOES,
-        MagnaArea.VOTACOES,
         MagnaArea.LEGISLATURA -> MarcadorArea.NENHUM
     }
 
@@ -106,6 +110,23 @@ fun Modifier.marcadorDeArea(
                 size = size.copy(width = TARJA_ESPESSURA.toPx()),
             )
 
+            // A different edge, not a different treatment of the same one: a dashed band
+            // beside the solid one would be two marks to compare rather than two places to
+            // look. Inset upward so the card's colour still turns both bottom corners.
+            MarcadorArea.TRACEJADO -> {
+                val y = size.height - TRACEJADO_RECUO.toPx()
+
+                drawLine(
+                    color = cor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = TRACEJADO_ESPESSURA.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(
+                        floatArrayOf(TRACO.toPx(), VAO.toPx()),
+                    ),
+                )
+            }
+
             MarcadorArea.NENHUM -> Unit
         }
 
@@ -132,3 +153,15 @@ private val ESPESSURA = 10.dp
 private val TARJA_RECUO = 4.dp
 
 private val TARJA_ESPESSURA = 4.dp
+
+/** Above the bottom edge rather than on it, for the same reason the tarja sits off the left. */
+private val TRACEJADO_RECUO = 6.dp
+
+private val TRACEJADO_ESPESSURA = 3.dp
+
+/**
+ * Long enough to read as a rule and short enough to read as broken. A 2:2 dash at this weight
+ * looks like a printing fault; 8 on 5 reads as deliberate at arm's length.
+ */
+private val TRACO = 8.dp
+private val VAO = 5.dp

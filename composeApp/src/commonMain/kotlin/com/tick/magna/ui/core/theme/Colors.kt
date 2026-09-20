@@ -10,7 +10,11 @@ val primaryContainerLight = Color(0xFFB5E8CA)
 val onPrimaryContainerLight = Color(0xFF003820)
 
 // Secondary: Bright Gold (sophisticated, neutral from flag yellow)
-val secondaryLight = Color(0xFFB89319) // Richer, brighter gold
+// Darkened from B89319, which measured 2.62:1 on a card — below even the 3.0 a meaningful
+// graphic owes, and this gold carries the tarja of every proposicao card and the title of
+// every section of that area. Now 3.33:1 on a card and 3.60 on the page. Text smaller than a
+// section title still uses the darker half of the pair; see MagnaArea.onContainer.
+val secondaryLight = Color(0xFFA28116)
 val onSecondaryLight = Color(0xFFFFFFFF)
 val secondaryContainerLight = Color(0xFFFFEDB8)
 val onSecondaryContainerLight = Color(0xFF3D2F00)
@@ -35,7 +39,13 @@ val onBackgroundLight = Color(0xFF1A1C1E)
 val surfaceLight = Color(0xFFFFFFFF)
 val onSurfaceLight = Color(0xFF1A1C1E)
 val surfaceVariantLight = Color(0xFFE5E3DC)
-val onSurfaceVariantLight = Color(0xFF45464E)
+// Warmed from 45464E and darkened a little. The number was never the problem — the old one
+// measured 9.15:1 on the page — the temperature was: hue 233 on surfaces that were retuned to
+// hue 45, so every metadata label sat cool against a warm background and washed out badly
+// against the gold of proposicoes. Same fix the surface scale already had. Now hue 45 and
+// 9.33:1 on the page, 8.63 on a card, 8.23 on the gold. The dark one is left alone: there the
+// background is cool too, so a cool grey belongs.
+val onSurfaceVariantLight = Color(0xFF48453D)
 
 // Outlines and accents
 val outlineLight = Color(0xFF94959C)
@@ -72,7 +82,9 @@ val onPrimaryContainerDark = Color(0xFFB5E8CA)
 // Secondary: Warm gold for dark mode
 val secondaryDark = Color(0xFFF2DC8F) // Brighter, warmer gold
 val onSecondaryDark = Color(0xFF5A4700)
-val secondaryContainerDark = Color(0xFF826E00)
+// Darkened from 826E00, which read at 4.32:1 against its own `on` colour — under the floor
+// for the button label that is the one place it carries text at size. Now 6.65:1.
+val secondaryContainerDark = Color(0xFF615200)
 val onSecondaryContainerDark = Color(0xFFFFEDB8)
 
 // Tertiary: Light ocean for dark mode
@@ -121,9 +133,17 @@ val surfaceContainerHighestDark = Color(0xFF3B3D40)
 val comissoesLight = Color(0xFF2F6F68)
 val comissoesDark = Color(0xFF8FCFC4)
 
-/** Bronze for Votações: a record being struck, and the one hue in the app that is not cool. */
-val votacoesLight = Color(0xFF8A5A33)
-val votacoesDark = Color(0xFFE5B78F)
+/**
+ * Olive for Votações: the green of deputados carried into the gold of proposições, which is
+ * what a vote is — the people acting on a bill. It was a bronze, invented to be a warm hue
+ * rather than to mean anything.
+ *
+ * Hue 85, which is 75° from the deputados green and 39° from the proposicoes gold, so it is
+ * read as its own colour rather than as either of its parents. Both ends clear their floors:
+ * 4.69:1 on a card in light and 8.82 in dark.
+ */
+val votacoesLight = Color(0xFF547722)
+val votacoesDark = Color(0xFFB4D289)
 
 // The container of each added hue, so an area can tint a surface and not only an icon. The
 // three theme-backed areas already had one — primary, secondary and tertiary all ship a
@@ -134,7 +154,7 @@ val onComissoesContainerLight = Color(0xFF0C312D)
 val comissoesContainerDark = Color(0xFF215953)
 val onComissoesContainerDark = Color(0xFFCFEDEA)
 
-val votacoesContainerLight = Color(0xFFEFDCCD)
-val onVotacoesContainerLight = Color(0xFF331D0A)
-val votacoesContainerDark = Color(0xFF5C3A1E)
-val onVotacoesContainerDark = Color(0xFFEFDCCD)
+val votacoesContainerLight = Color(0xFFD3E8B5)
+val onVotacoesContainerLight = Color(0xFF22320C)
+val votacoesContainerDark = Color(0xFF3F5322)
+val onVotacoesContainerDark = Color(0xFFD3E8B5)

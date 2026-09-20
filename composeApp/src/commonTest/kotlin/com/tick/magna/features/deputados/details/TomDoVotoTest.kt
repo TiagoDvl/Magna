@@ -1,6 +1,8 @@
 package com.tick.magna.features.deputados.details
 
+import com.tick.magna.data.domain.TomDoVoto
 import com.tick.magna.data.domain.VotoDeputado
+import com.tick.magna.data.domain.tomDoVoto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

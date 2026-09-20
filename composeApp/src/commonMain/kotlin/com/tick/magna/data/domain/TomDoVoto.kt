@@ -1,4 +1,4 @@
-package com.tick.magna.features.deputados.details
+package com.tick.magna.data.domain
 
 /**
  * The three ways a vote reads, which is fewer than the five the Camara spells.

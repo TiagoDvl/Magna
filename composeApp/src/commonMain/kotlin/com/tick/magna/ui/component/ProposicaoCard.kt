@@ -34,6 +34,7 @@ import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.accent
+import com.tick.magna.ui.core.theme.onContainer
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.proposicao_autoria_outros
@@ -233,7 +234,9 @@ private fun AutoriaRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.End,
-                style = typography.labelSmall.copy(color = MagnaArea.PROPOSICOES.accent),
+                // The darker half of the pair, not the accent: eleven-point text owes 4.5:1
+                // and the gold accent measures 3.33 on this card.
+                style = typography.labelSmall.copy(color = MagnaArea.PROPOSICOES.onContainer),
             )
         }
     }

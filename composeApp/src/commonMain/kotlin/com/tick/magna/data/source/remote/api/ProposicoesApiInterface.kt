@@ -3,6 +3,7 @@ package com.tick.magna.data.source.remote.api
 import com.tick.magna.data.source.remote.response.ProposicaoAutoresResponse
 import com.tick.magna.data.source.remote.response.ProposicaoDetailResponse
 import com.tick.magna.data.source.remote.response.ProposicaoTemasResponse
+import com.tick.magna.data.source.remote.response.ProposicaoTramitacoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesSiglaTipoResponse
 import com.tick.magna.data.source.remote.response.VotacoesResponse
@@ -40,4 +41,12 @@ interface ProposicoesApiInterface {
     suspend fun getProposicaoTemas(idProposicao: String): ProposicaoTemasResponse
 
     suspend fun getProposicaoVotacoes(idProposicao: String): VotacoesResponse
+
+    /**
+     * Every step the proposition has taken, oldest first.
+     *
+     * One request and a long answer: 60 to 109 steps on the four PLs of 2023 measured. The
+     * screen that asks for it shows the end of the list.
+     */
+    suspend fun getProposicaoTramitacoes(idProposicao: String): ProposicaoTramitacoesResponse
 }

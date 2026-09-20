@@ -38,10 +38,16 @@ class ProposicaoDetailsViewModel(
     init {
         logger.d("init: proposicaoId=$proposicaoId", TAG)
         viewModelScope.launch(dispatcherInterface.io) {
+            // Four flows, four requests, all running together. A failure in any of the
+            // three optional ones is Empty rather than Error: the section it feeds is drawn
+            // only when it has something, and a proposition with no votacoes and one with a
+            // votacoes endpoint that would not answer both have nothing to show.
             combine(
                 proposicoesRepository.getProposicaoDetail(proposicaoId),
                 proposicoesRepository.getProposicaoAutores(proposicaoId),
-            ) { detail, autores ->
+                proposicoesRepository.getProposicaoVotacoes(proposicaoId),
+                proposicoesRepository.getProposicaoTramitacoes(proposicaoId),
+            ) { detail, autores, votacoes, tramitacoes ->
                 ProposicaoDetailsState(
                     headerState = when (detail) {
                         Resource.Loading -> ProposicaoHeaderState.Loading
@@ -57,6 +63,22 @@ class ProposicaoDetailsViewModel(
                         } else {
                             ProposicaoAutoresState.Content(autores.data)
                         }
+                    },
+                    votacoesState = when (votacoes) {
+                        Resource.Loading -> ProposicaoVotacoesState.Loading
+                        is Resource.Error -> ProposicaoVotacoesState.Empty
+                        is Resource.Content -> votacoes.data
+                            .takeIf { it.isNotEmpty() }
+                            ?.let(ProposicaoVotacoesState::Content)
+                            ?: ProposicaoVotacoesState.Empty
+                    },
+                    tramitacoesState = when (tramitacoes) {
+                        Resource.Loading -> ProposicaoTramitacoesState.Loading
+                        is Resource.Error -> ProposicaoTramitacoesState.Empty
+                        is Resource.Content -> tramitacoes.data
+                            .takeIf { it.isNotEmpty() }
+                            ?.let(ProposicaoTramitacoesState::Content)
+                            ?: ProposicaoTramitacoesState.Empty
                     },
                 )
             }.collect { state ->

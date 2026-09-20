@@ -4,6 +4,8 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Proposicao
 import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.ProposicaoDetail
+import com.tick.magna.data.domain.TramitacaoProposicao
+import com.tick.magna.data.domain.VotacaoDaProposicao
 import com.tick.magna.data.domain.ProposicoesNaJanela
 import com.tick.magna.data.repository.Resource
 import kotlinx.coroutines.flow.Flow
@@ -63,6 +65,15 @@ interface ProposicoesRepositoryInterface {
     suspend fun contarNaJanela(siglaTipos: List<String> = emptyList()): ProposicoesNaJanela?
 
     fun getProposicaoDetail(id: String): Flow<Resource<ProposicaoDetail>>
+
+    /** The votacoes this proposition went through, newest first. One request. */
+    fun getProposicaoVotacoes(id: String): Flow<Resource<List<VotacaoDaProposicao>>>
+
+    /**
+     * Every step of its passage, newest first. One request, and a long answer — 60 to 109 on
+     * the PLs measured — so the screen decides how much of it to draw.
+     */
+    fun getProposicaoTramitacoes(id: String): Flow<Resource<List<TramitacaoProposicao>>>
 
     fun getProposicaoAutores(id: String): Flow<Resource<List<Deputado>>>
 }

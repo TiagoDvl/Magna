@@ -3,6 +3,8 @@ package com.tick.magna.features.deputados.details
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
+import com.tick.magna.data.domain.TomDoVoto
+import com.tick.magna.data.domain.tomDoVoto
 import com.tick.magna.data.domain.VotoDeputado
 
 data class DeputadoDetailsState(

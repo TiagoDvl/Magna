@@ -35,9 +35,14 @@ A cor sozinha não separa seis áreas: seis acentos dentro de uma paleta institu
 |---|---|
 | Deputados | faixa diagonal no canto superior direito |
 | Proposições | faixa vertical de 4dp, recuada 4dp da borda esquerda |
-| Partidos, Comissões, Votações | ainda não definidos — não desenham nada |
+| Votações | linha tracejada acima da borda inferior |
+| Partidos, Comissões | ainda não definidos — não desenham nada |
 
-Uma marca inventada para preencher um slot é uma marca que ninguém aprende. As três em aberto ficam sem marcador até serem decididas.
+Uma marca inventada para preencher um slot é uma marca que ninguém aprende. As duas em aberto ficam sem marcador até serem decididas.
+
+Cada uma ocupa uma **aresta diferente**, não um tratamento diferente da mesma: um tracejado ao lado de uma faixa sólida seriam duas marcas para comparar, e três lugares para olhar se leem antes disso.
+
+**O tracejado de votações ainda não desenha em lugar nenhum**, porque votações não tem cards na Home — é uma tela-folha, alcançada pelo voto de um deputado ou pela proposição. A forma está definida e testada; falta onde pô-la.
 
 **As duas são faixas, não bordas.** Nenhuma encosta na aresta que acompanha: sobra sempre uma tira da cor do próprio card do lado de fora dela. Uma marca que corre até a borda é lida como a borda — moldura, divisor, estado de seleção. Com a superfície ainda aparecendo por fora, a faixa é lida como algo posto sobre o card, que é o que ela é.
 
@@ -52,6 +57,12 @@ Na diagonal isso são quatro pontos em vez de três: a ponta do triângulo é co
 **Onde não aparece:** nas linhas de lista dentro da própria feature. Numa lista em que toda linha é da mesma área, o marcador não diz nada e se repete quarenta e cinco vezes.
 
 Esteve no topbar da feature e saiu: a barra desenha de borda a borda, então o canto superior direito dela fica sob a barra de status e a faixa caiu em cima do ícone de bateria. Levar a identidade para dentro da feature é um problema separado — a barra já toma a cor da área.
+
+### A cor de votações
+
+Verde de deputados levado ao dourado de proposições — que é o que um voto é: as pessoas agindo sobre um projeto. Era um bronze, inventado para ser um matiz quente e não para significar algo.
+
+Matiz 85: 75° do verde de deputados e 39° do dourado de proposições, então é lido como cor própria e não como filha de nenhum dos dois. `#547722` no claro (4.69:1 num card) e `#B4D289` no escuro (8.82:1).
 
 ### Cor que não é área: o voto
 

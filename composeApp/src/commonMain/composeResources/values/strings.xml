@@ -83,7 +83,6 @@
     <string name="deputado_details_expenses_empty">Nenhuma despesa registrada neste ano.</string>
     <string name="deputado_votos_empty">Nenhum voto nominal no período</string>
     <string name="deputado_votos_empty_description">A Câmara só registra voto individual em votação nominal, que é 2% do total. No resto, não existe registro por deputado — não é ausência.</string>
-    <string name="deputado_votos_resumo">%1$d votos · %2$d sim · %3$d não · %4$d outros</string>
     <string name="deputado_votos_nota">Só votações nominais, dos últimos três meses. A Câmara registra voto individual em 2% do que vota.</string>
     <string name="deputado_tab_despesas">Despesas</string>
     <string name="deputado_tab_votos">Como votou</string>
@@ -112,6 +111,7 @@
     <string name="votacao_rejeitada">Rejeitada</string>
     <string name="votacao_title">Votação</string>
     <string name="votacao_votos_title">Como cada um votou</string>
+    <string name="votos_resumo">%1$d votos · %2$d sim · %3$d não · %4$d outros</string>
     <string name="votacao_nao_encontrada">Votação fora do período baixado</string>
     <string name="votacao_nao_encontrada_description">O app guarda os votos dos últimos três meses da legislatura selecionada. Esta votação está fora dessa janela.</string>
     <string name="deputado_details_expenses_error">Não foi possível carregar as despesas agora.</string>
@@ -163,9 +163,12 @@
     <string name="proposicao_details_autores_show_more">+ %1$d autores</string>
     <string name="proposicao_details_autores_title">Autores</string>
     <string name="proposicao_details_votacoes_title">Votações</string>
-    <string name="proposicao_details_approved">Aprovado</string>
-    <string name="proposicao_details_rejected">Rejeitado</string>
+    <string name="proposicao_details_tramitacao_title">Por onde passou</string>
+    <string name="proposicao_details_tramitacao_restantes">e mais %1$d passos antes destes</string>
+    <string name="proposicao_details_keywords_restantes">+%1$d</string>
+    <string name="proposicao_details_relator_label">Relator</string>
+    <string name="proposicao_details_regime_label">Regime</string>
+    <string name="proposicao_details_apreciacao_label">Apreciação</string>
     <string name="proposicao_details_view_full_text">Ver texto completo</string>
     <string name="proposicao_details_despacho_label">Despacho</string>
-    <string name="proposicao_details_orgao_label">Órgão</string>
 </resources>

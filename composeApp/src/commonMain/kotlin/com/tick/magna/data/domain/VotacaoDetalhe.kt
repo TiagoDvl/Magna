@@ -15,8 +15,10 @@ data class VotacaoDetalhe(
     val proposicao: ProposicaoVotada?,
     val votos: List<VotoRegistrado>,
 ) {
-    val sim: Int get() = votos.count { it.voto == "Sim" }
-    val nao: Int get() = votos.count { it.voto == "Não" }
+    // Through [tomDoVoto] rather than comparing to the literal, so the tally and the tags
+    // below it can never disagree about what a vote was.
+    val sim: Int get() = votos.count { tomDoVoto(it.voto) == TomDoVoto.SIM }
+    val nao: Int get() = votos.count { tomDoVoto(it.voto) == TomDoVoto.NAO }
     val outros: Int get() = votos.size - sim - nao
 }
 

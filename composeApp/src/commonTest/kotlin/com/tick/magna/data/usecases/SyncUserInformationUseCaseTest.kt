@@ -15,6 +15,8 @@ import com.tick.magna.data.domain.PartidoDetail
 import com.tick.magna.data.domain.Proposicao
 import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.ProposicaoDetail
+import com.tick.magna.data.domain.TramitacaoProposicao
+import com.tick.magna.data.domain.VotacaoDaProposicao
 import com.tick.magna.data.domain.ProposicoesNaJanela
 import com.tick.magna.data.domain.Votacao
 import com.tick.magna.data.logger.AppLoggerInterface
@@ -233,6 +235,12 @@ class SyncUserInformationUseCaseTest {
                 throw UnsupportedOperationException("not part of the sync")
 
             override suspend fun contarNaJanela(siglaTipos: List<String>): ProposicoesNaJanela? =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override fun getProposicaoVotacoes(id: String): Flow<Resource<List<VotacaoDaProposicao>>> =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override fun getProposicaoTramitacoes(id: String): Flow<Resource<List<TramitacaoProposicao>>> =
                 throw UnsupportedOperationException("not part of the sync")
 
             override fun getProposicaoDetail(id: String): Flow<Resource<ProposicaoDetail>> =

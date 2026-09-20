@@ -3,6 +3,7 @@ package com.tick.magna.data.source.remote.api
 import com.tick.magna.data.source.remote.response.ProposicaoAutoresResponse
 import com.tick.magna.data.source.remote.response.ProposicaoDetailResponse
 import com.tick.magna.data.source.remote.response.ProposicaoTemasResponse
+import com.tick.magna.data.source.remote.response.ProposicaoTramitacoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesResponse
 import com.tick.magna.data.source.remote.response.ProposicoesSiglaTipoResponse
 import com.tick.magna.data.source.remote.response.VotacoesResponse
@@ -57,5 +58,11 @@ class ProposicoesApi(private val httpClient: HttpClient) : ProposicoesApiInterfa
 
     override suspend fun getProposicaoVotacoes(idProposicao: String): VotacoesResponse {
         return httpClient.get("proposicoes/$idProposicao/votacoes").body()
+    }
+
+    override suspend fun getProposicaoTramitacoes(
+        idProposicao: String,
+    ): ProposicaoTramitacoesResponse {
+        return httpClient.get("proposicoes/$idProposicao/tramitacoes").body()
     }
 }

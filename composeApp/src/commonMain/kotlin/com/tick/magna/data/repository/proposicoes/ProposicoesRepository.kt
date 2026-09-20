@@ -5,6 +5,8 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.Proposicao
 import com.tick.magna.data.domain.ProposicaoBucket
 import com.tick.magna.data.domain.ProposicaoDetail
+import com.tick.magna.data.domain.TramitacaoProposicao
+import com.tick.magna.data.domain.VotacaoDaProposicao
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.domain.ProposicoesNaJanela
 import com.tick.magna.data.source.remote.response.hasNextPage
@@ -174,8 +176,17 @@ internal class ProposicoesRepository(
         return proposicao.toDomain(autores)
     }
 
+    /**
+     * The detail response, read whole rather than in the four fields the screen used to use.
+     *
+     * Nothing extra is fetched here. `descricaoTipo`, `keywords`, `regime`, `apreciacao` and
+     * the rapporteur's URI all arrive in the same body, and the rapporteur's *name* comes from
+     * the roster this term already has — so the one fact that would have cost a request costs
+     * a lookup instead.
+     */
     override fun getProposicaoDetail(id: String): Flow<Resource<ProposicaoDetail>> = networkResource {
         val dto = proposicoesApi.getProposicaoDetail(id).dados
+        val status = dto.statusProposicao
 
         ProposicaoDetail(
             id = dto.id,
@@ -185,11 +196,90 @@ internal class ProposicoesRepository(
             ementa = dto.ementa,
             dataApresentacao = dto.dataApresentacao,
             urlInteiroTeor = dto.urlInteiroTeor,
-            descricaoSituacao = dto.statusProposicao?.descricaoSituacao,
-            despacho = dto.statusProposicao?.despacho,
-            orgaoSigla = dto.statusProposicao?.siglaOrgao,
+            descricaoSituacao = status?.descricaoSituacao,
+            despacho = status?.despacho,
+            orgaoSigla = status?.siglaOrgao,
+            descricaoTipo = dto.descricaoTipo?.trim()?.takeIf { it.isNotEmpty() },
+            // Only when it says something the ementa does not. The register repeats the ementa
+            // here for some propositions and leaves it blank for others.
+            ementaDetalhada = dto.ementaDetalhada
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() && it != dto.ementa.trim() },
+            keywords = dto.keywords.orEmpty()
+                .split(',')
+                .map { it.trim().trimEnd('.') }
+                .filter { it.isNotEmpty() },
+            regime = status?.regime.semPlaceholder(),
+            apreciacao = status?.apreciacao.semPlaceholder(),
+            descricaoTramitacao = status?.descricaoTramitacao.semPlaceholder(),
+            relator = relatorLocal(status?.uriUltimoRelator),
         )
     }
+
+    /**
+     * The register writes `.` and `Indefinida` where it means "nothing to say".
+     *
+     * Printing either of them is worse than printing nothing: a screen that reads
+     * `Apreciação: Indefinida` looks like it failed to load rather than like the Camara has
+     * not decided yet.
+     */
+    private fun String?.semPlaceholder(): String? =
+        this?.trim()?.takeIf { it.isNotEmpty() && it != "." && !it.equals("Indefinida", true) }
+
+    /** The rapporteur, when this term's roster knows them. No request either way. */
+    private suspend fun relatorLocal(uri: String?): Deputado? {
+        val deputadoId = uri?.substringAfterLast('/')?.takeIf { it.isNotEmpty() } ?: return null
+        val legislaturaId = userDao.getUser().first()?.legislaturaId ?: return null
+
+        return deputadosDao.getDeputados(legislaturaId, listOf(deputadoId))
+            .firstOrNull()
+            ?.toDomain()
+    }
+
+    /**
+     * The votacoes this proposition went through, newest first.
+     *
+     * One request. Measured on four PLs of 2023: three to eight each. The rows lead to the
+     * votacao screen, which is where the roll is.
+     */
+    override fun getProposicaoVotacoes(id: String): Flow<Resource<List<VotacaoDaProposicao>>> =
+        networkResource {
+            proposicoesApi.getProposicaoVotacoes(id).dados
+                .map { dto ->
+                    VotacaoDaProposicao(
+                        id = dto.id,
+                        dataHoraRegistro = dto.dataHoraRegistro,
+                        siglaOrgao = dto.siglaOrgao,
+                        descricao = dto.descricao?.trim()?.takeIf { it.isNotEmpty() },
+                        aprovacao = dto.aprovacao == APROVADA,
+                    )
+                }
+                .sortedByDescending { it.dataHoraRegistro.orEmpty() }
+        }
+
+    /**
+     * The passage, newest first.
+     *
+     * One request and a long answer — 60 to 109 steps on the PLs measured — so the caller gets
+     * the whole list and the screen decides how much of it to draw. Sorted here because the
+     * register returns it oldest first and every reader of it wants the other end.
+     */
+    override fun getProposicaoTramitacoes(id: String): Flow<Resource<List<TramitacaoProposicao>>> =
+        networkResource {
+            proposicoesApi.getProposicaoTramitacoes(id).dados
+                .map { dto ->
+                    TramitacaoProposicao(
+                        sequencia = dto.sequencia ?: 0,
+                        dataHora = dto.dataHora,
+                        siglaOrgao = dto.siglaOrgao,
+                        descricaoTramitacao = dto.descricaoTramitacao
+                            ?.trim()
+                            ?.takeIf { it.isNotEmpty() },
+                        despacho = dto.despacho?.trim()?.takeIf { it.isNotEmpty() },
+                    )
+                }
+                .sortedByDescending { it.sequencia }
+        }
 
     override fun getProposicaoAutores(id: String): Flow<Resource<List<Deputado>>> = networkResource {
         val deputadoIds = proposicoesApi.getProposicaoAutores(id).dados
@@ -311,5 +401,8 @@ internal class ProposicoesRepository(
 
         /** How the author ids are packed into the single autores column. */
         const val AUTHOR_SEPARATOR = ", "
+
+        /** What the listing puts in `aprovacao` when the votacao carried. */
+        const val APROVADA = 1
     }
 }
