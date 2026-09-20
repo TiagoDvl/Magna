@@ -56,8 +56,10 @@ sealed interface VotosState {
 
     /** Never constructed with an empty list; that is [Empty]. */
     data class Content(val votos: List<VotoDeputado>) : VotosState {
-        val sim: Int get() = votos.count { it.voto == "Sim" }
-        val nao: Int get() = votos.count { it.voto == "Não" }
+        // Through [tomDoVoto] rather than comparing to the literal, so the count under the tab
+        // and the colour on the tag can never disagree about what a vote was.
+        val sim: Int get() = votos.count { tomDoVoto(it.voto) == TomDoVoto.SIM }
+        val nao: Int get() = votos.count { tomDoVoto(it.voto) == TomDoVoto.NAO }
         val outros: Int get() = votos.size - sim - nao
     }
 }

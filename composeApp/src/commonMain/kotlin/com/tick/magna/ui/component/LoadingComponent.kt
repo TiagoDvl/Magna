@@ -19,7 +19,7 @@ fun LoadingComponent(
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.tertiary
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

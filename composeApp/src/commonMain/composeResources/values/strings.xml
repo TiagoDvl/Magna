@@ -71,7 +71,6 @@
 
     <string name="deputado_details_loading_details">Buscando detalhes do deputado</string>
     <string name="deputado_details_loading_expenses">Buscando gastos do deputado</string>
-    <string name="deputado_details_expense_title">Gastos da Cota Parlamentar</string>
     <string name="deputado_details_expense_year">Ano</string>
     <string name="deputado_details_expense_month">Mês</string>
     <string name="deputado_details_expense_despesa_type">Tipo de despesa</string>
@@ -82,9 +81,9 @@
     <string name="deputado_details_expense_supplier_cnpjcpf">CNPJ/CPF do Fornecedor</string>
     <string name="deputado_details_check_document">Consultar documento</string>
     <string name="deputado_details_expenses_empty">Nenhuma despesa registrada neste ano.</string>
-    <string name="deputado_votos_title">Como votou</string>
     <string name="deputado_votos_empty">Nenhum voto nominal no período</string>
     <string name="deputado_votos_empty_description">A Câmara só registra voto individual em votação nominal, que é 2% do total. No resto, não existe registro por deputado — não é ausência.</string>
+    <string name="deputado_votos_resumo">%1$d votos · %2$d sim · %3$d não · %4$d outros</string>
     <string name="deputado_votos_nota">Só votações nominais, dos últimos três meses. A Câmara registra voto individual em 2% do que vota.</string>
     <string name="deputado_tab_despesas">Despesas</string>
     <string name="deputado_tab_votos">Como votou</string>
@@ -101,8 +100,12 @@
     <string name="proposicoes_filtro_todas">Todas</string>
     <string name="proposicoes_list_empty">Nenhuma proposição deste tipo</string>
     <string name="proposicoes_list_empty_description">Nada deste tipo foi apresentado nos últimos três meses da legislatura selecionada.</string>
-    <string name="deputado_gabinete_predio">Prédio</string>
-    <string name="deputado_gabinete_sala">Sala</string>
+    <string name="deputado_gabinete_label">Gabinete</string>
+    <string name="deputado_gabinete_anexo_sala">Anexo %1$s · Sala %2$s</string>
+    <string name="deputado_gabinete_sala_apenas">Sala %1$s</string>
+    <string name="deputado_gabinete_abrir_mapa">Abrir no mapa</string>
+    <string name="deputado_gabinete_ligar">Ligar para o gabinete</string>
+    <string name="deputado_gabinete_enviar_email">Enviar e-mail</string>
     <string name="deputado_gabinete_telefone">Telefone</string>
     <string name="deputado_gabinete_email">E-mail</string>
     <string name="votacao_aprovada">Aprovada</string>

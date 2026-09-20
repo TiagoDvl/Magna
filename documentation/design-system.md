@@ -53,6 +53,14 @@ Na diagonal isso são quatro pontos em vez de três: a ponta do triângulo é co
 
 Esteve no topbar da feature e saiu: a barra desenha de borda a borda, então o canto superior direito dela fica sob a barra de status e a faixa caiu em cima do ícone de bateria. Levar a identidade para dentro da feature é um problema separado — a barra já toma a cor da área.
 
+### Cor que não é área: o voto
+
+Uma exceção, e é a única. `Sim` e `Não` num card de voto são separados por cor além da palavra, no par que o painel do próprio plenário usa — verde e vermelho. A palavra continua sendo o sinal principal, então a tag lê sem visão de cor nenhuma; a cor é para quem varre a lista em vez de ler linha a linha.
+
+O que ela **não** diz: se a votação passou. Isso é um fato separado e não é desenhado contra a pessoa. Também não é filiação — é o voto daquele dia, numa matéria, e está escrito ao lado.
+
+`Abstenção`, `Obstrução` e `Artigo 17` são neutros. Nenhum deles é um voto, e dar cor a cada um seriam cinco cores para a única pergunta que se faz olhando a tag. O mapeamento fica em `tomDoVoto`, que a contagem sob a aba também usa — a soma e a tag não podem discordar sobre o que foi um voto.
+
 ## 2. Espaçamento
 
 `ui/core/theme/Dimensions.kt`, acessado por `LocalDimensions.current`. **Nenhum `.dp` cru em `features/` ou `ui/`.** Se o valor não existe na escala, ou ele vira token ou ele vira o token vizinho — o que não pode é ficar solto. Foi assim que apareceram os 31 de hoje.
@@ -71,6 +79,11 @@ Um papel por função, o mesmo em todas as telas.
 | Rótulo de metadado | `labelSmall`, `onSurfaceVariant` |
 | Corpo | `bodyMedium` |
 | Nota de rodapé / ressalva | `labelSmall`, `onSurfaceVariant` |
+| Legenda de bloco | `labelSmall` |
+| Valor principal de um bloco | `bodyMedium` SemiBold |
+| Valor secundário de um bloco | `bodySmall` |
+
+Os três últimos são o cartão de contato do detalhe de deputado, e existem porque quatro linhas do mesmo tamanho é a forma do registro impressa em vez da do leitor. Uma legenda diz de que é o bloco, um valor carrega e os outros acompanham.
 
 ### Barra de topo não é cabeçalho de seção
 

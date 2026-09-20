@@ -15,80 +15,83 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.ShapeDefaults
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import com.tick.magna.data.domain.Deputado
-import com.tick.magna.data.domain.DeputadoDetails
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apartment
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.MailOutline
-import androidx.compose.material.icons.outlined.MeetingRoom
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.tick.magna.data.domain.Deputado
+import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.VotoDeputado
-import com.tick.magna.features.votacoes.detail.VotacaoDetailArgs
 import com.tick.magna.data.domain.deputadoDetailMock
 import com.tick.magna.data.domain.deputadoExpensesMock
 import com.tick.magna.data.domain.deputadosMock
+import com.tick.magna.data.source.local.mapper.toDisplayDate
+import com.tick.magna.features.votacoes.detail.VotacaoDetailArgs
+import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
+import com.tick.magna.ui.component.MagnaScreen
+import com.tick.magna.ui.component.ProposicaoTipoBadge
 import com.tick.magna.ui.core.avatar.Avatar
 import com.tick.magna.ui.core.avatar.AvatarSize
-import com.tick.magna.data.source.local.mapper.toDisplayDate
-import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.core.theme.LocalDimensions
-import com.tick.magna.ui.core.theme.magnaCardElevation
+import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
-import com.tick.magna.ui.core.topbar.MagnaMediumTopBar
+import com.tick.magna.ui.core.theme.accent
+import com.tick.magna.ui.core.theme.container
+import com.tick.magna.ui.core.theme.magnaCardElevation
+import com.tick.magna.ui.core.theme.onContainer
+import com.tick.magna.util.appDeRedeSocial
 import com.tick.magna.util.toBrlString
-import kotlinx.coroutines.launch
 import magna.composeapp.generated.resources.Res
-import magna.composeapp.generated.resources.deputado_details_expense_title
 import magna.composeapp.generated.resources.deputado_details_expenses_empty
+import magna.composeapp.generated.resources.deputado_details_expenses_error
+import magna.composeapp.generated.resources.deputado_gabinete_abrir_mapa
+import magna.composeapp.generated.resources.deputado_gabinete_anexo_sala
 import magna.composeapp.generated.resources.deputado_gabinete_email
-import magna.composeapp.generated.resources.deputado_gabinete_predio
-import magna.composeapp.generated.resources.deputado_gabinete_sala
+import magna.composeapp.generated.resources.deputado_gabinete_enviar_email
+import magna.composeapp.generated.resources.deputado_gabinete_label
+import magna.composeapp.generated.resources.deputado_gabinete_ligar
+import magna.composeapp.generated.resources.deputado_gabinete_sala_apenas
 import magna.composeapp.generated.resources.deputado_gabinete_telefone
 import magna.composeapp.generated.resources.deputado_tab_despesas
 import magna.composeapp.generated.resources.deputado_tab_votos
 import magna.composeapp.generated.resources.deputado_votos_empty
 import magna.composeapp.generated.resources.deputado_votos_empty_description
 import magna.composeapp.generated.resources.deputado_votos_nota
-import magna.composeapp.generated.resources.deputado_votos_title
-import magna.composeapp.generated.resources.deputado_details_expenses_error
-import magna.composeapp.generated.resources.deputado_details_loading_details
-import magna.composeapp.generated.resources.deputado_details_loading_expenses
+import magna.composeapp.generated.resources.deputado_votos_resumo
 import magna.composeapp.generated.resources.folder_eye
-import magna.composeapp.generated.resources.ic_arrow_right
-import magna.composeapp.generated.resources.ic_chevron_left
+import magna.composeapp.generated.resources.ic_chevron_right
 import magna.composeapp.generated.resources.ic_light_users
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -114,6 +117,18 @@ fun DeputadoDetailScreen(
     )
 }
 
+/**
+ * One deputado: who they are, what they spent and how they voted.
+ *
+ * On [MagnaScreen] like the rest of the app, which is what gives the bar the area's colour and
+ * the collapse-on-scroll every other screen already had. It used to be a `BottomSheetScaffold`
+ * assembled here with a bare top bar, and the sheet that scaffold existed for is a
+ * `ModalBottomSheet` now — the same one the filter sheets use.
+ *
+ * The header is the area's container with a rounded bottom, the same block the search screen
+ * puts its controls in, so the colour runs from the bar into the page instead of stopping at
+ * the bar.
+ */
 @Composable
 private fun DeputadoDetails(
     state: DeputadoDetailsState,
@@ -124,103 +139,71 @@ private fun DeputadoDetails(
     onTabSelected: (DeputadoTab) -> Unit = {},
     onVotacaoClick: (String) -> Unit = {},
 ) {
-    val dimensions = LocalDimensions.current
-    val colorScheme = MaterialTheme.colorScheme
+    var despesaAberta by remember { mutableStateOf<DeputadoExpense?>(null) }
 
-    val bottomSheetState: SheetState = rememberStandardBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        skipHiddenState = false,
-    )
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(bottomSheetState)
-    val scope = rememberCoroutineScope()
-
-    var localSheetState by remember { mutableStateOf<DeputadoDetailsSheetState?>(null) }
-
-    fun showSheet(homeSheetState: DeputadoDetailsSheetState) {
-        scope.launch {
-            localSheetState = homeSheetState
-            bottomSheetState.expand()
-        }
-    }
-
-    fun hideSheet() {
-        scope.launch {
-            bottomSheetState.hide()
-        }
-    }
-
-    BottomSheetScaffold(
-        modifier = Modifier.fillMaxSize(),
-        sheetContainerColor = colorScheme.surfaceContainerHigh,
-        topBar = {
-            MagnaMediumTopBar(
-                titleText = state.deputado?.name.orEmpty(),
-                leftIcon = painterResource(Res.drawable.ic_chevron_left),
-                leftIconClick = navigateBack
+    MagnaScreen(
+        title = state.deputado?.name.orEmpty(),
+        navigateBack = navigateBack,
+        area = MagnaArea.DEPUTADOS,
+    ) { paddingValues ->
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            DetailHeader(
+                deputado = state.deputado,
+                detailsState = state.detailsState,
+                onSocialOpened = onSocialOpened,
             )
-        },
-        scaffoldState = bottomSheetScaffoldState,
-        sheetTonalElevation = dimensions.grid4,
-        sheetShadowElevation = dimensions.grid12,
-        sheetSwipeEnabled = true,
-        sheetContent = {
-            when (val sheetState = localSheetState) {
-                is DeputadoDetailsSheetState.Expense -> {
-                    DeputadoExpenseDetails(
-                        deputadoExpense = sheetState.deputadoExpense,
-                        onCloseSheet = { hideSheet() },
-                        onDocumentOpened = onExpenseDocumentOpened,
+
+            // Tabs rather than two sections stacked, because each of these owns a
+            // LazyColumn and putting both in one Column makes them fight for the height
+            // that is left.
+            //
+            // They are also what names the two lists. The lists used to repeat the name in a
+            // titleLarge heading right under the tab that had just said it.
+            PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
+                DeputadoTab.entries.forEach { tab ->
+                    Tab(
+                        selected = state.selectedTab == tab,
+                        onClick = { onTabSelected(tab) },
+                        text = { Text(text = stringResource(tab.label)) },
                     )
                 }
-                null -> Unit
             }
-        },
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                DetailHeader(
-                    modifier = Modifier.padding(dimensions.grid16),
-                    deputado = state.deputado,
-                    detailsState = state.detailsState,
-                    onSocialOpened = onSocialOpened,
+
+            when (state.selectedTab) {
+                DeputadoTab.DESPESAS -> DeputadoExpenses(
+                    state = state.expensesState,
+                    onExpenseClick = { expense ->
+                        onExpenseOpened(expense)
+                        despesaAberta = expense
+                    },
                 )
 
-                // Tabs rather than two sections stacked, because each of these owns a
-                // LazyColumn and putting both in one Column makes them fight for the height
-                // that is left.
-                PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
-                    DeputadoTab.entries.forEach { tab ->
-                        Tab(
-                            selected = state.selectedTab == tab,
-                            onClick = { onTabSelected(tab) },
-                            text = { Text(text = stringResource(tab.label)) },
-                        )
-                    }
-                }
-
-                when (state.selectedTab) {
-                    DeputadoTab.DESPESAS -> DeputadoExpenses(
-                        state = state.expensesState,
-                        onExpenseClick = { expense ->
-                            onExpenseOpened(expense)
-                            showSheet(DeputadoDetailsSheetState.Expense(expense))
-                        },
-                    )
-
-                    DeputadoTab.VOTOS -> DeputadoVotos(
-                        state = state.votosState,
-                        onVotacaoClick = onVotacaoClick,
-                    )
-                }
+                DeputadoTab.VOTOS -> DeputadoVotos(
+                    state = state.votosState,
+                    onVotacaoClick = onVotacaoClick,
+                )
             }
         }
+    }
+
+    despesaAberta?.let { despesa ->
+        DeputadoExpenseSheet(
+            deputadoExpense = despesa,
+            onDismiss = { despesaAberta = null },
+            onDocumentOpened = onExpenseDocumentOpened,
+        )
     }
 }
 
+/**
+ * Who this is and how to reach them, in one block of the area's colour.
+ *
+ * Four identical rows of `bodySmall` was the register's shape printed out: predio, sala,
+ * telefone, email, each the same size and none of them doing anything. It is a contact card
+ * now — a caption, an address, and two lines under it — and the three that lead somewhere
+ * lead there. Nothing is decorated to say so: the icon already names the row and the ripple
+ * answers the tap.
+ */
 @Composable
 private fun DetailHeader(
     modifier: Modifier = Modifier,
@@ -228,141 +211,238 @@ private fun DetailHeader(
     detailsState: DetailsState,
     onSocialOpened: () -> Unit = {},
 ) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid12),
-        verticalAlignment = Alignment.Top
-    ) {
-        DetailAvatar(deputado = deputado)
-        DetailContent(detailsState = detailsState, onSocialOpened = onSocialOpened)
-    }
-}
-
-@Composable
-private fun DetailAvatar(
-    modifier: Modifier = Modifier,
-    deputado: Deputado?,
-) {
     val dimensions = LocalDimensions.current
-    val typography = MaterialTheme.typography
-    val colorScheme = MaterialTheme.colorScheme
 
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = MagnaArea.DEPUTADOS.container,
+                shape = RoundedCornerShape(
+                    bottomStart = dimensions.grid20,
+                    bottomEnd = dimensions.grid20,
+                ),
+            )
+            .padding(dimensions.grid16),
+        verticalArrangement = Arrangement.spacedBy(dimensions.grid12),
     ) {
-        Avatar(
-            photoUrl = deputado?.profilePicture,
-            size = AvatarSize.BIG,
-            shape = ShapeDefaults.Medium,
-            placeholder = painterResource(Res.drawable.ic_light_users),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid12),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Avatar(
+                photoUrl = deputado?.profilePicture,
+                size = AvatarSize.BIG,
+                shape = ShapeDefaults.Medium,
+                placeholder = painterResource(Res.drawable.ic_light_users),
+            )
 
-        deputado?.let {
-            val metadata = listOfNotNull(
-                deputado.uf,
-                deputado.partido
-            ).joinToString("  ·  ")
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+            ) {
+                deputado?.let { DeputadoMetadata(deputado = it) }
 
-            if (metadata.isNotEmpty()) {
-                Text(
-                    text = metadata,
-                    style = typography.bodyMedium.copy(
-                        color = colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
+                GabineteDetails(detailsState = detailsState)
             }
+        }
+
+        // Below the two columns rather than inside the right one: a chip wrapping in a
+        // 200dp column is a chip per line.
+        val socials = (detailsState as? DetailsState.Content)?.deputadoDetails?.socials.orEmpty()
+        if (socials.isNotEmpty()) {
+            SocialsDetails(socials = socials, onSocialOpened = onSocialOpened)
         }
     }
 }
 
+/**
+ * The state and the party, spaced out.
+ *
+ * `labelMedium` with a wide tracking rather than the `labelSmall` the list rows use: on a list
+ * this is one row's metadata among forty, and here it is the only thing on the screen naming
+ * where the person is from.
+ */
 @Composable
-private fun DetailContent(
-    modifier: Modifier = Modifier,
-    detailsState: DetailsState,
-    onSocialOpened: () -> Unit = {},
-) {
-    Column(modifier = modifier) {
-        when (detailsState) {
-            DetailsState.Loading -> {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    LoadingComponent(modifier = Modifier.fillMaxWidth().height(160.dp))
-                    Text(
-                        text = stringResource(Res.string.deputado_details_loading_details),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                    )
-                }
-            }
-            is DetailsState.Content -> {
-                GabineteDetails(deputadoDetails = detailsState.deputadoDetails)
-                SocialsDetails(
-                    socials = detailsState.deputadoDetails.socials,
-                    onSocialOpened = onSocialOpened,
-                )
-            }
-            DetailsState.Error -> Unit
-        }
-    }
+private fun DeputadoMetadata(deputado: Deputado) {
+    val metadata = listOfNotNull(deputado.uf, deputado.partido).joinToString(" · ")
+    if (metadata.isEmpty()) return
+
+    Text(
+        text = metadata,
+        style = MaterialTheme.typography.labelMedium.copy(
+            color = MagnaArea.DEPUTADOS.onContainer,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = TRACKING,
+        ),
+    )
 }
 
 @Composable
 private fun GabineteDetails(
     modifier: Modifier = Modifier,
-    deputadoDetails: DeputadoDetails
+    detailsState: DetailsState,
 ) {
-    val gabineteDetailsStyle = MaterialTheme.typography.bodyMedium.copy(
-        color = MaterialTheme.colorScheme.onSurface
-    )
+    val dimensions = LocalDimensions.current
+    val typography = MaterialTheme.typography
+    val uriHandler = LocalUriHandler.current
+    val naCor = MagnaArea.DEPUTADOS.onContainer
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.grid4)
-    ) {
-        // Emoji used to stand in for these four. They render differently on every device, they
-        // are announced out loud by a screen reader as their own name, and "building, door,
-        // telephone, envelope" is not what a gabinete is. A labelled icon says the same thing
-        // and says it the same way everywhere.
-        deputadoDetails.gabineteBuilding?.let {
-            GabineteRow(Icons.Outlined.Apartment, stringResource(Res.string.deputado_gabinete_predio), it)
-        }
-        deputadoDetails.gabineteRoom?.let {
-            GabineteRow(Icons.Outlined.MeetingRoom, stringResource(Res.string.deputado_gabinete_sala), it)
-        }
-        deputadoDetails.gabineteTelephone?.let {
-            GabineteRow(Icons.Outlined.Call, stringResource(Res.string.deputado_gabinete_telefone), it)
-        }
-        deputadoDetails.gabineteEmail?.let {
-            GabineteRow(Icons.Outlined.MailOutline, stringResource(Res.string.deputado_gabinete_email), it)
+    when (detailsState) {
+        DetailsState.Loading -> LoadingComponent(
+            modifier = modifier.fillMaxWidth().height(GABINETE_HEIGHT),
+        )
+
+        DetailsState.Error -> Unit
+
+        is DetailsState.Content -> {
+            val detalhes = detailsState.deputadoDetails
+            val sala = salaDoGabinete(detalhes.gabineteBuilding, detalhes.gabineteRoom)
+            val telefone = telefoneLegivel(detalhes.gabineteTelephone)
+            val email = detalhes.gabineteEmail?.trim()?.takeIf { it.isNotEmpty() }
+
+            if (sala == null && telefone == null && email == null) return
+
+            Column(modifier = modifier) {
+                Text(
+                    modifier = Modifier.padding(bottom = dimensions.grid2),
+                    text = stringResource(Res.string.deputado_gabinete_label),
+                    style = typography.labelSmall.copy(color = naCor),
+                )
+
+                sala?.let { endereco ->
+                    val mapa = mapaDoGabinete(endereco.anexo)
+
+                    GabineteLinha(
+                        icon = Icons.Outlined.Apartment,
+                        // The room on its own when the annex is not a number. The register
+                        // holds an `x` for one gabinete in twenty, and "Anexo x" names nothing.
+                        texto = if (endereco.anexo != null) {
+                            stringResource(
+                                Res.string.deputado_gabinete_anexo_sala,
+                                endereco.anexo,
+                                endereco.sala,
+                            )
+                        } else {
+                            stringResource(Res.string.deputado_gabinete_sala_apenas, endereco.sala)
+                        },
+                        estilo = typography.bodyMedium.copy(
+                            color = naCor,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                        acaoLabel = stringResource(Res.string.deputado_gabinete_abrir_mapa),
+                        onClick = mapa?.let { url -> { uriHandler.openUri(url) } },
+                    )
+                }
+
+                telefone?.let { numero ->
+                    val discagem = telefoneDiscavel(detalhes.gabineteTelephone)
+
+                    GabineteLinha(
+                        icon = Icons.Outlined.Call,
+                        texto = numero,
+                        estilo = typography.bodySmall.copy(color = naCor),
+                        acaoLabel = if (discagem != null) {
+                            stringResource(Res.string.deputado_gabinete_ligar)
+                        } else {
+                            stringResource(Res.string.deputado_gabinete_telefone)
+                        },
+                        onClick = discagem?.let { url -> { uriHandler.openUri(url) } },
+                    )
+                }
+
+                email?.let { endereco ->
+                    val mailto = emailDiscavel(endereco)
+
+                    GabineteLinha(
+                        icon = Icons.Outlined.MailOutline,
+                        texto = endereco,
+                        estilo = typography.bodySmall.copy(color = naCor),
+                        acaoLabel = if (mailto != null) {
+                            stringResource(Res.string.deputado_gabinete_enviar_email)
+                        } else {
+                            stringResource(Res.string.deputado_gabinete_email)
+                        },
+                        onClick = mailto?.let { url -> { uriHandler.openUri(url) } },
+                    )
+                }
+            }
         }
     }
 }
 
+/**
+ * One line of the gabinete, which may or may not lead somewhere.
+ *
+ * Emoji used to stand in for these icons. They render differently on every device, they are
+ * announced out loud by a screen reader as their own name, and "building, door, telephone,
+ * envelope" is not what a gabinete is.
+ *
+ * A line with no [onClick] is still a line: a telephone the register wrote in a shape nothing
+ * can dial is worth reading and not worth tapping, and the difference shows up as the absence
+ * of a ripple rather than as a row that looks disabled.
+ */
 @Composable
-private fun GabineteRow(icon: ImageVector, label: String, value: String) {
+private fun GabineteLinha(
+    icon: ImageVector,
+    texto: String,
+    estilo: TextStyle,
+    acaoLabel: String,
+    onClick: (() -> Unit)?,
+) {
     val dimensions = LocalDimensions.current
-    val colorScheme = MaterialTheme.colorScheme
 
     Row(
+        // Full width and padded rather than wrapped tight: the text of a phone number is about
+        // 24dp tall, and a target that size is one somebody misses. It is still short of the
+        // 48 an isolated control owes — three rows of that would be a header and a half — so
+        // the compromise is stated rather than hidden: ~32dp, and the whole row is the target
+        // rather than the glyphs.
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.extraSmall)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(onClickLabel = acaoLabel, onClick = onClick)
+                } else {
+                    Modifier
+                }
+            )
+            .padding(vertical = dimensions.grid4),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
         Icon(
             modifier = Modifier.size(dimensions.grid16),
             imageVector = icon,
-            tint = colorScheme.onSurfaceVariant,
+            tint = estilo.color,
             // The label carries the meaning for a screen reader; the icon repeating it would
             // make every line of the gabinete read twice.
-            contentDescription = label,
+            contentDescription = acaoLabel,
         )
         Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurface),
+            modifier = Modifier.weight(1f),
+            text = texto,
+            style = estilo,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+
+        // The only thing that says the row leads somewhere, and the same glyph every list in
+        // the app uses for that — smaller, and in the accent rather than the text colour, so
+        // it sits behind the address instead of competing with it. Green on the area's own
+        // container measures 3.33:1 in light and 4.18 in dark, which is what an affordance
+        // owes. A row with nothing to open draws none, so the difference is visible before
+        // anybody taps.
+        if (onClick != null) {
+            Icon(
+                modifier = Modifier.size(CHEVRON_GABINETE),
+                painter = painterResource(Res.drawable.ic_chevron_right),
+                tint = MagnaArea.DEPUTADOS.accent,
+                contentDescription = null,
+            )
+        }
     }
 }
 
@@ -373,9 +453,7 @@ private fun SocialsDetails(
     onSocialOpened: () -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
-    val chipsStyle = MaterialTheme.typography.labelMedium.copy(
-        color = MaterialTheme.colorScheme.onSurface
-    )
+    val colorScheme = MaterialTheme.colorScheme
     val uriHandler = LocalUriHandler.current
 
     FlowRow(
@@ -384,158 +462,179 @@ private fun SocialsDetails(
     ) {
         socials.entries.forEach { entry ->
             AssistChip(
-                label = { Text(text = entry.key, style = chipsStyle) },
+                // The app's own surface on the area's container, like the filter chips on the
+                // search screen. A default chip here is a transparent outline on green.
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = colorScheme.surface,
+                    labelColor = colorScheme.onSurface,
+                ),
+                border = null,
+                label = {
+                    Text(
+                        text = entry.key,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                },
                 onClick = {
                     onSocialOpened()
-                    uriHandler.openUri(entry.value)
+                    abrirRedeSocial(uriHandler, entry.value)
                 }
             )
         }
     }
 }
 
+/**
+ * Opens the profile in the app that owns it, and in the browser when there is no such app.
+ *
+ * Every link the register holds is an `https://` one, so this used to hand a signed-in
+ * reader's own profile to a browser. The scheme is tried first and the web link is the
+ * fallback, in that order, because there is no way to ask what is installed that Android 11's
+ * package visibility does not also have to be told about in advance — and a launch that finds
+ * nothing throws, which is the answer.
+ *
+ * The catch is deliberately wide: the exception a missing handler produces is
+ * `ActivityNotFoundException` on Android and something else on every other target, and all of
+ * them mean the same thing here.
+ */
+private fun abrirRedeSocial(uriHandler: UriHandler, url: String) {
+    val app = appDeRedeSocial(url)
+
+    if (app != null) {
+        @Suppress("SwallowedException", "TooGenericExceptionCaught")
+        try {
+            uriHandler.openUri(app)
+            return
+        } catch (naoInstalado: Exception) {
+            // Nothing answers that scheme. The web link below is the whole recovery.
+        }
+    }
+
+    uriHandler.openUri(url)
+}
+
 @Composable
-fun DeputadoExpenses(
+private fun DeputadoExpenses(
     modifier: Modifier = Modifier,
     state: ExpensesState,
     onExpenseClick: (DeputadoExpense) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
+
+    when (state) {
+        ExpensesState.Loading -> LoadingComponent(modifier = modifier.fillMaxSize())
+
+        ExpensesState.Empty -> EmptyComponent(
+            modifier = modifier.fillMaxSize(),
+            title = stringResource(Res.string.deputado_details_expenses_empty),
+        )
+
+        ExpensesState.Error -> EmptyComponent(
+            modifier = modifier.fillMaxSize(),
+            title = stringResource(Res.string.deputado_details_expenses_error),
+        )
+
+        is ExpensesState.Content -> LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                horizontal = dimensions.grid16,
+                vertical = dimensions.grid8,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+        ) {
+            items(state.expenses) { expense ->
+                DespesaCard(expense = expense, onClick = { onExpenseClick(expense) })
+            }
+        }
+    }
+}
+
+/**
+ * One expense, built like the rows on the deputado search.
+ *
+ * It used to carry three colours that belong to other areas: the type in `secondary`, which is
+ * the gold of proposicoes, and the amount and the document icon in `tertiary`, which is the
+ * blue of partidos. On a deputado screen the only accent is the green, and most of the row is
+ * not an accent at all — a title, a metadata line, and a figure.
+ */
+@Composable
+private fun DespesaCard(expense: DeputadoExpense, onClick: () -> Unit) {
+    val dimensions = LocalDimensions.current
     val typography = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        elevation = magnaCardElevation(),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
+        onClick = onClick,
     ) {
-        Text(
-            modifier = Modifier.padding(horizontal = dimensions.grid16),
-            text = stringResource(Res.string.deputado_details_expense_title),
-            style = typography.titleLarge.copy(
-                textAlign = TextAlign.Center,
-                color = colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
-            )
-        )
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                horizontal = dimensions.grid16,
-                vertical = dimensions.grid8
-            ),
-            verticalArrangement = Arrangement.spacedBy(dimensions.grid8)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(dimensions.grid12),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
         ) {
-            when (state) {
-                ExpensesState.Loading -> {
-                    item {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(dimensions.grid16)
-                        ) {
-                            CircularProgressIndicator(
-                                color = colorScheme.tertiary
-                            )
-                            Text(
-                                text = stringResource(Res.string.deputado_details_loading_expenses),
-                                style = typography.bodySmall.copy(color = colorScheme.tertiary)
-                            )
-                        }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
+            ) {
+                Text(
+                    text = expense.tipoDespesa,
+                    style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                Text(
+                    text = expense.nomeFornecedor,
+                    style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // The one figure on the row, in the darker green of the pair rather than
+                    // the accent: eleven-point text owes 4.5:1 and the accent measures 4.1 on
+                    // this card.
+                    Text(
+                        text = expense.valorDocumento.toBrlString(),
+                        style = typography.labelSmall.copy(
+                            color = MagnaArea.DEPUTADOS.onContainer,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                    )
+                    Text(
+                        text = "·",
+                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+                    Text(
+                        text = expense.dataDocumento,
+                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                    )
+
+                    if (expense.urlDocumento != null) {
+                        Icon(
+                            modifier = Modifier.size(dimensions.grid16),
+                            painter = painterResource(Res.drawable.folder_eye),
+                            tint = MagnaArea.DEPUTADOS.accent,
+                            contentDescription = null,
+                        )
                     }
-                }
-
-                is ExpensesState.Content -> {
-                    items(state.expenses) { expense ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                            elevation = magnaCardElevation(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = colorScheme.surfaceContainer
-                            ),
-                            onClick = { onExpenseClick(expense) }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(dimensions.grid12),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8)
-                            ) {
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(dimensions.grid4)
-                                ) {
-                                    Text(
-                                        text = expense.tipoDespesa,
-                                        style = typography.bodyMedium.copy(
-                                            color = colorScheme.secondary,
-                                            fontWeight = FontWeight.SemiBold
-                                        ),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = expense.nomeFornecedor,
-                                        style = typography.bodySmall.copy(
-                                            color = colorScheme.onSurface
-                                        ),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(dimensions.grid4),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = expense.valorDocumento.toBrlString(),
-                                            style = typography.labelSmall.copy(
-                                                color = colorScheme.tertiary,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        )
-                                        Text(
-                                            text = "·",
-                                            style = typography.labelSmall.copy(
-                                                color = colorScheme.onSurfaceVariant
-                                            )
-                                        )
-                                        Text(
-                                            text = expense.dataDocumento,
-                                            style = typography.labelSmall.copy(
-                                                color = colorScheme.onSurfaceVariant
-                                            )
-                                        )
-                                        if (expense.urlDocumento != null) {
-                                            Icon(
-                                                modifier = Modifier.size(dimensions.grid16),
-                                                painter = painterResource(Res.drawable.folder_eye),
-                                                tint = colorScheme.tertiary,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                }
-
-                                Icon(
-                                    painter = painterResource(Res.drawable.ic_arrow_right),
-                                    tint = colorScheme.outline,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    }
-                }
-
-                ExpensesState.Empty -> item {
-                    ExpensesPlaceholder(text = stringResource(Res.string.deputado_details_expenses_empty))
-                }
-
-                ExpensesState.Error -> item {
-                    ExpensesPlaceholder(text = stringResource(Res.string.deputado_details_expenses_error))
                 }
             }
+
+            // The same affordance as every other list in the app: 18dp in the area's colour.
+            // This one was a different glyph in `outline`.
+            Icon(
+                modifier = Modifier.size(CHEVRON),
+                painter = painterResource(Res.drawable.ic_chevron_right),
+                tint = MagnaArea.DEPUTADOS.accent,
+                contentDescription = null,
+            )
         }
     }
 }
@@ -552,69 +651,57 @@ private fun DeputadoVotos(state: VotosState, onVotacaoClick: (String) -> Unit) {
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(top = dimensions.grid16),
-        verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-    ) {
-        Text(
-            modifier = Modifier.padding(horizontal = dimensions.grid16),
-            text = stringResource(Res.string.deputado_votos_title),
-            style = typography.titleLarge.copy(
-                textAlign = TextAlign.Center,
-                color = colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
-            ),
+    when (state) {
+        VotosState.Loading -> LoadingComponent(modifier = Modifier.fillMaxSize())
+
+        VotosState.Error -> EmptyComponent(
+            modifier = Modifier.fillMaxSize(),
+            title = stringResource(Res.string.deputado_details_expenses_error),
         )
 
-        when (state) {
-            VotosState.Loading -> Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(color = colorScheme.tertiary)
+        // The common branch, not the rare one. Only 2% of what the Camara registers is
+        // nominal, so a deputado with nothing here is ordinary — and saying why matters,
+        // because an empty list otherwise reads as "did not vote".
+        VotosState.Empty -> EmptyComponent(
+            modifier = Modifier.fillMaxSize(),
+            title = stringResource(Res.string.deputado_votos_empty),
+            description = stringResource(Res.string.deputado_votos_empty_description),
+        )
+
+        is VotosState.Content -> LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                horizontal = dimensions.grid16,
+                vertical = dimensions.grid8,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
+        ) {
+            item(key = RESUMO_KEY) {
+                Text(
+                    modifier = Modifier.padding(bottom = dimensions.grid4),
+                    text = stringResource(
+                        Res.string.deputado_votos_resumo,
+                        state.votos.size,
+                        state.sim,
+                        state.nao,
+                        state.outros,
+                    ),
+                    style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                )
             }
 
-            VotosState.Error -> ExpensesPlaceholder(
-                text = stringResource(Res.string.deputado_details_expenses_error)
-            )
+            items(state.votos, key = { it.votacaoId }) { voto ->
+                VotoCard(voto = voto, onClick = { onVotacaoClick(voto.votacaoId) })
+            }
 
-            // The common branch, not the rare one. Only 2% of what the Camara registers is
-            // nominal, so a deputado with nothing here is ordinary — and saying why matters,
-            // because an empty list otherwise reads as "did not vote".
-            VotosState.Empty -> EmptyComponent(
-                modifier = Modifier.fillMaxSize(),
-                title = stringResource(Res.string.deputado_votos_empty),
-                description = stringResource(Res.string.deputado_votos_empty_description),
-            )
-
-            is VotosState.Content -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    horizontal = dimensions.grid16,
-                    vertical = dimensions.grid8,
-                ),
-                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
-            ) {
-                item {
-                    Text(
-                        text = "${state.votos.size} votos · ${state.sim} sim · ${state.nao} não · ${state.outros} outros",
-                        style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
-                    )
-                }
-
-                items(state.votos, key = { it.votacaoId }) { voto ->
-                    VotoCard(voto = voto, onClick = { onVotacaoClick(voto.votacaoId) })
-                }
-
-                // What the list does not contain, said once. The window is a quarter of the
-                // plenary, so this is not the deputado's whole record.
-                item {
-                    Text(
-                        modifier = Modifier.padding(top = dimensions.grid8),
-                        text = stringResource(Res.string.deputado_votos_nota),
-                        style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
-                    )
-                }
+            // What the list does not contain, said once. The window is a quarter of the
+            // plenary, so this is not the deputado's whole record.
+            item(key = NOTA_KEY) {
+                Text(
+                    modifier = Modifier.padding(top = dimensions.grid8),
+                    text = stringResource(Res.string.deputado_votos_nota),
+                    style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+                )
             }
         }
     }
@@ -627,9 +714,11 @@ private fun VotoCard(voto: VotoDeputado, onClick: () -> Unit) {
     val typography = MaterialTheme.typography
 
     Card(
-        modifier = Modifier.clickable { onClick() },
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
         elevation = magnaCardElevation(),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
+        onClick = onClick,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(dimensions.grid12),
@@ -640,24 +729,7 @@ private fun VotoCard(voto: VotoDeputado, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // How this person voted comes first and reads on its own. Whether the votacao
-                // passed is a separate fact and is not colour-coded against them.
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.extraSmall,
-                        )
-                        .padding(horizontal = dimensions.grid8, vertical = dimensions.grid2),
-                ) {
-                    Text(
-                        text = voto.voto,
-                        style = typography.labelSmall.copy(
-                            color = colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    )
-                }
+                VotoTag(voto = voto.voto)
 
                 voto.dataHoraRegistro?.let { data ->
                     Text(
@@ -674,45 +746,89 @@ private fun VotoCard(voto: VotoDeputado, onClick: () -> Unit) {
                 }
             }
 
+            // The same badge the Home and the proposicoes list draw, rather than a green bold
+            // line invented here: a proposition looks like a proposition wherever it appears.
+            // The sigla is the first token of the label the sweep built — `PLP 74/2026`.
             voto.proposicaoRotulo?.let { rotulo ->
-                Text(
-                    text = rotulo,
-                    style = typography.labelSmall.copy(
-                        color = colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                    ),
+                ProposicaoTipoBadge(
+                    siglaTipo = rotulo.substringBefore(' '),
+                    label = rotulo,
                 )
             }
 
-            Text(
-                text = voto.descricao,
-                style = typography.bodyMedium,
-            )
+            Text(text = voto.descricao, style = typography.bodyMedium)
         }
     }
 }
 
+/**
+ * How this person voted, which is the first thing the card says.
+ *
+ * Sim and Não are told apart by colour as well as by the word, because the word is four
+ * characters at eleven points and the list is read by scanning it. The pairing is the one the
+ * plenary's own board uses, and it is about the vote and not about whether it was right —
+ * whether the votacao passed is a separate fact and is deliberately not drawn against the
+ * person. Everything else — abstenção, obstrução, artigo 17 — is neutral, because none of them
+ * is a vote and colouring each would be five colours for one question.
+ *
+ * The word stays the primary signal, so the tag still reads with no colour vision at all.
+ */
 @Composable
-private fun ExpensesPlaceholder(text: String) {
+private fun VotoTag(voto: String) {
+    val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    val fundo: Color
+    val frente: Color
+
+    when (tomDoVoto(voto)) {
+        TomDoVoto.SIM -> {
+            fundo = colorScheme.primaryContainer
+            frente = colorScheme.onPrimaryContainer
+        }
+
+        TomDoVoto.NAO -> {
+            fundo = colorScheme.errorContainer
+            frente = colorScheme.onErrorContainer
+        }
+
+        TomDoVoto.OUTRO -> {
+            fundo = colorScheme.surfaceContainerHighest
+            frente = colorScheme.onSurfaceVariant
+        }
+    }
+
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(LocalDimensions.current.grid24),
-        contentAlignment = Alignment.Center,
+            .background(color = fundo, shape = MaterialTheme.shapes.extraSmall)
+            .padding(horizontal = dimensions.grid8, vertical = dimensions.grid2),
     ) {
         Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            ),
+            text = voto,
+            style = typography.labelSmall.copy(color = frente, fontWeight = FontWeight.Bold),
         )
     }
 }
 
+private const val RESUMO_KEY = "resumo"
+private const val NOTA_KEY = "nota"
+
+/** An affordance, not a control, at the size every other list in the app uses. */
+private val CHEVRON = 18.dp
+
+/** Smaller than a list's, because it sits beside `bodySmall` rather than a card. */
+private val CHEVRON_GABINETE = 14.dp
+
+/** Enough not to collapse the header while the gabinete is on its way. */
+private val GABINETE_HEIGHT = 120.dp
+
+/** Wide enough to read as spaced out rather than as a typo. */
+private val TRACKING = 1.sp
+
 @Preview
 @Composable
-fun PreviewDeputadoDetails() {
+private fun PreviewDeputadoDetails() {
     MagnaTheme {
         DeputadoDetails(
             state = DeputadoDetailsState(
@@ -720,14 +836,13 @@ fun PreviewDeputadoDetails() {
                 detailsState = DetailsState.Content(deputadoDetailMock),
                 expensesState = ExpensesState.Content(deputadoExpensesMock)
             ),
-            navigateBack = {}
         )
     }
 }
 
 @Preview
 @Composable
-fun PreviewDeputadoDetailsLoading() {
+private fun PreviewDeputadoDetailsLoading() {
     MagnaTheme {
         DeputadoDetails(
             state = DeputadoDetailsState(
@@ -735,7 +850,6 @@ fun PreviewDeputadoDetailsLoading() {
                 detailsState = DetailsState.Loading,
                 expensesState = ExpensesState.Loading
             ),
-            navigateBack = {}
         )
     }
 }
