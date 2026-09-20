@@ -50,53 +50,63 @@ class PartidoOrderingTest {
     }
 
     @Test
-    fun a_favourite_comes_first_however_small_it_is() {
+    fun the_chosen_order_wins_over_size() {
         givenParty("1", "PL", deputados = 116)
         givenParty("2", "PT", deputados = 79)
         givenParty("3", "NOVO", deputados = 4)
 
-        database.partidoFavoritoQueries.favoritePartido("3", 1_000L)
+        // The whole order, not one row of it: that is what the screen writes.
+        givenOrdem("3", "1", "2")
 
         assertEquals(listOf("NOVO", "PL", "PT"), siglasOf("57"))
-        assertTrue(rowsOf("57").single { it.sigla == "NOVO" }.isFavorito)
+        assertEquals(listOf(0L, 1L, 2L), rowsOf("57").map { it.posicao })
     }
 
     @Test
-    fun favourites_are_ordered_among_themselves_by_size_too() {
+    fun a_party_without_a_position_falls_in_behind_the_chosen_ones() {
+        // Not a state the screen writes, because it records every party at once. It is the
+        // state a party joining the register lands in, and it has to sort somewhere sensible:
+        // after everything chosen, and by size among its own kind.
         givenParty("1", "PL", deputados = 116)
         givenParty("2", "PT", deputados = 79)
         givenParty("3", "NOVO", deputados = 4)
 
-        database.partidoFavoritoQueries.favoritePartido("3", 1_000L)
-        database.partidoFavoritoQueries.favoritePartido("2", 2_000L)
+        givenOrdem("3")
 
-        assertEquals(listOf("PT", "NOVO", "PL"), siglasOf("57"))
+        assertEquals(listOf("NOVO", "PL", "PT"), siglasOf("57"))
+        assertEquals(null, rowsOf("57").single { it.sigla == "PL" }.posicao)
     }
 
     @Test
-    fun unfavouriting_puts_it_back_where_its_size_says() {
+    fun no_order_at_all_is_ordered_by_size() {
         givenParty("1", "PL", deputados = 116)
-        givenParty("2", "NOVO", deputados = 4)
+        givenParty("2", "PT", deputados = 79)
+        givenParty("3", "AVANTE", deputados = 8)
 
-        database.partidoFavoritoQueries.favoritePartido("2", 1_000L)
-        assertEquals(listOf("NOVO", "PL"), siglasOf("57"))
-
-        database.partidoFavoritoQueries.unfavoritePartido("2")
-        assertEquals(listOf("PL", "NOVO"), siglasOf("57"))
+        assertEquals(listOf("PL", "PT", "AVANTE"), siglasOf("57"))
+        assertTrue(rowsOf("57").all { it.posicao == null })
     }
 
     @Test
-    fun a_favourite_is_not_tied_to_a_term() {
+    fun the_order_is_not_tied_to_a_term() {
         givenParty("1", "PL", deputados = 116, legislaturaId = "57")
         givenParty("1", "PL", deputados = 40, legislaturaId = "56")
         givenParty("2", "NOVO", deputados = 4, legislaturaId = "57")
         givenParty("2", "NOVO", deputados = 8, legislaturaId = "56")
 
-        database.partidoFavoritoQueries.favoritePartido("2", 1_000L)
+        givenOrdem("2", "1")
 
-        // Marking the NOVO as yours is something you said, not a fact about a mandate.
+        // Wanting the NOVO at the top is something you said, not a fact about a mandate.
         assertEquals(listOf("NOVO", "PL"), siglasOf("57"))
         assertEquals(listOf("NOVO", "PL"), siglasOf("56"))
+    }
+
+    /** Writes the whole order, which is the only way the app ever writes one. */
+    private fun givenOrdem(vararg partidoIds: String) {
+        database.partidoOrdemQueries.deletePartidoOrdem()
+        partidoIds.forEachIndexed { posicao, id ->
+            database.partidoOrdemQueries.insertPartidoOrdem(id, posicao.toLong())
+        }
     }
 
     @Test

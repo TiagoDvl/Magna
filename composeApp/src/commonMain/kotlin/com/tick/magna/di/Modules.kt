@@ -12,7 +12,7 @@ import com.tick.magna.LegislaturaQueries
 import com.tick.magna.MagnaDatabase
 import com.tick.magna.OrgaoAtividadeQueries
 import com.tick.magna.OrgaoQueries
-import com.tick.magna.PartidoFavoritoQueries
+import com.tick.magna.PartidoOrdemQueries
 import com.tick.magna.PartidoQueries
 import com.tick.magna.ProposicaoQueries
 import com.tick.magna.SiglaTipoQueries
@@ -115,7 +115,7 @@ val databaseModule = module {
     single<DeputadoBioQueries> { get<MagnaDatabase>().deputadoBioQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
-    single<PartidoFavoritoQueries> { get<MagnaDatabase>().partidoFavoritoQueries }
+    single<PartidoOrdemQueries> { get<MagnaDatabase>().partidoOrdemQueries }
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
     single<OrgaoQueries> { get<MagnaDatabase>().orgaoQueries }

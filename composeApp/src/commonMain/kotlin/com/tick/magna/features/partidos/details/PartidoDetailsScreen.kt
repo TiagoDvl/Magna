@@ -147,23 +147,6 @@ private fun PartidoDetailsContent(
                 titleText = topBarTitle,
                 leftIcon = painterResource(Res.drawable.ic_arrow_back),
                 leftIconClick = navigateBack,
-                actions = {
-                    IconButton(onClick = { onAction(PartidoDetailsAction.ToggleFavorito) }) {
-                        Icon(
-                            painter = painterResource(
-                                if (state.isFavorito) Res.drawable.ic_star_filled else Res.drawable.ic_star
-                            ),
-                            contentDescription = stringResource(
-                                if (state.isFavorito) {
-                                    Res.string.partido_favorite_remove
-                                } else {
-                                    Res.string.partido_favorite_add
-                                }
-                            ),
-                            tint = if (state.isFavorito) colorScheme.tertiary else colorScheme.primary,
-                        )
-                    }
-                },
             )
         }
     ) { paddingValues ->

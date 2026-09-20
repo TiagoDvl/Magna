@@ -31,8 +31,8 @@ object MagnaElevation {
  * The elevation every card takes, so the number lives in one place rather than in fifteen.
  */
 @Composable
-fun magnaCardElevation(): CardElevation = CardDefaults.cardElevation(
-    defaultElevation = MagnaElevation.card,
+fun magnaCardElevation(elevated: Boolean = false): CardElevation = CardDefaults.cardElevation(
+    defaultElevation = if (elevated) MagnaElevation.raised else MagnaElevation.card,
     pressedElevation = MagnaElevation.raised,
 )
 

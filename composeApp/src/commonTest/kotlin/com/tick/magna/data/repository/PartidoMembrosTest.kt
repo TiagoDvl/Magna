@@ -266,10 +266,7 @@ class PartidoMembrosTest {
         override suspend fun insertPartidos(deputadosDetails: List<PartidoEntity>) =
             throw UnsupportedOperationException("not part of this test")
 
-        override fun observeIsFavorito(partidoId: String): Flow<Boolean> =
-            throw UnsupportedOperationException("not part of this test")
-
-        override suspend fun setFavorito(partidoId: String, favorito: Boolean) =
+        override suspend fun setOrdem(partidoIds: List<String>) =
             throw UnsupportedOperationException("not part of this test")
     }
 

@@ -62,8 +62,23 @@ SELECT
         WHERE Deputado.legislaturaId = Partido.legislaturaId
           AND Deputado.partido = Partido.sigla
     ) AS deputadoCount,
-    (PartidoFavorito.partidoId IS NOT NULL) AS isFavorito
+    -- The bench of the day, which is a different number from the one above: 648 people have
+    -- held one of the 513 seats of the 57th, so counting everyone who passed through the term
+    -- builds a house a fifth too big. Null `emExercicio` is excluded rather than assumed — a
+    -- term synced before the column existed counts zero here, and the chart that reads it
+    -- draws nothing rather than a wrong chamber.
+    (
+        SELECT COUNT(*) FROM Deputado
+        WHERE Deputado.legislaturaId = Partido.legislaturaId
+          AND Deputado.partido = Partido.sigla
+          AND Deputado.emExercicio = 1
+    ) AS bancadaCount,
+    PartidoOrdem.posicao AS posicao
 FROM Partido
-LEFT JOIN PartidoFavorito ON PartidoFavorito.partidoId = Partido.id
+LEFT JOIN PartidoOrdem ON PartidoOrdem.partidoId = Partido.id
 WHERE Partido.legislaturaId = :legislaturaId
-ORDER BY isFavorito DESC, deputadoCount DESC, Partido.sigla ASC;
+-- The chosen order first, then the rest by size. `posicao IS NULL` sorts 0 before 1, so a
+-- party with a position comes before one without; SQLite would otherwise put every NULL first
+-- and bury the whole point of the table.
+ORDER BY (PartidoOrdem.posicao IS NULL) ASC, PartidoOrdem.posicao ASC,
+         deputadoCount DESC, Partido.sigla ASC;

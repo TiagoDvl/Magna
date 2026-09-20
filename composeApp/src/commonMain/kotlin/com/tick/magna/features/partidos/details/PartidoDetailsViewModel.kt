@@ -41,12 +41,6 @@ class PartidoDetailsViewModel(
 
     init {
         viewModelScope.launch(dispatcher.io) {
-            partidosRepository.observeIsFavorito(partidoId).collect { favorito ->
-                _state.update { it.copy(isFavorito = favorito) }
-            }
-        }
-
-        viewModelScope.launch(dispatcher.io) {
             combine(
                 partidosRepository.getPartidoDetail(partidoId),
                 partidosRepository.getPartidoMembros(partidoId),
@@ -73,13 +67,12 @@ class PartidoDetailsViewModel(
                     },
                 )
             }.collect { next ->
-                // selectedChart and isFavorito are owned by the screen and by the database,
+                // selectedChart is owned by the screen,
                 // not by these two requests, so the freshly built state does not get to
                 // overwrite them with its defaults.
                 _state.update { current ->
                     next.copy(
                         selectedChart = current.selectedChart,
-                        isFavorito = current.isFavorito,
                     )
                 }
             }
@@ -108,25 +101,6 @@ class PartidoDetailsViewModel(
                 _state.update { it.copy(selectedChart = action.type) }
             }
 
-            PartidoDetailsAction.ToggleFavorito -> toggleFavorito()
-        }
-    }
-
-    /**
-     * Writes and says nothing else. The star follows the database through the flow below, so
-     * there is no second copy of the truth to keep in step.
-     */
-    private fun toggleFavorito() {
-        val favorito = !_state.value.isFavorito
-
-        viewModelScope.launch(dispatcher.io) {
-            partidosRepository.setFavorito(partidoId, favorito)
-            analytics.track(
-                AnalyticsEvent.PartidoFavorited(
-                    favorited = favorito,
-                    source = AnalyticsEvent.Source.DETAIL,
-                )
-            )
         }
     }
 

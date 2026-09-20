@@ -139,8 +139,15 @@
 
     <string name="partidos_section_title">Partidos</string>
     <string name="partidos_list_title">Partidos</string>
+    <string name="partidos_total">%1$d partidos</string>
+    <string name="partidos_hemiciclo_total">%1$d cadeiras ocupadas · %2$d partidos</string>
+    <string name="partidos_hemiciclo_bancada">%1$s · %2$d de %3$d cadeiras</string>
+    <string name="partidos_ordem_explicacao">Toque nos partidos para comparar as bancadas no gráfico. Arraste pela alça para escolher a ordem — a Home segue essa mesma ordem.</string>
+    <string name="partidos_abrir">Abrir partido</string>
+    <string name="partidos_ordem_mover">Mover partido</string>
     <string name="partidos_members_suffix">membros</string>
     <string name="partidos_deputados_suffix">deputados</string>
+    <string name="partidos_deputados_contagem">%1$d deputados</string>
     <string name="partido_favorite_add">Marcar como favorito</string>
     <string name="partido_favorite_remove">Desmarcar favorito</string>
 

@@ -19,7 +19,7 @@ fun PartidoEntity.toDomain(): Partido {
     )
 }
 
-/** The list row, which carries the local count and the favourite flag the query joins in. */
+/** The list row, which carries the local count and the chosen position the query joins in. */
 fun GetPartidos.toDomain(): Partido {
     return Partido(
         id = id.toInt(),
@@ -32,6 +32,7 @@ fun GetPartidos.toDomain(): Partido {
         urlLogo = logo,
         urlWebSite = website,
         deputados = deputadoCount.toInt(),
-        isFavorito = isFavorito,
+        bancada = bancadaCount.toInt(),
+        posicao = posicao?.toInt(),
     )
 }

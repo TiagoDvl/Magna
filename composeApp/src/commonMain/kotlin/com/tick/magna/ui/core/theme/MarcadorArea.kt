@@ -37,6 +37,19 @@ enum class MarcadorArea {
     /** A dashed rule above the bottom edge: a tally being kept rather than a thing being held. */
     TRACEJADO,
 
+    /**
+     * Five dots in the bottom-right corner, fading away from it.
+     *
+     * Borrowed from the seat chart, which arrived at dots on its own: five hundred and
+     * thirteen of them are the house, and a handful is a party. The one marker in this set
+     * that means something beyond "this area" — the rest are shapes chosen to be told apart.
+     *
+     * A handful in a corner rather than a rule across the base, which read as a dotted border
+     * and drew more attention than the party's own name. The fade is what turns five dots into
+     * a gesture: the row does not end, it runs out.
+     */
+    PONTOS,
+
     NENHUM,
 }
 
@@ -45,7 +58,7 @@ val MagnaArea.marcador: MarcadorArea
         MagnaArea.DEPUTADOS -> MarcadorArea.CUNHA
         MagnaArea.PROPOSICOES -> MarcadorArea.TARJA
         MagnaArea.VOTACOES -> MarcadorArea.TRACEJADO
-        MagnaArea.PARTIDOS,
+        MagnaArea.PARTIDOS -> MarcadorArea.PONTOS
         MagnaArea.COMISSOES,
         MagnaArea.LEGISLATURA -> MarcadorArea.NENHUM
     }
@@ -127,6 +140,25 @@ fun Modifier.marcadorDeArea(
                 )
             }
 
+            MarcadorArea.PONTOS -> {
+                val raio = PONTO.toPx() / 2f
+                val passo = PONTO.toPx() + VAO_ENTRE_PONTOS.toPx()
+                val y = size.height - PONTOS_RECUO.toPx() - raio
+                val direita = size.width - PONTOS_RECUO.toPx() - raio
+
+                // Drawn from the corner inwards, so the strongest dot is the one anchored to
+                // it and the rest thin out along the way.
+                for (i in 0 until PONTOS_NO_CANTO) {
+                    val opacidade = 1f - i * (1f - ALFA_MAIS_FRACO) / (PONTOS_NO_CANTO - 1)
+
+                    drawCircle(
+                        color = cor.copy(alpha = cor.alpha * opacidade),
+                        radius = raio,
+                        center = Offset(direita - i * passo, y),
+                    )
+                }
+            }
+
             MarcadorArea.NENHUM -> Unit
         }
 
@@ -165,3 +197,14 @@ private val TRACEJADO_ESPESSURA = 3.dp
  */
 private val TRACO = 8.dp
 private val VAO = 5.dp
+
+/** Seat-sized, so the handful reads as a bench and not as a dotted border. */
+private val PONTO = 4.dp
+private val VAO_ENTRE_PONTOS = 3.dp
+private val PONTOS_RECUO = 10.dp
+
+/** Enough to read as a row, few enough to stay in a corner. */
+private const val PONTOS_NO_CANTO = 5
+
+/** Where the far end of the row fades to. Not zero: a dot that vanishes ends the row. */
+private const val ALFA_MAIS_FRACO = 0.15f

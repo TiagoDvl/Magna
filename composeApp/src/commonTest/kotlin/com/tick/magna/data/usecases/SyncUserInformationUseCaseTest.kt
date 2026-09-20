@@ -213,10 +213,7 @@ class SyncUserInformationUseCaseTest {
             override fun getPartidoMembros(partidoId: String): Flow<Resource<List<DeputadoMembro>>> =
                 throw UnsupportedOperationException("not part of the sync")
 
-            override fun observeIsFavorito(partidoId: String): Flow<Boolean> =
-                throw UnsupportedOperationException("not part of the sync")
-
-            override suspend fun setFavorito(partidoId: String, favorito: Boolean) =
+            override suspend fun setOrdem(partidoIds: List<String>) =
                 throw UnsupportedOperationException("not part of the sync")
         }
 

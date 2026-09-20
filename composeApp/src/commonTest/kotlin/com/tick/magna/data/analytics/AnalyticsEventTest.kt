@@ -25,7 +25,7 @@ class AnalyticsEventTest {
         AnalyticsEvent.ComissaoOpened(sigla = "CCJC"),
         AnalyticsEvent.ApiError(endpoint = "deputados", status = 503),
         AnalyticsEvent.LegislaturaChanged(from = "57", to = "56"),
-        AnalyticsEvent.PartidoFavorited(favorited = true, source = AnalyticsEvent.Source.DETAIL),
+        AnalyticsEvent.PartidosReordered(total = 22),
     )
 
     private val firebaseNamePattern = Regex("^[a-z][a-z0-9_]*$")

@@ -87,12 +87,9 @@ internal class PartidosRepository(
         }
     }
 
-    override fun observeIsFavorito(partidoId: String): Flow<Boolean> =
-        partidoDao.observeIsFavorito(partidoId)
-
-    override suspend fun setFavorito(partidoId: String, favorito: Boolean) {
-        partidoDao.setFavorito(partidoId, favorito)
-        loggerInterface.d("setFavorito: $partidoId -> $favorito", TAG)
+    override suspend fun setOrdem(partidoIds: List<String>) {
+        partidoDao.setOrdem(partidoIds)
+        loggerInterface.d("setOrdem: ${partidoIds.size} partidos", TAG)
     }
 
     override fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>> = networkResource {

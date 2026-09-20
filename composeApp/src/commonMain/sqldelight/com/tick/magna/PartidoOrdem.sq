@@ -1,0 +1,28 @@
+-- The order the person wants the parties in.
+--
+-- This replaced a favourites table, and the difference is not cosmetic. A star answers "is
+-- this mine", which is one bit and sorts nothing: the Home showed favourites first and then
+-- fell back to size, so somebody who starred four parties could say which four mattered but
+-- not which of the four came first. A position answers the question the Home actually asks.
+--
+-- No legislaturaId, for the same reason the favourites had none and DeputadoLastSeen has
+-- none: this is something the person said, not something the Camara returned. Wanting the PT
+-- at the top does not stop being true because you went to look at the 56th legislature.
+--
+-- Written for every party at once or for none. A table with three rows in it and nineteen
+-- parties without one is a list that is half chosen and half sorted by size, and the boundary
+-- between the two halves is invisible — so the first drag writes the whole order as it then
+-- stands, and every drag after that rewrites it.
+CREATE TABLE PartidoOrdem (
+    partidoId TEXT NOT NULL PRIMARY KEY,
+    posicao INTEGER NOT NULL
+);
+
+insertPartidoOrdem:
+INSERT OR REPLACE INTO PartidoOrdem(partidoId, posicao) VALUES (?, ?);
+
+deletePartidoOrdem:
+DELETE FROM PartidoOrdem;
+
+countPartidoOrdem:
+SELECT COUNT(*) FROM PartidoOrdem;

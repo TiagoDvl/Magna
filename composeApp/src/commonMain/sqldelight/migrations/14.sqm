@@ -1,0 +1,27 @@
+-- Favourites become positions.
+--
+-- A star was one bit: it said a party mattered and said nothing about where it should sit, so
+-- the Home listed the starred ones first and then fell back to size. The person could name
+-- four parties and not order them.
+--
+-- The ones already starred keep their meaning — they were the parties that came first — and
+-- become positions 0, 1, 2 in the order they were starred. Everything else has no row, which
+-- is the same state as somebody who never chose: sorted by size.
+--
+-- Counted with a correlated subquery rather than ROW_NUMBER, which needs SQLite 3.25 and is
+-- not worth a minimum version over three rows.
+CREATE TABLE PartidoOrdem (
+    partidoId TEXT NOT NULL PRIMARY KEY,
+    posicao INTEGER NOT NULL
+);
+
+INSERT INTO PartidoOrdem(partidoId, posicao)
+SELECT
+    partidoId,
+    (
+        SELECT COUNT(*) FROM PartidoFavorito AS anterior
+        WHERE anterior.favoritedAt < PartidoFavorito.favoritedAt
+    )
+FROM PartidoFavorito;
+
+DROP TABLE PartidoFavorito;

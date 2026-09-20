@@ -10,10 +10,14 @@ interface PartidoDaoInterface {
 
     suspend fun getPartido(legislaturaId: String, partidoId: String): Flow<Partido>
 
-    /** Already ordered and already carrying the favourite flag. See the query for why. */
+    /** Already ordered and already carrying the chosen position. See the query for why. */
     suspend fun getPartidos(legislaturaId: String): Flow<List<GetPartidos>?>
 
-    fun observeIsFavorito(partidoId: String): Flow<Boolean>
-
-    suspend fun setFavorito(partidoId: String, favorito: Boolean)
+    /**
+     * Replaces the whole order with this one, in one transaction.
+     *
+     * All of it or none of it: a table holding three of twenty-two parties is a list that is
+     * half chosen and half sorted by size, with an invisible seam between the halves.
+     */
+    suspend fun setOrdem(partidoIds: List<String>)
 }

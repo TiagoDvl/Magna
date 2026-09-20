@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
-import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,8 +30,8 @@ class PartidosListViewModel(
     init {
         viewModelScope.launch(dispatcher.io) {
             try {
-                // Ordered by the query: favourites first, then by how many deputados the
-                // party had in this term.
+                // Ordered by the query: the chosen order first, then by how many deputados
+                // the party had in this term.
                 partidosRepository.getPartidos().collect { partidos ->
                     _state.update {
                         PartidosListState(partidos = partidos, isLoading = false)
@@ -50,20 +49,14 @@ class PartidosListViewModel(
     }
 
     /**
-     * Writes only. The list is a flow over the table, so the star and the reordering both come
-     * back through the query rather than from a copy held here.
+     * Writes only. The list is a flow over the table, so the new order comes back through the
+     * query rather than from a copy held here — the screen's own copy exists for the duration
+     * of one gesture and is replaced by this one the moment it lands.
      */
-    fun onToggleFavorito(partido: Partido) {
-        val favorito = !partido.isFavorito
-
+    fun onOrdemChanged(partidoIds: List<String>) {
         viewModelScope.launch(dispatcher.io) {
-            partidosRepository.setFavorito(partido.id.toString(), favorito)
-            analytics.track(
-                AnalyticsEvent.PartidoFavorited(
-                    favorited = favorito,
-                    source = AnalyticsEvent.Source.LIST,
-                )
-            )
+            partidosRepository.setOrdem(partidoIds)
+            analytics.track(AnalyticsEvent.PartidosReordered(partidoIds.size))
         }
     }
 }

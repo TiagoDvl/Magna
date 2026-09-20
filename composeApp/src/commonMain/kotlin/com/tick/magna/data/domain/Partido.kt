@@ -17,7 +17,20 @@ data class Partido(
      * this one includes suplentes who took a seat at some point, so it runs a little above.
      */
     val deputados: Int = 0,
-    val isFavorito: Boolean = false,
+    /**
+     * Seats held on the term's reference date — the bench, not everyone who passed through.
+     *
+     * Zero when the term was synced before `emExercicio` existed, which is why the chart that
+     * reads it checks the total before drawing anything.
+     */
+    val bancada: Int = 0,
+    /**
+     * Where the person put this party, or null when they never said.
+     *
+     * Null for every party or for none, which is what makes the list legible: either the whole
+     * order is chosen or the whole order is by size.
+     */
+    val posicao: Int? = null,
 )
 
 val partidosMock = listOf(

@@ -10,12 +10,16 @@ interface PartidosRepositoryInterface {
     /** One-shot, used by the first-run sync. */
     suspend fun syncPartidos(): Boolean
 
-    /** Favourites first, then by size. The ordering is the query's, not the caller's. */
+    /** The chosen order first, then by size. The ordering is the query's, not the caller's. */
     fun getPartidos(): Flow<List<Partido>>
 
-    fun observeIsFavorito(partidoId: String): Flow<Boolean>
-
-    suspend fun setFavorito(partidoId: String, favorito: Boolean)
+    /**
+     * Records the order the person put the parties in, replacing whatever was there.
+     *
+     * The whole list every time, not the one that moved: a half-recorded order is a list with
+     * an invisible seam between what was chosen and what is sorted by size.
+     */
+    suspend fun setOrdem(partidoIds: List<String>)
 
     fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>>
 
