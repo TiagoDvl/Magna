@@ -74,6 +74,7 @@ kotlin {
             implementation(compose.uiTooling)
             implementation(libs.ktor.client.android)
             implementation(libs.android.driver)
+            implementation(libs.androidx.biometric)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

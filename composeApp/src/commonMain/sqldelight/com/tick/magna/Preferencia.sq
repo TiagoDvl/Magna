@@ -1,0 +1,13 @@
+-- See migrations/17.sqm for why this is key and value.
+CREATE TABLE Preferencia (
+    chave TEXT NOT NULL PRIMARY KEY,
+    valor TEXT NOT NULL
+);
+
+getPreferencia:
+SELECT valor FROM Preferencia WHERE chave = ?;
+
+setPreferencia:
+INSERT INTO Preferencia (chave, valor)
+VALUES (?, ?)
+ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor;

@@ -1,5 +1,11 @@
 package com.tick.magna.features.home
 
+
+import com.tick.magna.features.santinho.AtalhoDoSantinho
+import com.tick.magna.features.santinho.SantinhoArgs
+import com.tick.magna.features.santinho.SantinhoBanner
+import com.tick.magna.features.santinho.SantinhoViewModel
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -250,6 +256,11 @@ private fun MagnaHomeContent(
     var showLegislaturaSheet by remember { mutableStateOf(false) }
     val selectedLegislatura = homeState.selectedLegislatura
 
+    // One instance for the Home, shared by the banner and the shortcut beside the wordmark:
+    // asking for it twice would give the two of them separate copies of the same fact.
+    val santinhoViewModel: SantinhoViewModel = koinViewModel()
+    val santinhoState by santinhoViewModel.state.collectAsStateWithLifecycle()
+
     MagnaScreen(
         modifier = modifier,
         // No headline. The term used to be one, at 32sp, and it was a third heading on a
@@ -257,6 +268,17 @@ private fun MagnaHomeContent(
         // say something that belongs in a corner. Blank collapses the bar to a single row.
         title = "",
         navigationLabel = stringResource(Res.string.app_name),
+        aoLadoDaMarca = {
+            // Only once the banner has been closed. Two doors to the same room, both on
+            // screen, is one door too many.
+            if (santinhoState.disponivel && !santinhoState.bannerVisivel) {
+                AtalhoDoSantinho(
+                    brilhar = santinhoState.brilhoPendente,
+                    onBrilhoMostrado = santinhoViewModel::onBrilhoMostrado,
+                    onClick = { navigateTo(SantinhoArgs) },
+                )
+            }
+        },
         actions = {
             selectedLegislatura?.let { legislatura ->
                 PeriodoDaLegislatura(
@@ -298,6 +320,22 @@ private fun MagnaHomeContent(
                     )
 
                     HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = colorScheme.surfaceDim)
+                }
+
+                // Above the sections and with no rule under it. See SantinhoBanner.
+                if (santinhoState.disponivel && santinhoState.bannerVisivel) {
+                    SantinhoBanner(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = LocalDimensions.current.grid16,
+                                end = LocalDimensions.current.grid16,
+                                top = LocalDimensions.current.grid16,
+                            ),
+                        preenchidos = santinhoState.guardado.preenchidos,
+                        onClick = { navigateTo(SantinhoArgs) },
+                        onDispensar = santinhoViewModel::onBannerDispensado,
+                    )
                 }
 
                 RecentDeputadosComponent(

@@ -1,0 +1,12 @@
+-- Small choices the person has made about the app itself.
+--
+-- Key and value rather than a column per setting: the first one is whether the santinho banner
+-- was dismissed, and a table that needs a migration every time somebody hides a card is a table
+-- that will end up holding booleans in columns nobody remembers adding.
+--
+-- Not in User, which is about which legislatura is being read and is replaced wholesale when
+-- that changes. A preference outlives that.
+CREATE TABLE Preferencia (
+    chave TEXT NOT NULL PRIMARY KEY,
+    valor TEXT NOT NULL
+);

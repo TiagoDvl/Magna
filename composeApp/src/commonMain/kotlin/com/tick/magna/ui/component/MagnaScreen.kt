@@ -55,6 +55,8 @@ fun MagnaScreen(
      * was showing. Null is every screen where it is not.
      */
     chaveDoTitulo: String? = null,
+    /** One quiet control beside the wordmark. See MagnaMediumTopBar. */
+    aoLadoDaMarca: @Composable () -> Unit = {},
     /** Sits under the bar and scrolls with it: a tab row, a filter strip. */
     belowTopBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
@@ -78,6 +80,7 @@ fun MagnaScreen(
                     onTitleClick = onTitleClick,
                     titleClickDescription = titleClickDescription,
                     chaveDoTitulo = chaveDoTitulo,
+                    aoLadoDaMarca = aoLadoDaMarca,
                 )
 
                 belowTopBar()

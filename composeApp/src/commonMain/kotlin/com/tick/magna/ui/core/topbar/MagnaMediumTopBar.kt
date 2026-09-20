@@ -92,6 +92,15 @@ fun MagnaMediumTopBar(
     titleClickDescription: String? = null,
     /** Makes the title the far end of a shared element, keyed by this. */
     chaveDoTitulo: String? = null,
+    /**
+     * One quiet control beside the wordmark.
+     *
+     * Beside the name rather than among the actions on the right, because what goes here is a
+     * way back to something the person closed — and the right-hand end of the bar is where the
+     * screen's own controls live. A door somebody shut should be reopenable from where they
+     * are, not filed with the current screen's business.
+     */
+    aoLadoDaMarca: @Composable () -> Unit = {},
 ) {
     // A blank title means there is nothing to say twice, so the bar collapses to the single
     // row it would otherwise leave half empty. The Home uses it: its own name and the term it
@@ -105,7 +114,12 @@ fun MagnaMediumTopBar(
                 containerColor = area?.container ?: MaterialTheme.colorScheme.background,
                 scrolledContainerColor = area?.container ?: MaterialTheme.colorScheme.background,
             ),
-            title = { Wordmark(navigationLabel) },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Wordmark(navigationLabel)
+                    aoLadoDaMarca()
+                }
+            },
         )
         return
     }
@@ -140,10 +154,13 @@ fun MagnaMediumTopBar(
                 // this app is; black at full weight reads as a name, which is what it is. One
                 // step up in size and no further: it sits above the title, and a wordmark that
                 // competes with the title turns the header into two headings.
-                navigationLabel != null -> Wordmark(
-                    text = navigationLabel,
+                navigationLabel != null -> Row(
                     modifier = Modifier.padding(start = WORDMARK_START_PADDING),
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Wordmark(navigationLabel)
+                    aoLadoDaMarca()
+                }
             }
         },
         title = {

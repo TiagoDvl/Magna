@@ -82,6 +82,10 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     implementation(project(":composeApp"))
     implementation(libs.androidx.activity.compose)
+    // MainActivity is a FragmentActivity because BiometricPrompt needs one, and composeApp
+    // declares this as `implementation` so it does not reach here on its own. See the AGP 9.0
+    // note in CLAUDE.md.
+    implementation(libs.androidx.biometric)
     implementation(libs.material.icons.core)
     implementation(libs.napier)
     implementation(libs.koin.android)

@@ -1,5 +1,8 @@
 package com.tick.magna
 
+import com.tick.magna.features.santinho.SantinhoArgs
+import com.tick.magna.features.santinho.SantinhoScreen
+
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -24,6 +27,7 @@ import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import com.tick.magna.data.analytics.AnalyticsEvent
 import com.tick.magna.data.analytics.AnalyticsInterface
+import com.tick.magna.data.analytics.relatavel
 import com.tick.magna.data.analytics.toScreenName
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailArgs
 import com.tick.magna.features.comissoes.permanentes.detail.ComissaoPermanenteDetailScreen
@@ -70,7 +74,10 @@ fun App() {
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect { backStackEntry ->
             backStackEntry.destination.route?.let { route ->
-                analytics.track(AnalyticsEvent.ScreenView(route.toScreenName()))
+                // One screen is deliberately not counted. See ScreenName.relatavel.
+                if (route.relatavel()) {
+                    analytics.track(AnalyticsEvent.ScreenView(route.toScreenName()))
+                }
             }
         }
     }
@@ -98,6 +105,10 @@ fun App() {
 
                 composable<HomeArgs> {
                     Animado { MagnaHomeScreen(navController = navController) }
+                }
+
+                composable<SantinhoArgs> {
+                    Animado { SantinhoScreen(navController = navController) }
                 }
 
                 composable<DeputadosSearchArgs> {

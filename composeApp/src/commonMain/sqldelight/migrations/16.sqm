@@ -1,0 +1,15 @@
+-- The numbers somebody wants to have with them in the booth.
+--
+-- One row and one blob, not a column per office. Columns would say which offices the person
+-- filled in even with every digit encrypted, and "this person cares about the Senate race" is
+-- itself something worth not writing down. The whole note is one ciphertext: the table says
+-- that a note exists and when it was last touched, and nothing else.
+--
+-- No legislaturaId and no foreign key to anything. This is the one table in the database that
+-- is not about the Camara — it is about the person holding the phone, and joining it to
+-- anything would be the start of a relationship nobody asked for.
+CREATE TABLE Santinho (
+    id INTEGER NOT NULL PRIMARY KEY,
+    conteudo BLOB NOT NULL,
+    atualizadoEm TEXT NOT NULL
+);

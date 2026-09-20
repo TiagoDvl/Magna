@@ -1,0 +1,21 @@
+-- See migrations/16.sqm for why this is one blob rather than five columns.
+CREATE TABLE Santinho (
+    id INTEGER NOT NULL PRIMARY KEY,
+    conteudo BLOB NOT NULL,
+    atualizadoEm TEXT NOT NULL
+);
+
+getSantinho:
+SELECT * FROM Santinho WHERE id = 1;
+
+upsertSantinho:
+INSERT INTO Santinho (id, conteudo, atualizadoEm)
+VALUES (1, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    conteudo = excluded.conteudo,
+    atualizadoEm = excluded.atualizadoEm;
+
+-- Everything, in one statement, for the person who changes their mind about having written it
+-- down at all.
+deleteSantinho:
+DELETE FROM Santinho;

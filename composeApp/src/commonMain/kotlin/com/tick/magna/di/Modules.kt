@@ -102,6 +102,13 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.tick.magna.data.color.LeitorDeCorDoLogo
 import com.tick.magna.data.color.LeitorDeCorDoLogoInterface
+import com.tick.magna.PreferenciaQueries
+import com.tick.magna.SantinhoQueries
+import com.tick.magna.data.source.local.dao.PreferenciaDao
+import com.tick.magna.data.source.local.dao.PreferenciaDaoInterface
+import com.tick.magna.data.santinho.SantinhoRepository
+import com.tick.magna.data.santinho.SantinhoRepositoryInterface
+import com.tick.magna.features.santinho.SantinhoViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -117,6 +124,8 @@ val databaseModule = module {
     single<DeputadoBioQueries> { get<MagnaDatabase>().deputadoBioQueries }
     single<DeputadoDetailsQueries> { get<MagnaDatabase>().deputadoDetailsQueries }
     single<PartidoQueries> { get<MagnaDatabase>().partidoQueries }
+    single<SantinhoQueries> { get<MagnaDatabase>().santinhoQueries }
+    single<PreferenciaQueries> { get<MagnaDatabase>().preferenciaQueries }
     single<PartidoOrdemQueries> { get<MagnaDatabase>().partidoOrdemQueries }
     single<SiglaTipoQueries> { get<MagnaDatabase>().siglaTipoQueries }
     single<ProposicaoQueries> { get<MagnaDatabase>().proposicaoQueries }
@@ -135,6 +144,7 @@ val databaseModule = module {
     single<DeputadoBioDaoInterface> { DeputadoBioDao(get(), get()) }
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get(), get()) }
+    single<PreferenciaDaoInterface> { PreferenciaDao(get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get(), get()) }
     single<ComissaoCacheDaoInterface> { ComissaoCacheDao(get(), get(), get(), get(), get()) }
     single<VotoDaoInterface> { VotoDao(get(), get(), get(), get()) }
@@ -154,6 +164,7 @@ val dataModule = module {
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
     single<PartidosApiInterface> { PartidosApi(get()) }
+    single<SantinhoRepositoryInterface> { SantinhoRepository(get(), get(), get(), get()) }
     single<LeitorDeCorDoLogoInterface> { LeitorDeCorDoLogo() }
     single<ProposicoesApiInterface> { ProposicoesApi(get()) }
     single<OrgaosApiInterface> { OrgaosApi(get()) }
@@ -189,6 +200,7 @@ val loggingModule = module {
 val viewModelModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get(), get(), get()) }
+    viewModel { SantinhoViewModel(get()) }
     viewModel { DeputadosSearchViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> VotacaoDetailViewModel(handle, get(), get(), get()) }
