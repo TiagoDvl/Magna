@@ -1,5 +1,7 @@
 package com.tick.magna.features.deputados.search
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -479,6 +481,7 @@ private fun Resultados(
                             .border(AVATAR_RING, MagnaArea.DEPUTADOS.accent, CircleShape),
                         photoUrl = deputado.profilePicture,
                         size = null,
+                        chaveCompartilhada = ChaveCompartilhada.fotoDoDeputado(deputado.id),
                     )
 
                     Column(

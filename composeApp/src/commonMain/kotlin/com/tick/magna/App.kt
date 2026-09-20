@@ -1,5 +1,13 @@
 package com.tick.magna
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.runtime.CompositionLocalProvider
+import com.tick.magna.ui.core.navigation.LocalAnimatedVisibilityScope
+import com.tick.magna.ui.core.navigation.LocalSharedTransitionScope
+import com.tick.magna.ui.core.navigation.Transicoes
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +51,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview
 fun App() {
@@ -72,63 +81,97 @@ fun App() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = HomeArgs
-            ) {
+            // Everything the graph draws happens inside one SharedTransitionLayout, which is
+            // what lets an element on one screen become an element on the next rather than
+            // two elements that happen to look alike. The scopes it needs go down as locals:
+            // see ElementoCompartilhado.
+            SharedTransitionLayout {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = HomeArgs,
+                        enterTransition = Transicoes.entrar,
+                        exitTransition = Transicoes.sair,
+                        popEnterTransition = Transicoes.voltarEntrando,
+                        popExitTransition = Transicoes.voltarSaindo,
+                    ) {
 
                 composable<HomeArgs> {
-                    MagnaHomeScreen(navController = navController)
+                    Animado { MagnaHomeScreen(navController = navController) }
                 }
 
                 composable<DeputadosSearchArgs> {
-                    DeputadosSearchScreen(navController = navController)
+                    Animado { DeputadosSearchScreen(navController = navController) }
                 }
 
                 composable<DeputadoDetailsArgs> {
-                    DeputadoDetailScreen(navController = navController)
+                    Animado { DeputadoDetailScreen(navController = navController) }
                 }
 
                 composable<ComissaoPermanenteDetailArgs> {
                     val args = it.toRoute<ComissaoPermanenteDetailArgs>()
 
-                    ComissaoPermanenteDetailScreen(
-                        viewModel = koinViewModel { parametersOf(args.comissaoPermanenteId) },
-                        navController = navController
-                    )
+                    Animado {
+                        ComissaoPermanenteDetailScreen(
+                            viewModel = koinViewModel { parametersOf(args.comissaoPermanenteId) },
+                            navController = navController
+                        )
+                    }
                 }
 
                 composable<ComissoesListArgs> {
-                    ComissoesListScreen(
-                        navController = navController,
-                        onComissaoClick = { navController.navigate(ComissaoPermanenteDetailArgs(it)) },
-                    )
+                    Animado {
+                        ComissoesListScreen(
+                            navController = navController,
+                            onComissaoClick = {
+                                navController.navigate(ComissaoPermanenteDetailArgs(it))
+                            },
+                        )
+                    }
                 }
 
                 composable<PartidosListArgs> {
-                    PartidosListScreen(
-                        navController = navController,
-                        onPartidoClick = { navController.navigate(PartidoDetailsArgs(it)) },
-                    )
+                    Animado {
+                        PartidosListScreen(
+                            navController = navController,
+                            onPartidoClick = { navController.navigate(PartidoDetailsArgs(it)) },
+                        )
+                    }
                 }
 
                 composable<PartidoDetailsArgs> {
-                    PartidoDetailsScreen(navController = navController)
+                    Animado { PartidoDetailsScreen(navController = navController) }
                 }
 
                 composable<VotacaoDetailArgs> {
-                    VotacaoDetailScreen(navController = navController)
+                    Animado { VotacaoDetailScreen(navController = navController) }
                 }
 
                 composable<ProposicoesListArgs> {
-                    ProposicoesListScreen(navController = navController)
+                    Animado { ProposicoesListScreen(navController = navController) }
                 }
 
                 composable<ProposicaoDetailsArgs> {
-                    ProposicaoDetailsScreen(navController = navController)
+                    Animado { ProposicaoDetailsScreen(navController = navController) }
+                }
+                    }
                 }
             }
 
         }
+    }
+}
+
+/**
+ * One destination's body, with the scope a shared element needs to know which screen it is on.
+ *
+ * `composable {}` hands that scope in as the receiver of its content lambda, and a screen eight
+ * composables deep cannot reach a receiver. Providing it here means a component asks for it by
+ * local instead, and no screen signature mentions animation at all.
+ */
+@Composable
+private fun AnimatedContentScope.Animado(content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalAnimatedVisibilityScope provides this) {
+        content()
     }
 }

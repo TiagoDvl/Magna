@@ -1,5 +1,8 @@
 package com.tick.magna.features.comissoes.permanentes.list
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+import com.tick.magna.ui.core.navigation.textoCompartilhado
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -132,6 +135,9 @@ private fun ComissaoCard(
                 verticalArrangement = Arrangement.spacedBy(dimensions.grid4),
             ) {
                 Text(
+                    modifier = Modifier.textoCompartilhado(
+                        ChaveCompartilhada.nomeDaComissao(comissao.comissaoPermanenteId),
+                    ),
                     text = comissao.nomeResumido,
                     style = typography.titleSmall.copy(
                         color = acento,

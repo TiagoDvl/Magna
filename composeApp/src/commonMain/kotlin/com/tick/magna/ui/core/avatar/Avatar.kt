@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import com.tick.magna.ui.core.image.MagnaImage
+import com.tick.magna.ui.core.navigation.elementoCompartilhado
 import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_light_users
@@ -36,10 +37,20 @@ fun Avatar(
      * for a size was getting the default and no one could see why.
      */
     size: AvatarSize? = AvatarSize.SMALL,
+    /**
+     * Carries this face across a navigation, to wherever the same key appears next.
+     *
+     * On the Card rather than on the image inside it, so the shape travels too: the same
+     * photograph is a circle in a list and a rounded square at the top of a detail screen, and
+     * watching the corners round off on the way is most of what says it is the same picture
+     * rather than two of them.
+     */
+    chaveCompartilhada: String? = null,
     badge: @Composable () -> Unit = {}
 ) {
     Card(
-        modifier = if (size == null) modifier else modifier.size(size.getSize()),
+        modifier = (if (size == null) modifier else modifier.size(size.getSize()))
+            .let { if (chaveCompartilhada == null) it else it.elementoCompartilhado(chaveCompartilhada) },
         shape = shape
     ) {
         Box(

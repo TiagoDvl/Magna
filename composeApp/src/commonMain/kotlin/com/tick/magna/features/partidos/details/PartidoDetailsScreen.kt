@@ -1,5 +1,8 @@
 package com.tick.magna.features.partidos.details
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+import com.tick.magna.ui.core.navigation.textoCompartilhado
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -251,6 +254,12 @@ private fun Cabecalho(
         verticalArrangement = Arrangement.spacedBy(dimensions.grid12),
     ) {
         Text(
+            // Where the sigla lands after leaving whichever list the person tapped. Same
+            // letters, same weight, same colour: only the size changes, which is why this one
+            // needs no cross-fade to read as one word arriving rather than two words swapping.
+            modifier = Modifier.textoCompartilhado(
+                ChaveCompartilhada.siglaDoPartido(detail.id.toString()),
+            ),
             text = detail.sigla,
             style = typography.displaySmall.copy(color = cor, fontWeight = FontWeight.Bold),
             maxLines = 1,

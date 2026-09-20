@@ -5,6 +5,8 @@ import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Votacao
 
 data class ComissaoPermanenteState(
+    /** Held so the title can be the far end of a shared element keyed by the committee. */
+    val comissaoPermanenteId: String? = null,
     val comissaoPermanenteNomeResumido: String? = null,
     val selectedTab: ComissaoTab = ComissaoTab.VOTACOES,
     val votacoesState: VotacoesState = VotacoesState.Loading,

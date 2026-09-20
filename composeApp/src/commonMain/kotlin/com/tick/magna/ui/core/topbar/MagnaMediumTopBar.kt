@@ -1,5 +1,7 @@
 package com.tick.magna.ui.core.topbar
 
+import com.tick.magna.ui.core.navigation.textoCompartilhado
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Icon
@@ -88,6 +90,8 @@ fun MagnaMediumTopBar(
     onTitleClick: (() -> Unit)? = null,
     /** Spoken for [onTitleClick], since a caret says nothing out loud. */
     titleClickDescription: String? = null,
+    /** Makes the title the far end of a shared element, keyed by this. */
+    chaveDoTitulo: String? = null,
 ) {
     // A blank title means there is nothing to say twice, so the bar collapses to the single
     // row it would otherwise leave half empty. The Home uses it: its own name and the term it
@@ -168,7 +172,9 @@ fun MagnaMediumTopBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .let { if (chaveDoTitulo == null) it else it.textoCompartilhado(chaveDoTitulo) },
                     text = titleText,
                     // Light, against the section headers' Bold. The family ships ExtraLight
                     // through Bold and the app was rendering Bold in both roles, so the whole

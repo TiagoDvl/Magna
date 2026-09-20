@@ -1,5 +1,8 @@
 package com.tick.magna.features.comissoes.permanentes.component
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+import com.tick.magna.ui.core.navigation.textoCompartilhado
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -107,6 +110,9 @@ fun ComissoesPermanentesComponent(
                             ),
                         ) {
                             Text(
+                                modifier = Modifier.textoCompartilhado(
+                                    ChaveCompartilhada.nomeDaComissao(item.comissaoPermanenteId),
+                                ),
                                 text = item.nomeResumido,
                                 style = typography.titleSmall.copy(
                                     color = acento,

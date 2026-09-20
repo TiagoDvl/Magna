@@ -47,6 +47,14 @@ fun MagnaScreen(
     onTitleClick: (() -> Unit)? = null,
     /** Spoken for [onTitleClick]. */
     titleClickDescription: String? = null,
+    /**
+     * Makes the title the landing point of a shared element, keyed by this.
+     *
+     * Worth one parameter here rather than one per screen, because the shape is the same
+     * everywhere: a detail screen's title is usually the exact string the row that opened it
+     * was showing. Null is every screen where it is not.
+     */
+    chaveDoTitulo: String? = null,
     /** Sits under the bar and scrolls with it: a tab row, a filter strip. */
     belowTopBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
@@ -69,6 +77,7 @@ fun MagnaScreen(
                     area = area,
                     onTitleClick = onTitleClick,
                     titleClickDescription = titleClickDescription,
+                    chaveDoTitulo = chaveDoTitulo,
                 )
 
                 belowTopBar()

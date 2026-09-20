@@ -1,5 +1,8 @@
 package com.tick.magna.features.partidos.component
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+import com.tick.magna.ui.core.navigation.textoCompartilhado
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -156,7 +159,9 @@ private fun PartidoChip(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .textoCompartilhado(ChaveCompartilhada.siglaDoPartido(partido.id.toString())),
                     text = partido.sigla,
                     // The party's colour, which for now is the area's blue for every one of
                     // them. It was `primary` — the deputados green, on a card about a party.

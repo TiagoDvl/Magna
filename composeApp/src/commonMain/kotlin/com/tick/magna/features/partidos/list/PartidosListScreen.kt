@@ -1,5 +1,8 @@
 package com.tick.magna.features.partidos.list
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+import com.tick.magna.ui.core.navigation.textoCompartilhado
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -460,6 +463,9 @@ private fun PartidoRow(
                 verticalArrangement = Arrangement.spacedBy(dimensions.grid2),
             ) {
                 Text(
+                    modifier = Modifier.textoCompartilhado(
+                        ChaveCompartilhada.siglaDoPartido(partido.id.toString()),
+                    ),
                     text = partido.sigla,
                     // The party's own colour, the same one the Home card uses. Two places
                     // that list parties should not disagree about what a party looks like.

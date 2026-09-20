@@ -69,7 +69,12 @@ class ComissaoPermanenteDetailViewModel(
 
             logger.d("init: loading orgao=${orgao.nomeResumido}", TAG)
             loadedOrgaoId = orgao.id
-            _state.update { it.copy(comissaoPermanenteNomeResumido = orgao.nomeResumido) }
+            _state.update {
+                it.copy(
+                    comissaoPermanenteId = args.comissaoPermanenteId,
+                    comissaoPermanenteNomeResumido = orgao.nomeResumido,
+                )
+            }
             analytics.track(AnalyticsEvent.ComissaoOpened(sigla = orgao.sigla.orEmpty()))
 
             // Together rather than one after the other. The votes are the expensive half —

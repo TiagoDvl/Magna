@@ -1,5 +1,7 @@
 package com.tick.magna.features.deputados.recent
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -253,7 +255,8 @@ private fun RecentDeputados(
                             modifier = Modifier
                                 .weight(0.7f)
                                 .fillMaxWidth(),
-                            photoUrl = deputado.profilePicture
+                            photoUrl = deputado.profilePicture,
+                            chaveCompartilhada = ChaveCompartilhada.fotoDoDeputado(deputado.id),
                         )
 
                         // Two lines, because 475 of the 600 names in the 57th are exactly two

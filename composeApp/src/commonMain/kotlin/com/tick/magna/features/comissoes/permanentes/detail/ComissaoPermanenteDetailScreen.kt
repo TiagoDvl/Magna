@@ -1,5 +1,7 @@
 package com.tick.magna.features.comissoes.permanentes.detail
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -110,6 +112,9 @@ private fun ComissaoPermanenteDetail(
         title = state.comissaoPermanenteNomeResumido.orEmpty(),
         navigateBack = navigateBack,
         area = MagnaArea.COMISSOES,
+        // The same string the card that opened this was showing, so it flies into the bar
+        // rather than appearing there.
+        chaveDoTitulo = state.comissaoPermanenteId?.let(ChaveCompartilhada::nomeDaComissao),
         belowTopBar = {
             // The tab row continues the bar rather than starting a new surface under it, so
             // the area's colour does not stop halfway down the header.

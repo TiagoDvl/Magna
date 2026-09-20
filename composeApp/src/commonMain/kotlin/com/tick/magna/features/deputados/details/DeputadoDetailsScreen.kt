@@ -1,5 +1,7 @@
 package com.tick.magna.features.deputados.details
 
+import com.tick.magna.ui.core.navigation.ChaveCompartilhada
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -235,6 +237,10 @@ private fun DetailHeader(
                 size = AvatarSize.BIG,
                 shape = ShapeDefaults.Medium,
                 placeholder = painterResource(Res.drawable.ic_light_users),
+                // The far end of the flight that starts on whichever list the person was
+                // looking at. Keyed by the deputado, not by the screen, so every list that
+                // shows this face hands it to this one.
+                chaveCompartilhada = deputado?.id?.let(ChaveCompartilhada::fotoDoDeputado),
             )
 
             Column(
