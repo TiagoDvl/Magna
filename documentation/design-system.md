@@ -95,6 +95,24 @@ Um dp lê como sombra, não como painel flutuante. A tela é cheia de card; mais
 
 **Fundo de tela usa `background`, nunca `surface`.** Duas telas pintavam o próprio fundo com `surface`, o que era invisível enquanto as duas cores eram iguais e virou um bloco branco no meio do creme assim que deixaram de ser. Quem usa `surface` é o que se sobrepõe: sheet, card, diálogo.
 
+### Superfície é da mesma temperatura que o fundo
+
+A família `surfaceContainer` era azul-acinzentada — medido, hue **216 a 220** — contra um `background` creme de hue **44**. Cento e setenta e dois graus de distância: todo card do app era um card frio sobre uma página quente, e o contraste entre os dois é de apenas **1.10**, então não havia luminosidade separando-os, só temperatura brigando.
+
+O resultado lia como "sem vida", e a causa não era o cinza ser apagado: era ele ser de outra família que a página.
+
+A escala foi reafinada para hue 45, mantendo os passos de luminosidade:
+
+| token | antes | agora |
+|---|---|---|
+| `surfaceContainerLow` | `#F4F6FA` | `#F9F8F6` |
+| `surfaceContainer` | `#EEF2F8` | `#F5F3ED` |
+| `surfaceContainerHigh` | `#E8EDF5` | `#F0EDE5` |
+| `surfaceContainerHighest` | `#E2E8F2` | `#ECE8DD` |
+| `surfaceVariant` | `#E2E2E8` | `#E5E3DC` |
+
+O modo escuro não tinha o problema: fundo e containers já eram hue 210.
+
 ## 6. Andaime de tela
 
 `MagnaScreen` — Scaffold, top bar, e o comportamento de scroll. Uma tela nova começa com a identidade pronta em vez de ser montada à mão outra vez.

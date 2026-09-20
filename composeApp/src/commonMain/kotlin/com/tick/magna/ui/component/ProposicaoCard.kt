@@ -190,7 +190,9 @@ private fun AutoriaRow(
         horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
     ) {
         if (autoria.tipo == TipoAutor.DEPUTADO && fotoUrl != null) {
-            Avatar(modifier = Modifier.size(dimensions.grid24), photoUrl = fotoUrl)
+            // The modifier's size was being dropped by the component, so this has always
+            // drawn the default 32. Said plainly rather than asked for and ignored.
+            Avatar(photoUrl = fotoUrl)
         } else {
             Icon(
                 modifier = Modifier.size(dimensions.grid20),

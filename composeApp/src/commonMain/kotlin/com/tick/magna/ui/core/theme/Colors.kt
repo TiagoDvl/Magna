@@ -34,7 +34,7 @@ val backgroundLight = Color(0xFFFFFCF4)
 val onBackgroundLight = Color(0xFF1A1C1E)
 val surfaceLight = Color(0xFFFFFFFF)
 val onSurfaceLight = Color(0xFF1A1C1E)
-val surfaceVariantLight = Color(0xFFE2E2E8)
+val surfaceVariantLight = Color(0xFFE5E3DC)
 val onSurfaceVariantLight = Color(0xFF45464E)
 
 // Outlines and accents
@@ -47,14 +47,20 @@ val inverseSurfaceLight = Color(0xFF2F3033)
 val inverseOnSurfaceLight = Color(0xFFF1F0F4)
 val inversePrimaryLight = Color(0xFF9DD4AC)
 
-// Surface variations for depth
-val surfaceDimLight = Color(0xFFDDE4EE)
+// Surface variations for depth.
+//
+// Warm, like the background they sit on. They used to be a blue-grey family — measured, hue
+// 216 to 220 against the background's 44 — so every card in the app was a cool card on a warm
+// page, 172 degrees apart on the wheel. That is what read as lifeless: the card and the page
+// never agreed, so neither looked deliberate. The luminance steps are unchanged; only the hue
+// moved, to the 45 the background already was.
+val surfaceDimLight = Color(0xFFE8E3D6)
 val surfaceBrightLight = Color(0xFFFFFCF4)
-val surfaceContainerLowestLight = Color(0xFFFFFEFA)
-val surfaceContainerLowLight = Color(0xFFF4F6FA)
-val surfaceContainerLight = Color(0xFFEEF2F8)
-val surfaceContainerHighLight = Color(0xFFE8EDF5)
-val surfaceContainerHighestLight = Color(0xFFE2E8F2)
+val surfaceContainerLowestLight = Color(0xFFFEFEFD)
+val surfaceContainerLowLight = Color(0xFFF9F8F6)
+val surfaceContainerLight = Color(0xFFF5F3ED)
+val surfaceContainerHighLight = Color(0xFFF0EDE5)
+val surfaceContainerHighestLight = Color(0xFFECE8DD)
 
 // Dark Theme - Sophisticated dark mode
 // Primary: Lighter green for dark backgrounds

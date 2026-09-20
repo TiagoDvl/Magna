@@ -3,6 +3,7 @@ package com.tick.magna.features.deputados.search
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
@@ -39,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.tick.magna.data.domain.Deputado
@@ -420,9 +423,15 @@ private fun Resultados(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensions.grid12),
                 ) {
+                    // 48 rather than the component's default 32, and with the area's colour
+                    // as a ring: the face is the row's own content and was the smallest thing
+                    // on it. size = null is what lets the modifier's size survive.
                     Avatar(
-                        modifier = Modifier.size(dimensions.grid40),
+                        modifier = Modifier
+                            .size(AVATAR)
+                            .border(AVATAR_RING, MagnaArea.DEPUTADOS.accent, CircleShape),
                         photoUrl = deputado.profilePicture,
+                        size = null,
                     )
 
                     Column(
@@ -478,11 +487,14 @@ private fun Resultados(
                         }
                     }
 
+                    // Smaller and in the area's colour. It was 24dp of onSurfaceVariant at
+                    // 8.35:1 — I had darkened it to clear a contrast floor and overshot: an
+                    // affordance needs 3.0, not 8.35, and this one is also where the green
+                    // reaches the row. Green on the card measures 4.1:1.
                     Icon(
+                        modifier = Modifier.size(CHEVRON),
                         painter = painterResource(Res.drawable.ic_chevron_right),
-                        // onSurfaceVariant, not outline: outline measures 2.66:1 on the light
-                        // card, under the 3.0 that a meaningful graphic needs.
-                        tint = colorScheme.onSurfaceVariant,
+                        tint = MagnaArea.DEPUTADOS.accent,
                         contentDescription = null,
                     )
                 }
@@ -492,6 +504,12 @@ private fun Resultados(
 }
 
 private const val CONTAGEM_KEY = "contagem"
+
+private val AVATAR = 48.dp
+private val AVATAR_RING = 2.dp
+
+/** An affordance, not a control: 18 against the 24 it was. */
+private val CHEVRON = 18.dp
 
 @Preview
 @Composable

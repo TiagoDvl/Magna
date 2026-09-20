@@ -28,11 +28,18 @@ fun Avatar(
     photoUrl: String? = null,
     placeholder: Painter? = null,
     shape: Shape = CircleShape,
-    size: AvatarSize = AvatarSize.SMALL,
+    /**
+     * Null takes the size from [modifier] instead.
+     *
+     * It used to be `AvatarSize.SMALL` and applied after the caller's modifier, so
+     * `Avatar(modifier = Modifier.size(40.dp))` silently drew 32 — every call site that asked
+     * for a size was getting the default and no one could see why.
+     */
+    size: AvatarSize? = AvatarSize.SMALL,
     badge: @Composable () -> Unit = {}
 ) {
     Card(
-        modifier = modifier.size(size.getSize()),
+        modifier = if (size == null) modifier else modifier.size(size.getSize()),
         shape = shape
     ) {
         Box(
