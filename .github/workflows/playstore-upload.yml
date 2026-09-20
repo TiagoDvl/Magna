@@ -47,5 +47,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
           packageName: com.tick.magna
           releaseFiles: androidApp/build/outputs/bundle/release/androidApp-release.aab
-          track: internal
+          track: production
           whatsNewDirectory: distribution/whatsnew
