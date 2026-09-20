@@ -61,6 +61,9 @@ class DeputadosSearchViewModel(
                 is DeputadosSearchAction.OnQuery -> current.copy(query = action.query)
                 is DeputadosSearchAction.OnUf -> current.copy(uf = action.uf)
                 is DeputadosSearchAction.OnPartido -> current.copy(partido = action.partido)
+                is DeputadosSearchAction.OnRegiao -> current.copy(regiao = action.regiao)
+                is DeputadosSearchAction.OnEmExercicio ->
+                    current.copy(somenteEmExercicio = action.somente)
             }.recalcular()
         }
     }
@@ -71,9 +74,10 @@ class DeputadosSearchViewModel(
      */
     private fun DeputadosSearchState.recalcular(): DeputadosSearchState {
         return copy(
-            resultados = filtrarDeputados(deputados, query, uf, partido),
-            opcoesUf = opcoesUf(deputados, query, partido),
-            opcoesPartido = opcoesPartido(deputados, query, uf),
+            resultados = filtrarDeputados(deputados, query, uf, partido, regiao, somenteEmExercicio),
+            opcoesUf = opcoesUf(deputados, query, partido, regiao, somenteEmExercicio),
+            opcoesPartido = opcoesPartido(deputados, query, uf, regiao, somenteEmExercicio),
+            opcoesRegiao = opcoesRegiao(deputados, query, uf, partido, somenteEmExercicio),
         )
     }
 
@@ -88,18 +92,15 @@ class DeputadosSearchViewModel(
                 .debounce(SEARCH_TRACKING_DEBOUNCE_MS)
                 .filter { current -> current.temFiltro }
                 .distinctUntilChanged { old, new ->
-                    old.query == new.query && old.uf == new.uf && old.partido == new.partido
+                    old.query == new.query && old.uf == new.uf && old.partido == new.partido &&
+                        old.regiao == new.regiao && old.somenteEmExercicio == new.somenteEmExercicio
                 }
                 .collect { current ->
                     analytics.track(
                         AnalyticsEvent.SearchPerformed(
                             queryLength = current.query.length,
                             resultCount = current.resultados.size,
-                            activeFilters = listOfNotNull(
-                                current.query.takeIf { it.isNotBlank() },
-                                current.uf,
-                                current.partido,
-                            ).size,
+                            activeFilters = current.filtrosAtivos,
                         )
                     )
                 }

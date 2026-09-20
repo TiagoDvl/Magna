@@ -52,8 +52,11 @@
     <string name="deputados_search_resultado_unico">1 deputado</string>
     <string name="deputados_search_em_exercicio">%1$d em exercício</string>
     <string name="deputados_search_fora_de_exercicio">Fora de exercício</string>
-    <string name="deputados_search_sheet_uf">Escolha o estado</string>
-    <string name="deputados_search_sheet_partido">Escolha o partido</string>
+    <string name="deputados_search_sheet_uf">Estados</string>
+    <string name="deputados_search_sheet_partido">Partidos</string>
+    <string name="deputados_search_regiao_label">Região</string>
+    <string name="deputados_search_sheet_regiao">Regiões</string>
+    <string name="deputados_search_filtro_em_exercicio">Em exercício</string>
     <string name="deputados_search_empty">Nenhum deputado encontrado</string>
     <string name="deputados_search_empty_description">Tente outro nome, ou remova um dos filtros.</string>
     <string name="action_clear_filter">Remover filtro</string>

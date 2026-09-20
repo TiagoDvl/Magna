@@ -1,17 +1,22 @@
 package com.tick.magna.features.deputados.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
@@ -53,14 +58,17 @@ import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.action_clear_filter
 import magna.composeapp.generated.resources.action_clear_search
 import magna.composeapp.generated.resources.deputados_search_em_exercicio
+import magna.composeapp.generated.resources.deputados_search_filtro_em_exercicio
 import magna.composeapp.generated.resources.deputados_search_empty
 import magna.composeapp.generated.resources.deputados_search_empty_description
 import magna.composeapp.generated.resources.deputados_search_fora_de_exercicio
 import magna.composeapp.generated.resources.deputados_search_partido_label
+import magna.composeapp.generated.resources.deputados_search_regiao_label
 import magna.composeapp.generated.resources.deputados_search_resultado_unico
 import magna.composeapp.generated.resources.deputados_search_resultados
 import magna.composeapp.generated.resources.deputados_search_search_placeholder
 import magna.composeapp.generated.resources.deputados_search_sheet_partido
+import magna.composeapp.generated.resources.deputados_search_sheet_regiao
 import magna.composeapp.generated.resources.deputados_search_sheet_uf
 import magna.composeapp.generated.resources.deputados_search_title
 import magna.composeapp.generated.resources.deputados_search_uf_label
@@ -104,6 +112,7 @@ private fun DeputadosSearchContent(
     sendAction: (DeputadosSearchAction) -> Unit = {},
 ) {
     val dimensions = LocalDimensions.current
+    val colorScheme = MaterialTheme.colorScheme
     var sheet by remember { mutableStateOf<DeputadosSearchFiltro?>(null) }
 
     MagnaScreen(
@@ -115,31 +124,86 @@ private fun DeputadosSearchContent(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
         ) {
-            CampoDeBusca(
-                query = state.query,
-                onQueryChange = { sendAction(DeputadosSearchAction.OnQuery(it)) },
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = dimensions.grid16),
-                horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
-                verticalAlignment = Alignment.CenterVertically,
+            // The field and the chips used to sit loose on the page background, which is what
+            // made the field read as misplaced: a grey rectangle on a cream page with nothing
+            // holding it. They are one block now — a surface the controls belong to, with the
+            // rounded bottom marking where the controls end and the results begin.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        // The area's own container, not a grey one. With the party logos out —
+                        // ten of the twenty-seven are a 404 at the source — this block is the
+                        // only colour the screen can carry without inventing a colour for a
+                        // party, which in an app about politics reads as an affiliation.
+                        color = colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(
+                            bottomStart = dimensions.grid20,
+                            bottomEnd = dimensions.grid20,
+                        ),
+                    )
+                    .padding(bottom = dimensions.grid12),
+                verticalArrangement = Arrangement.spacedBy(dimensions.grid8),
             ) {
-                FiltroChip(
-                    label = stringResource(Res.string.deputados_search_uf_label),
-                    valor = state.uf,
-                    total = state.opcoesUf.firstOrNull { it.valor == state.uf }?.total,
-                    onOpen = { sheet = DeputadosSearchFiltro.UF },
-                    onClear = { sendAction(DeputadosSearchAction.OnUf(null)) },
+                CampoDeBusca(
+                    query = state.query,
+                    onQueryChange = { sendAction(DeputadosSearchAction.OnQuery(it)) },
                 )
 
-                FiltroChip(
-                    label = stringResource(Res.string.deputados_search_partido_label),
-                    valor = state.partido,
-                    total = state.opcoesPartido.firstOrNull { it.valor == state.partido }?.total,
-                    onOpen = { sheet = DeputadosSearchFiltro.PARTIDO },
-                    onClear = { sendAction(DeputadosSearchAction.OnPartido(null)) },
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        // Five chips do not fit a phone. The proposicoes list already scrolls
+                        // its filter strip; this is the same strip.
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = dimensions.grid16),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.grid8),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    FiltroChip(
+                        label = stringResource(Res.string.deputados_search_uf_label),
+                        valor = state.uf,
+                        total = state.opcoesUf.firstOrNull { it.valor == state.uf }?.total,
+                        onOpen = { sheet = DeputadosSearchFiltro.UF },
+                        onClear = { sendAction(DeputadosSearchAction.OnUf(null)) },
+                    )
+
+                    FiltroChip(
+                        label = stringResource(Res.string.deputados_search_regiao_label),
+                        valor = state.regiao?.label,
+                        total = state.opcoesRegiao.firstOrNull { it.valor == state.regiao?.label }?.total,
+                        onOpen = { sheet = DeputadosSearchFiltro.REGIAO },
+                        onClear = { sendAction(DeputadosSearchAction.OnRegiao(null)) },
+                    )
+
+                    FiltroChip(
+                        label = stringResource(Res.string.deputados_search_partido_label),
+                        valor = state.partido,
+                        total = state.opcoesPartido.firstOrNull { it.valor == state.partido }?.total,
+                        onOpen = { sheet = DeputadosSearchFiltro.PARTIDO },
+                        onClear = { sendAction(DeputadosSearchAction.OnPartido(null)) },
+                    )
+
+                    // Binary, so no sheet: it is on or it is off. The term's list holds 648
+                    // people for a house of 513, and this is how you ask for the 513.
+                    FilterChip(
+                        selected = state.somenteEmExercicio,
+                        onClick = {
+                            sendAction(
+                                DeputadosSearchAction.OnEmExercicio(!state.somenteEmExercicio)
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = colorScheme.surface,
+                            labelColor = colorScheme.onSurface,
+                            selectedContainerColor = colorScheme.primary,
+                            selectedLabelColor = colorScheme.onPrimary,
+                        ),
+                        label = {
+                            Text(stringResource(Res.string.deputados_search_filtro_em_exercicio))
+                        },
+                    )
+                }
             }
 
             when {
@@ -178,6 +242,17 @@ private fun DeputadosSearchContent(
             onDismiss = { sheet = null },
         )
 
+        DeputadosSearchFiltro.REGIAO -> OpcoesFiltroSheet(
+            titulo = stringResource(Res.string.deputados_search_sheet_regiao),
+            opcoes = state.opcoesRegiao,
+            selecionada = state.regiao?.label,
+            onSelect = { label ->
+                sheet = null
+                sendAction(DeputadosSearchAction.OnRegiao(Regiao.porLabel(label)))
+            },
+            onDismiss = { sheet = null },
+        )
+
         DeputadosSearchFiltro.PARTIDO -> OpcoesFiltroSheet(
             titulo = stringResource(Res.string.deputados_search_sheet_partido),
             opcoes = state.opcoesPartido,
@@ -200,15 +275,26 @@ private fun CampoDeBusca(query: String, onQueryChange: (String) -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = dimensions.grid16),
         // From the shape scale rather than a RoundedCornerShape written here by hand.
         shape = MaterialTheme.shapes.large,
+        // The field is the app's own surface sitting on the area's container, which is what
+        // gives it somewhere to be. Its own outline carries the edge: white on the light green
+        // measures 1.37:1, so the two surfaces alone would not separate.
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedContainerColor = colorScheme.surfaceContainer,
-            focusedContainerColor = colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = colorScheme.surface,
+            focusedContainerColor = colorScheme.surface,
             focusedBorderColor = MagnaArea.DEPUTADOS.accent,
         ),
         value = query,
         onValueChange = onQueryChange,
         placeholder = { Text(stringResource(Res.string.deputados_search_search_placeholder)) },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                // The one mark of the area inside the block. Without it the whole header is a
+                // grey rectangle on a cream page, which is what it was.
+                tint = MagnaArea.DEPUTADOS.accent,
+                contentDescription = null,
+            )
+        },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
@@ -248,10 +334,14 @@ private fun FiltroChip(
         // The default selected container is secondaryContainer, which in this palette is the
         // gold that belongs to proposicoes — a green screen with a gold selection. Deputados
         // is the primary green, so the chip says which area it is selecting inside.
+        // On the area's container, a selected chip in that same container would vanish. It
+        // takes the solid primary instead: white on it measures 4.55:1.
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = colorScheme.primaryContainer,
-            selectedLabelColor = colorScheme.onPrimaryContainer,
-            selectedTrailingIconColor = colorScheme.onPrimaryContainer,
+            containerColor = colorScheme.surface,
+            labelColor = colorScheme.onSurface,
+            selectedContainerColor = colorScheme.primary,
+            selectedLabelColor = colorScheme.onPrimary,
+            selectedTrailingIconColor = colorScheme.onPrimary,
         ),
         label = {
             Text(

@@ -3,6 +3,7 @@ package com.tick.magna.features.deputados.search
 import com.tick.magna.data.domain.Deputado
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class DeputadosFiltroTest {
 
@@ -80,5 +81,82 @@ class DeputadosFiltroTest {
         assertEquals(opcoes.map { it.valor }, opcoes.map { it.valor }.sorted())
         // Six parties in the fixture; the deputado with no party contributes no option.
         assertEquals(6, opcoes.size)
+    }
+}
+
+class RegiaoTest {
+
+    private fun deputado(nome: String, uf: String?, emExercicio: Boolean? = null) =
+        com.tick.magna.data.domain.Deputado(
+            id = nome, name = nome, partido = "PL", uf = uf,
+            profilePicture = null, email = null, emExercicio = emExercicio,
+        )
+
+    private val camara = listOf(
+        deputado("Paulista", "SP"),
+        deputado("Baiano", "BA"),
+        deputado("Gaucho", "RS"),
+        deputado("Acreano", "AC"),
+        deputado("Brasiliense", "DF"),
+    )
+
+    @Test
+    fun `every state belongs to exactly one region`() {
+        val todas = Regiao.entries.flatMap { it.ufs }
+
+        assertEquals(27, todas.size)
+        assertEquals(27, todas.distinct().size)
+    }
+
+    @Test
+    fun `a state outside the twenty-seven has no region`() {
+        assertNull(Regiao.de("XX"))
+        assertNull(Regiao.de(null))
+        assertNull(Regiao.de(""))
+    }
+
+    @Test
+    fun `case and padding do not change the region`() {
+        assertEquals(Regiao.SUDESTE, Regiao.de(" sp "))
+    }
+
+    @Test
+    fun `filtering by region keeps only its states`() {
+        val resultado = filtrarDeputados(camara, regiao = Regiao.NORDESTE)
+
+        assertEquals(listOf("Baiano"), resultado.map { it.name })
+    }
+
+    @Test
+    fun `state options are narrowed to the region already chosen`() {
+        val opcoes = opcoesUf(camara, regiao = Regiao.SUL)
+
+        assertEquals(listOf(OpcaoFiltro("RS", 1)), opcoes)
+    }
+
+    @Test
+    fun `regions keep the constitution's order rather than sorting by size`() {
+        // A list that reorders itself as you type is a list you have to read again.
+        val opcoes = opcoesRegiao(camara)
+
+        assertEquals(
+            listOf("Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"),
+            opcoes.map { it.valor },
+        )
+    }
+
+    @Test
+    fun `an unmeasured deputado survives the in-exercise filter`() {
+        // Null is "not known", not "no". A term synced before the column existed would
+        // otherwise empty the whole screen the moment the chip was tapped.
+        val mistura = listOf(
+            deputado("Sentado", "SP", emExercicio = true),
+            deputado("Fora", "SP", emExercicio = false),
+            deputado("Desconhecido", "SP", emExercicio = null),
+        )
+
+        val resultado = filtrarDeputados(mistura, somenteEmExercicio = true)
+
+        assertEquals(listOf("Sentado", "Desconhecido"), resultado.map { it.name })
     }
 }

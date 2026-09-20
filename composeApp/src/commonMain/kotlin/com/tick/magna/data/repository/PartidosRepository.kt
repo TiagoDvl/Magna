@@ -14,9 +14,10 @@ import com.tick.magna.data.source.remote.api.PartidosApiInterface
 import com.tick.magna.data.source.remote.response.hasNextPage
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -56,6 +57,10 @@ internal class PartidosRepository(
                     situacao = null,
                     totalPosse = null,
                     totalMembros = null,
+                    // The list endpoint does not carry it, and the detail's URL is a 404 for
+                    // ten of the twenty-seven parties — PL, MDB, REPUBLICANOS and UNIAO among
+                    // them. Twenty-seven requests for a logo that half the house does not have
+                    // buys an inconsistency, not a picture.
                     logo = null,
                     website = null
                 )
