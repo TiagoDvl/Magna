@@ -31,11 +31,19 @@ internal class PartidoDao(
                     totalPosse = it.totalPosse,
                     totalMembros = it.totalMembros,
                     logo = it.logo,
-                    website = it.website
+                    website = it.website,
+                    cor = it.cor,
+                    dataStatus = it.dataStatus,
+                    liderNome = it.liderNome,
+                    liderUf = it.liderUf,
+                    liderFoto = it.liderFoto
                 )
             }
         }
     }
+
+    override suspend fun getPartidosSemDetalhe(legislaturaId: String): List<String> =
+        partidoQueries.getPartidosSemDetalhe(legislaturaId).executeAsList()
 
     override suspend fun getPartidos(legislaturaId: String): Flow<List<GetPartidos>?> {
         return partidoQueries

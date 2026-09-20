@@ -32,6 +32,11 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 /**
  * The two charts the party screen draws. They were inline in a 793-line screen file and
  * have nothing to do with parties, so they live here as plain drawing components.
+ *
+ * Both take the colour to draw in rather than reaching for one. They used to reach for
+ * `colorScheme.primary`, which is the deputados green, on a screen about a party — and in the
+ * gender chart that meant men were drawn in one area's colour and women in another's, which
+ * reads as a statement and is not one anybody made.
  */
 
 @Composable
@@ -41,6 +46,8 @@ fun GenderChart(
     labelMale: String,
     labelFemale: String,
     isLoading: Boolean,
+    /** The party's own colour. One hue for both halves, told apart by weight. */
+    cor: Color,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
@@ -49,8 +56,10 @@ fun GenderChart(
 
     if (total == 0 && !isLoading) return
 
-    val maleColor = colorScheme.primary
-    val femaleColor = colorScheme.tertiary
+    // Two weights of one colour, not two colours. The split is a proportion of one bench and
+    // the reading should be "this much of it", not "these two opposing things".
+    val maleColor = cor
+    val femaleColor = cor.copy(alpha = ALFA_DA_SEGUNDA_FATIA)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -86,7 +95,11 @@ fun GenderChart(
                     )
                 }
             } else {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = cor,
+                    trackColor = colorScheme.surfaceDim,
+                )
             }
         }
 
@@ -129,6 +142,8 @@ private fun LegendItem(color: Color, label: String, count: Int, total: Int) {
 fun HorizontalBarChart(
     entries: List<Pair<String, Int>>,
     isLoading: Boolean,
+    /** The party's own colour, for the bars and their figures. */
+    cor: Color,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -151,8 +166,11 @@ fun HorizontalBarChart(
         if (isLoading) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(dimensions.grid2),
-                color = colorScheme.secondary,
-                trackColor = colorScheme.onSecondary,
+                color = cor,
+                // The track is a background and wants a surface token. It was `onSecondary`,
+                // which is a colour meant to be written *on* secondary — white, here, which
+                // made the track invisible on a light surface.
+                trackColor = colorScheme.surfaceDim,
             )
         }
         entries.forEach { (label, value) ->
@@ -179,13 +197,13 @@ fun HorizontalBarChart(
                             .fillMaxWidth(value.toFloat() / maxValue)
                             .height(20.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .background(colorScheme.primary),
+                            .background(cor),
                     )
                 }
                 Text(
                     text = "$value",
                     style = typography.labelMedium.copy(
-                        color = colorScheme.primary,
+                        color = cor,
                         fontWeight = FontWeight.SemiBold,
                     ),
                     modifier = Modifier.width(28.dp),
@@ -194,3 +212,6 @@ fun HorizontalBarChart(
         }
     }
 }
+
+/** Enough to tell the two halves apart, not enough to read as a second colour. */
+private const val ALFA_DA_SEGUNDA_FATIA = 0.45f

@@ -12,6 +12,13 @@ CREATE TABLE Partido (
     totalMembros TEXT,
     logo TEXT,
     website TEXT,
+    -- The party's own colour, as raw ARGB off its logo. Null where the register does not host
+    -- one, which is twelve of the twenty-seven parties of the 57th.
+    cor INTEGER,
+    dataStatus TEXT,
+    liderNome TEXT,
+    liderUf TEXT,
+    liderFoto TEXT,
     PRIMARY KEY (id, legislaturaId),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
@@ -28,8 +35,16 @@ INSERT INTO Partido (
     totalPosse,
     totalMembros,
     logo,
-    website
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    website,
+    cor,
+    dataStatus,
+    liderNome,
+    liderUf,
+    liderFoto
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+-- COALESCE throughout, so the cheap sync that knows only sigla and nome cannot wipe what the
+-- enrichment pass filled in. The two run against the same rows and only one of them has the
+-- detail endpoint's answer.
 ON CONFLICT(id, legislaturaId) DO UPDATE SET
     liderDeputadoId = COALESCE(excluded.liderDeputadoId, liderDeputadoId),
     sigla = excluded.sigla,
@@ -38,10 +53,23 @@ ON CONFLICT(id, legislaturaId) DO UPDATE SET
     totalPosse = COALESCE(excluded.totalPosse, totalPosse),
     totalMembros = COALESCE(excluded.totalMembros, totalMembros),
     logo = COALESCE(excluded.logo, logo),
-    website = COALESCE(excluded.website, website);
+    website = COALESCE(excluded.website, website),
+    cor = COALESCE(excluded.cor, cor),
+    dataStatus = COALESCE(excluded.dataStatus, dataStatus),
+    liderNome = COALESCE(excluded.liderNome, liderNome),
+    liderUf = COALESCE(excluded.liderUf, liderUf),
+    liderFoto = COALESCE(excluded.liderFoto, liderFoto);
 
 getPartido:
 SELECT * FROM Partido WHERE legislaturaId = :legislaturaId AND id = :partidoId;
+
+-- Who still needs the detail endpoint and the logo read. The enrichment costs one request per
+-- party plus one image, and it is worth exactly once per term: after it runs this answers
+-- nothing and the sync does no work at all. `dataStatus` rather than `cor` is the marker,
+-- because twelve parties legitimately end up with a null colour and would otherwise be asked
+-- about on every launch forever.
+getPartidosSemDetalhe:
+SELECT id FROM Partido WHERE legislaturaId = :legislaturaId AND dataStatus IS NULL;
 
 -- Ordered here rather than in Kotlin, and for a reason: the two screens that show this list
 -- both did `sortedByDescending { totalMembros }` over a column the sync never fills, so every

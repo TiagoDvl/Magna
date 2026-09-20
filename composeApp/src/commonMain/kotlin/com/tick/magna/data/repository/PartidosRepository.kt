@@ -4,10 +4,12 @@ import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.domain.Lider
 import com.tick.magna.data.domain.Partido
 import com.tick.magna.data.domain.PartidoDetail
+import com.tick.magna.data.color.LeitorDeCorDoLogoInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoBioDaoInterface
 import com.tick.magna.data.source.local.dao.PartidoDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
+import com.tick.magna.data.source.local.mapper.toDetail
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.api.PartidosApiInterface
@@ -21,7 +23,10 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.sync.Semaphore
@@ -37,6 +42,7 @@ internal class PartidosRepository(
     private val loggerInterface: AppLoggerInterface,
     private val deputadosApi: DeputadosApiInterface,
     private val deputadoBioDao: DeputadoBioDaoInterface,
+    private val leitorDeCorDoLogo: LeitorDeCorDoLogoInterface,
 ): PartidosRepositoryInterface {
 
     override suspend fun syncPartidos(): Boolean {
@@ -47,6 +53,9 @@ internal class PartidosRepository(
             }
 
         return try {
+            // The list endpoint carries an id, a sigla and a nome, and nothing else. Every
+            // other thing the party screen shows comes from the detail endpoint, one request
+            // per party, so it is a second pass rather than a wider first one.
             val partidos = partidosApi.getPartidos(legislaturaId).dados.map { partido ->
                 PartidoEntity(
                     id = partido.id.toString(),
@@ -57,17 +66,20 @@ internal class PartidosRepository(
                     situacao = null,
                     totalPosse = null,
                     totalMembros = null,
-                    // The list endpoint does not carry it, and the detail's URL is a 404 for
-                    // ten of the twenty-seven parties — PL, MDB, REPUBLICANOS and UNIAO among
-                    // them. Twenty-seven requests for a logo that half the house does not have
-                    // buys an inconsistency, not a picture.
                     logo = null,
-                    website = null
+                    website = null,
+                    cor = null,
+                    dataStatus = null,
+                    liderNome = null,
+                    liderUf = null,
+                    liderFoto = null,
                 )
             }
 
             partidoDao.insertPartidos(partidos)
             loggerInterface.i("syncPartidos: saved ${partidos.size} partidos", TAG)
+
+            enriquecer(legislaturaId, partidoDao.getPartidosSemDetalhe(legislaturaId))
             true
         } catch (cancellation: CancellationException) {
             throw cancellation
@@ -92,20 +104,135 @@ internal class PartidosRepository(
         loggerInterface.d("setOrdem: ${partidoIds.size} partidos", TAG)
     }
 
-    override fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>> = networkResource {
-        val dto = partidosApi.getPartidoById(partidoId).dados
+    /**
+     * The party's record, read from the table and filled in if the sync has not reached it.
+     *
+     * It used to be a straight call to `/partidos/{id}` on every open, which put a spinner on
+     * the header every time and an error on it permanently for any term but the current one --
+     * that endpoint answers 400 for an older legislatura. Now the row is the source, so the
+     * header is there the moment the screen is, and a term the detail endpoint refuses still
+     * shows what the list endpoint gave.
+     */
+    override fun getPartidoDetail(partidoId: String): Flow<Resource<PartidoDetail>> = flow {
+        emit(Resource.Loading)
 
-        PartidoDetail(
-            id = dto.id,
+        val legislaturaId = legislaturaId()
+        if (legislaturaId == null) {
+            loggerInterface.w("getPartidoDetail: no legislaturaId", TAG)
+            emit(Resource.Error())
+            return@flow
+        }
+
+        if (partidoId in partidoDao.getPartidosSemDetalhe(legislaturaId)) {
+            enriquecer(legislaturaId, listOf(partidoId))
+        }
+
+        emitAll(
+            partidoDao.getPartido(legislaturaId, partidoId)
+                .map { Resource.Content(it.toDetail()) as Resource<PartidoDetail> }
+                .catch { failure ->
+                    loggerInterface.e("getPartidoDetail: read failed", failure, TAG)
+                    emit(Resource.Error(failure))
+                }
+        )
+    }
+
+    /**
+     * Fills in everything the list endpoint does not carry: the two totals, the situation, the
+     * leader, the logo, and the colour read off it.
+     *
+     * One request per party plus one image each, and it runs once per term: the rows it writes
+     * carry a status date, and the query that feeds this only returns rows without one. A
+     * second launch asks for nothing.
+     *
+     * A party that fails is skipped rather than stored half-filled, so the next launch tries
+     * it again instead of remembering the gap. None of it is worth failing a sync over, since
+     * the list itself is already saved by the time this runs.
+     */
+    private suspend fun enriquecer(legislaturaId: String, partidoIds: List<String>) {
+        if (partidoIds.isEmpty()) return
+
+        val semaphore = Semaphore(MAX_PARALLEL_PARTY_REQUESTS)
+
+        val detalhados = supervisorScope {
+            partidoIds.map { partidoId ->
+                async {
+                    semaphore.withPermit {
+                        try {
+                            detalhar(legislaturaId, partidoId)
+                        } catch (cancellation: CancellationException) {
+                            throw cancellation
+                        } catch (e: Exception) {
+                            loggerInterface.w(
+                                "enriquecer: $partidoId failed: ${e.message?.take(MAX_ERRO)}",
+                                TAG,
+                            )
+                            null
+                        }
+                    }
+                }
+            }.awaitAll().filterNotNull()
+        }
+
+        if (detalhados.isEmpty()) return
+
+        partidoDao.insertPartidos(detalhados)
+        loggerInterface.i(
+            "enriquecer: ${detalhados.size}/${partidoIds.size} partidos, " +
+                "${detalhados.count { it.cor != null }} com cor",
+            TAG,
+        )
+    }
+
+    private suspend fun detalhar(legislaturaId: String, partidoId: String): PartidoEntity {
+        val dto = partidosApi.getPartidoById(partidoId).dados
+        val status = dto.status
+
+        return PartidoEntity(
+            id = dto.id.toString(),
+            legislaturaId = legislaturaId,
+            liderDeputadoId = status?.lider?.uri?.substringAfterLast(SEPARADOR_DE_URI),
             sigla = dto.sigla,
             nome = dto.nome,
-            urlLogo = dto.urlLogo,
-            urlWebSite = dto.urlWebSite,
-            urlFacebook = dto.urlFacebook,
-            totalMembros = dto.status?.totalMembros,
-            situacao = dto.status?.situacao,
-            lider = dto.status?.lider?.let { Lider(it.nome, it.uf, it.urlFoto) },
+            situacao = status?.situacao,
+            totalPosse = status?.totalPosse?.toString(),
+            totalMembros = status?.totalMembros?.toString(),
+            logo = dto.urlLogo,
+            website = dto.urlWebSite,
+            cor = dto.urlLogo?.let { corDoLogo(it) }?.toLong(),
+            // Doubles as the marker of "this party has been asked about", which is why it
+            // falls back to a placeholder rather than staying null: a party that answered
+            // without a date would otherwise be asked again on every launch of the term.
+            dataStatus = status?.data ?: SEM_DATA,
+            liderNome = status?.lider?.nome,
+            liderUf = status?.lider?.uf,
+            liderFoto = status?.lider?.urlFoto,
         )
+    }
+
+    /**
+     * The party's colour, or null.
+     *
+     * Twelve of the twenty-seven URLs the register publishes for the 57th are 404 — PL, MDB,
+     * REPUBLICANOS and UNIAO among them, which is 230 of the 513 seats. That is not an error
+     * worth reporting; it is a party without a colour, and the theme has an answer for that.
+     */
+    private suspend fun corDoLogo(url: String): Int? {
+        return try {
+            val bytes = partidosApi.getLogo(url)
+            val cor = leitorDeCorDoLogo.corDe(bytes)
+
+            if (cor == null) {
+                loggerInterface.d("corDoLogo: ${bytes.size} bytes from $url, no colour", TAG)
+            }
+
+            cor
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.d("corDoLogo: $url failed: ${e::class.simpleName}", TAG)
+            null
+        }
     }
 
     /**
@@ -253,6 +380,18 @@ internal class PartidosRepository(
     private companion object {
         const val TAG = "PartidosRepository"
         const val MAX_PARALLEL_MEMBER_REQUESTS = 10
+
+        /** Twenty-seven parties, once per term. Ten at a time is polite and still quick. */
+        const val MAX_PARALLEL_PARTY_REQUESTS = 10
+
+        const val SEPARADOR_DE_URI = '/'
+
+        /** A status date the register did not give. See where it is written. */
+        const val SEM_DATA = "?"
+
+        /** A 404 from this host answers with a whole HTML page, and it all lands in `message`. */
+        const val MAX_ERRO = 160
+
 
         /** A hundred per page, so this is far above the largest party ever measured. */
         const val MAX_MEMBER_PAGES = 10

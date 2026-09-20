@@ -20,4 +20,14 @@ interface PartidoDaoInterface {
      * half chosen and half sorted by size, with an invisible seam between the halves.
      */
     suspend fun setOrdem(partidoIds: List<String>)
+
+    /**
+     * The parties of this term the sync has not asked the detail endpoint about yet.
+     *
+     * The marker of "asked" is the status date rather than the colour, because twelve of the
+     * twenty-seven parties of the 57th legitimately end up with no colour — the register does
+     * not host their logo — and keying off the colour would put them back in this list on
+     * every launch, forever.
+     */
+    suspend fun getPartidosSemDetalhe(legislaturaId: String): List<String>
 }

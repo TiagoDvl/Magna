@@ -144,6 +144,7 @@ class PartidoOrderingTest {
     ) {
         database.partidoQueries.insertPartido(
             id, legislaturaId, null, sigla, "Partido $sigla", null, null, null, null, null,
+            null, null, null, null, null,
         )
 
         repeat(deputados) { index ->

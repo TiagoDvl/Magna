@@ -6,7 +6,9 @@ import com.tick.magna.data.source.remote.response.PartidosResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.accept
 import io.ktor.client.request.parameter
+import io.ktor.http.ContentType
 
 internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInterface {
 
@@ -40,6 +42,18 @@ internal class PartidosApi(private val httpClient: HttpClient): PartidosApiInter
             parameter("pagina", pagina)
         }.body()
     }
+
+    /**
+     * An absolute URL, which overrides the client's base.
+     *
+     * Accepting anything is not decoration. Content negotiation puts `application/json` on every
+     * request this client makes, and camara.leg.br answers a GIF asked for that way with a 406
+     * and the words "the file extension is not being accepted by your browser" — so every
+     * logo failed until the header said otherwise.
+     */
+    override suspend fun getLogo(url: String): ByteArray = httpClient.get(url) {
+        accept(ContentType.Any)
+    }.body()
 
     private companion object {
         const val ITEMS_PER_PAGE = 100

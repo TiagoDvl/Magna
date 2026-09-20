@@ -32,7 +32,7 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.marcadorDeArea
 import com.tick.magna.ui.core.theme.MagnaArea
-import com.tick.magna.ui.core.theme.cor
+import com.tick.magna.ui.core.theme.corDeExibicao
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.ic_star_filled
@@ -158,7 +158,7 @@ private fun PartidoChip(
                     // The party's colour, which for now is the area's blue for every one of
                     // them. It was `primary` — the deputados green, on a card about a party.
                     style = typography.titleMedium.copy(
-                        color = partido.cor,
+                        color = partido.corDeExibicao,
                         fontWeight = FontWeight.Bold,
                     ),
                     maxLines = 1,

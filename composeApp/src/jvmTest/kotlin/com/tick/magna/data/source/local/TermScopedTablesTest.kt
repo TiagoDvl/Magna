@@ -67,8 +67,8 @@ class TermScopedTablesTest {
 
     @Test
     fun a_party_exists_in_every_term_it_ran_in() {
-        database.partidoQueries.insertPartido("36844", "57", null, "PT", "Partido dos Trabalhadores", null, null, null, null, null)
-        database.partidoQueries.insertPartido("36844", "56", null, "PT", "Partido dos Trabalhadores", null, null, null, null, null)
+        database.partidoQueries.insertPartido("36844", "57", null, "PT", "Partido dos Trabalhadores", null, null, null, null, null, null, null, null, null, null)
+        database.partidoQueries.insertPartido("36844", "56", null, "PT", "Partido dos Trabalhadores", null, null, null, null, null, null, null, null, null, null)
 
         assertEquals(1, database.partidoQueries.getPartidos("57").executeAsList().size)
         assertEquals(1, database.partidoQueries.getPartidos("56").executeAsList().size)

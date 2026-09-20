@@ -55,12 +55,13 @@ import com.tick.magna.ui.core.theme.accent
  * against the PL. Each chosen bench gets its own lift, so a bench added while another is
  * already up rises on its own instead of appearing airborne.
  *
- * **Why one tone for the whole house.** Twenty-seven hues inside one institutional palette
- * are not twenty-seven distinguishable colours, and in an app about politics a colour assigned
- * to a party is read as a statement about it. Benches used to alternate between two tones so
- * you could see where one ended, and that was a difference the chart asserted on its own:
- * untouched, the house is five hundred and thirteen seats and nothing else. Every difference
- * you see in it is one the person asked for.
+ * **Why one tone for the whole house, and the party's own for a chosen bench.** Twenty-seven
+ * hues at once are not twenty-seven distinguishable colours, and in an app about politics a
+ * colour handed out to every party is read as a statement about all of them. Untouched, the
+ * house is five hundred and thirteen seats and nothing else. But a bench somebody picked is a
+ * bench somebody asked about, and there it is worth saying which one — in the colour taken
+ * from that party's own logo, the same one its name is written in everywhere else. Where the
+ * register hosts no logo that colour is the area's blue, which is what it was before.
  *
  * **What a chosen bench does, and what it deliberately no longer does.** It rises, it grows,
  * and it goes opaque. Gone with it: the fade of the rest of the house, the shadow on the
@@ -72,6 +73,8 @@ import com.tick.magna.ui.core.theme.accent
 @Composable
 fun Hemiciclo(
     bancadas: List<Bancada>,
+    /** One per bancada, same order. Short or empty falls back to the area's own colour. */
+    cores: List<Color>,
     selecionadas: () -> Set<String>,
     onToggle: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -161,7 +164,7 @@ fun Hemiciclo(
                             desenhar(
                                 porFaixa = grupos.porBancada[index],
                                 raio = layout.raioDoAssento * (1f + subida * CRESCIMENTO),
-                                cor = acento,
+                                cor = cores.getOrNull(index) ?: acento,
                             )
                         }
                     }

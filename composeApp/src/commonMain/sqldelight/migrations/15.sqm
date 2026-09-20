@@ -1,0 +1,17 @@
+-- What the party register knows about a party, kept locally instead of asked for every time.
+--
+-- The detail endpoint was the only source for the header of the party screen, and it answers
+-- 400 for any legislatura but the current one — so the header of a party in an older term was
+-- an error state and nothing else. These columns are filled once per term by the sync and read
+-- from here, which also means the screen opens with its content already on it.
+--
+-- `cor` is the party's own colour, taken from the most present hue of its logo. It is stored
+-- as the raw ARGB that came off the bitmap: the adjustment that makes it legible on a light or
+-- a dark surface belongs to the theme, not to the record. Null for the twelve parties of the
+-- 57th whose logo the register does not actually host — the UI falls back to the area's blue,
+-- which is what every party used before any of them had one.
+ALTER TABLE Partido ADD COLUMN cor INTEGER;
+ALTER TABLE Partido ADD COLUMN dataStatus TEXT;
+ALTER TABLE Partido ADD COLUMN liderNome TEXT;
+ALTER TABLE Partido ADD COLUMN liderUf TEXT;
+ALTER TABLE Partido ADD COLUMN liderFoto TEXT;

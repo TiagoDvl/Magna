@@ -31,6 +31,14 @@ data class Partido(
      * order is chosen or the whole order is by size.
      */
     val posicao: Int? = null,
+    /**
+     * The party's own colour as raw ARGB, taken from the most present hue of its logo.
+     *
+     * Null for every party whose logo the register does not host, which is twelve of the
+     * twenty-seven of the 57th — including the four largest. The theme turns this into
+     * something legible, and turns a null into the area's own blue.
+     */
+    val cor: Int? = null,
 )
 
 val partidosMock = listOf(

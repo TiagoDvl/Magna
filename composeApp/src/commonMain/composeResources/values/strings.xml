@@ -157,6 +157,15 @@
     <string name="partido_details_members">Deputados</string>
     <string name="partido_details_male">Masculino</string>
     <string name="partido_details_female">Feminino</string>
+    <string name="partido_details_posse">Tomaram posse</string>
+    <string name="partido_details_hoje">Hoje</string>
+    <string name="partido_details_saldo_perdeu">%1$d a menos desde o início da legislatura</string>
+    <string name="partido_details_saldo_ganhou">%1$d a mais desde o início da legislatura</string>
+    <string name="partido_details_saldo_igual">Mesmo tamanho do início da legislatura</string>
+    <string name="partido_details_atualizado">Atualizado em %1$s</string>
+    <string name="partido_details_perfil">Quem são</string>
+    <string name="partido_details_por_estado">Por estado</string>
+    <string name="partido_details_deputados_curto">%1$d dep.</string>
     <string name="partido_details_website">Site</string>
     <string name="partido_details_facebook">Facebook</string>
     <string name="partido_details_leader">Líder do partido</string>

@@ -100,6 +100,8 @@ import com.tick.magna.features.proposicoes.list.ProposicoesListViewModel
 import com.tick.magna.features.votacoes.detail.VotacaoDetailViewModel
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.tick.magna.data.color.LeitorDeCorDoLogo
+import com.tick.magna.data.color.LeitorDeCorDoLogoInterface
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -152,6 +154,7 @@ val dataModule = module {
     // Api
     single<DeputadosApiInterface> { DeputadosApi(get()) }
     single<PartidosApiInterface> { PartidosApi(get()) }
+    single<LeitorDeCorDoLogoInterface> { LeitorDeCorDoLogo() }
     single<ProposicoesApiInterface> { ProposicoesApi(get()) }
     single<OrgaosApiInterface> { OrgaosApi(get()) }
     single<VotacoesApiInterface> { VotacoesApi(get()) }
@@ -161,7 +164,7 @@ val dataModule = module {
     single<DeputadosRepositoryInterface> {
         DeputadosRepository(get(), get(), get(), get(), get(), get(), get())
     }
-    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get()) }
+    single<PartidosRepositoryInterface> { PartidosRepository(get(), get(), get(), get(), get(), get(), get()) }
     single<ProposicoesRepositoryInterface> { ProposicoesRepository(get(), get(), get(), get(), get(), get(), get()) }
     single<VotosRepositoryInterface> { VotosRepository(get(), get(), get(), get(), get()) }
 

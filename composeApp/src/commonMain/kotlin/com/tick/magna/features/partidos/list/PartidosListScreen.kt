@@ -58,6 +58,7 @@ import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.theme.accent
 import com.tick.magna.ui.core.theme.container
+import com.tick.magna.ui.core.theme.corDeExibicao
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import com.tick.magna.ui.core.theme.onContainer
 import kotlinx.coroutines.delay
@@ -176,10 +177,13 @@ private fun Cabecalho(
     val typography = MaterialTheme.typography
     val naCor = MagnaArea.PARTIDOS.onContainer
 
-    val bancadas = remember(partidos) {
-        partidos.filter { it.bancada > 0 }.map { Bancada(it.sigla, it.bancada) }
-    }
+    val comBancada = remember(partidos) { partidos.filter { it.bancada > 0 } }
+    val bancadas = remember(comBancada) { comBancada.map { Bancada(it.sigla, it.bancada) } }
     val assentos = remember(bancadas) { bancadas.sumOf { it.assentos } }
+
+    // Not remembered, because these are read from the theme and the theme can change under
+    // them. Twenty-seven lookups on a composable that recomposes when the list does.
+    val cores = comBancada.map { it.corDeExibicao }
 
     Column(
         modifier = Modifier
@@ -199,6 +203,7 @@ private fun Cabecalho(
         if (assentos > 0) {
             Hemiciclo(
                 bancadas = bancadas,
+                cores = cores,
                 selecionadas = selecionadas,
                 onToggle = onToggle,
             )
@@ -456,7 +461,12 @@ private fun PartidoRow(
             ) {
                 Text(
                     text = partido.sigla,
-                    style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    // The party's own colour, the same one the Home card uses. Two places
+                    // that list parties should not disagree about what a party looks like.
+                    style = typography.bodyMedium.copy(
+                        color = partido.corDeExibicao,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

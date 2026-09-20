@@ -3,6 +3,7 @@ package com.tick.magna.data.repository
 import com.tick.magna.DeputadoBio
 import com.tick.magna.GetPartidos
 import com.tick.magna.User
+import com.tick.magna.data.color.LeitorDeCorDoLogoInterface
 import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoBioDaoInterface
@@ -167,6 +168,7 @@ class PartidoMembrosTest {
         loggerInterface = SilentLogger(),
         deputadosApi = deputadosApi,
         deputadoBioDao = bioDao,
+        leitorDeCorDoLogo = SemCor(),
     )
 
     private fun ids(range: IntRange) = range.map { DeputadoDto(id = it.toString(), nome = "Deputado $it") }
@@ -205,6 +207,9 @@ class PartidoMembrosTest {
             throw UnsupportedOperationException("not part of this test")
 
         override suspend fun getPartidoById(id: String): PartidoDetalheResponse =
+            throw UnsupportedOperationException("not part of this test")
+
+        override suspend fun getLogo(url: String): ByteArray =
             throw UnsupportedOperationException("not part of this test")
     }
 
@@ -268,6 +273,14 @@ class PartidoMembrosTest {
 
         override suspend fun setOrdem(partidoIds: List<String>) =
             throw UnsupportedOperationException("not part of this test")
+
+        override suspend fun getPartidosSemDetalhe(legislaturaId: String): List<String> =
+            emptyList()
+    }
+
+    /** These are about the roster, and a roster does not go looking at logos. */
+    private class SemCor : LeitorDeCorDoLogoInterface {
+        override fun corDe(bytes: ByteArray): Int? = null
     }
 
     private class SilentLogger : AppLoggerInterface {

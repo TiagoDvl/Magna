@@ -90,10 +90,6 @@ class PartidoDetailsViewModel(
         analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.MEMBROS))
     }
 
-    fun onWebsiteOpened() {
-        analytics.track(AnalyticsEvent.ExternalLinkOpened(AnalyticsEvent.LinkKind.PARTIDO_WEBSITE))
-    }
-
     fun processAction(action: PartidoDetailsAction) {
         when (action) {
             is PartidoDetailsAction.SelectChart -> {
