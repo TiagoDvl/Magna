@@ -33,17 +33,25 @@ A cor sozinha não separa seis áreas: seis acentos dentro de uma paleta institu
 
 | área | marcador |
 |---|---|
-| Deputados | cunha no canto superior direito |
-| Proposições | tarja de 4dp na borda esquerda |
+| Deputados | faixa diagonal no canto superior direito |
+| Proposições | faixa vertical de 4dp, recuada 4dp da borda esquerda |
 | Partidos, Comissões, Votações | ainda não definidos — não desenham nada |
 
 Uma marca inventada para preencher um slot é uma marca que ninguém aprende. As três em aberto ficam sem marcador até serem decididas.
+
+**As duas são faixas, não bordas.** Nenhuma encosta na aresta que acompanha: sobra sempre uma tira da cor do próprio card do lado de fora dela. Uma marca que corre até a borda é lida como a borda — moldura, divisor, estado de seleção. Com a superfície ainda aparecendo por fora, a faixa é lida como algo posto sobre o card, que é o que ela é.
+
+O recuo é para o lado, não para as pontas. A diagonal para antes da quina; a vertical das proposições foi empurrada 4dp para dentro e **mantém a altura inteira**. Cortá-la em cima e embaixo transformou-a num fragmento flutuando no card — o que tira o ar de moldura é a tira de superfície por fora, não o encurtamento.
+
+Na diagonal isso são quatro pontos em vez de três: a ponta do triângulo é cortada fora. O recuo se mede contra a quina, não contra a aresta — `shapes.medium` arredonda em 12dp e o ponto do arco mais próximo da quina está a uns 5dp na diagonal, então recuo abaixo de dez o clip come inteiro e a faixa volta a parecer canto cheio. Hoje são 14dp de recuo e 10dp de espessura medida na aresta, que o corte diagonal transforma nos ~7dp que o olho mede.
+
+**Fica atrás do conteúdo, não sobre ele.** No card de deputado a faixa passa por trás da foto. Isso obriga o modificador a ser aplicado no contêiner de dentro do `Card` e antes do padding dele: o `Card` pinta o fundo dentro da própria cadeia de modificadores, então o que for desenhado a partir do modificador do `Card` fica coberto por ele.
 
 **Onde aparece:** nos itens da Home, que é onde as áreas se misturam e um card precisa dizer de qual delas é.
 
 **Onde não aparece:** nas linhas de lista dentro da própria feature. Numa lista em que toda linha é da mesma área, o marcador não diz nada e se repete quarenta e cinco vezes.
 
-Esteve no topbar da feature e saiu: a barra desenha de borda a borda, então o canto superior direito dela fica sob a barra de status e a cunha caiu em cima do ícone de bateria. Levar a identidade para dentro da feature é um problema separado — a barra já toma a cor da área.
+Esteve no topbar da feature e saiu: a barra desenha de borda a borda, então o canto superior direito dela fica sob a barra de status e a faixa caiu em cima do ícone de bateria. Levar a identidade para dentro da feature é um problema separado — a barra já toma a cor da área.
 
 ## 2. Espaçamento
 

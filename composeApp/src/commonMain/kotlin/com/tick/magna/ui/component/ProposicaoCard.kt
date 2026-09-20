@@ -67,10 +67,15 @@ fun ProposicaoCard(proposicao: Proposicao, onClick: () -> Unit) {
         onClick = onClick,
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // A sash rather than a border, moved off the edge rather than shortened. Sitting on
+            // the edge itself it read as the card's frame or as a selection state; with the
+            // card's own colour still running down the outside of it, it reads as something
+            // laid over the card. The gap matches the band, so the two are one gesture.
             Box(
                 modifier = Modifier
-                    .width(dimensions.grid4)
+                    .width(dimensions.grid8)
                     .fillMaxHeight()
+                    .padding(start = dimensions.grid4)
                     .background(MagnaArea.PROPOSICOES.accent)
             )
 

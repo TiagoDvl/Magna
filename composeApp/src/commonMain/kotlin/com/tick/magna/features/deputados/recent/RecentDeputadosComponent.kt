@@ -161,13 +161,9 @@ private fun RecentDeputados(
         ) {
             items(deputados) { deputado ->
                 Card(
-                    // The area's marker, because the Home is where the areas are mixed: four
-                    // sections of cards that are otherwise the same object. Inside the
-                    // deputados screen the rows carry none — there every row is this area.
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(CARD_WIDTH)
-                        .marcadorDeArea(MagnaArea.DEPUTADOS, MaterialTheme.shapes.medium),
+                        .width(CARD_WIDTH),
                     elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceContainer,
@@ -176,8 +172,17 @@ private fun RecentDeputados(
                     onClick = { onDeputadoClick(deputado.id) }
                 ) {
                     Column(
+                        // The area's marker, because the Home is where the areas are mixed:
+                        // four sections of cards that are otherwise the same object. Inside
+                        // the deputados screen the rows carry none — there every row is this
+                        // area.
+                        //
+                        // On the content rather than on the Card, and before the padding: the
+                        // Card paints its background over anything its own modifier draws, and
+                        // from here the band passes behind the photograph.
                         modifier = Modifier
                             .fillMaxSize()
+                            .marcadorDeArea(MagnaArea.DEPUTADOS, MaterialTheme.shapes.medium)
                             .padding(dimensions.grid4),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
