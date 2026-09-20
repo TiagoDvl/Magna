@@ -75,7 +75,7 @@ fun ComissoesPermanentesComponent(
                     modifier = Modifier.height(CARD_HEIGHT).width(CARD_WIDTH),
                     elevation = magnaCardElevation(),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorScheme.surfaceContainerLow
+                        containerColor = colorScheme.surfaceContainer
                     ),
                     onClick = { onComissaoClick(item.comissaoPermanenteId) }
                 ) {

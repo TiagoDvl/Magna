@@ -1,5 +1,8 @@
 package com.tick.magna.features.proposicoes.list
 
+
+import com.tick.magna.ui.component.MagnaSpinner
+import com.tick.magna.ui.core.theme.MagnaArea
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -178,7 +181,11 @@ private fun ProposicoesList(
                             modifier = Modifier.fillMaxWidth().padding(dimensions.grid16),
                             contentAlignment = Alignment.Center,
                         ) {
-                            CircularProgressIndicator(modifier = Modifier.size(dimensions.grid24))
+                            MagnaSpinner(
+                                modifier = Modifier.size(dimensions.grid24),
+                                area = MagnaArea.PROPOSICOES,
+                                strokeWidth = dimensions.grid2,
+                            )
                         }
                     }
                 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -27,6 +28,17 @@ import magna.composeapp.generated.resources.action_back
 import magna.composeapp.generated.resources.ic_arrow_back
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +77,35 @@ fun MagnaMediumTopBar(
      * reach the bar: a green block under a cream bar is a band that stops halfway down.
      */
     area: MagnaArea? = null,
+    /**
+     * Makes the title itself open something, with a caret after it saying so.
+     *
+     * The Home's title is the term being read and there is a sheet behind it, but the only way
+     * in was a calendar icon at the far end of the bar: the word that names the thing and the
+     * control that changes it were at opposite sides of the screen, and nothing about the word
+     * said it could be touched.
+     */
+    onTitleClick: (() -> Unit)? = null,
+    /** Spoken for [onTitleClick], since a caret says nothing out loud. */
+    titleClickDescription: String? = null,
 ) {
+    // A blank title means there is nothing to say twice, so the bar collapses to the single
+    // row it would otherwise leave half empty. The Home uses it: its own name and the term it
+    // is showing both fit on one line, and a headline under them was a third heading for a
+    // screen whose real headings are its sections.
+    if (titleText.isEmpty() && navigationLabel != null) {
+        TopAppBar(
+            scrollBehavior = scrollBehavior,
+            actions = actions,
+            colors = TopAppBarDefaults.topAppBarColors().copy(
+                containerColor = area?.container ?: MaterialTheme.colorScheme.background,
+                scrolledContainerColor = area?.container ?: MaterialTheme.colorScheme.background,
+            ),
+            title = { Wordmark(navigationLabel) },
+        )
+        return
+    }
+
     MediumTopAppBar(
         scrollBehavior = scrollBehavior,
         actions = actions,
@@ -90,14 +130,15 @@ fun MagnaMediumTopBar(
 
                 // Aligned by hand to the title below it: an IconButton carries its own 16dp of
                 // inset, a Text does not.
-                navigationLabel != null -> Text(
-                    modifier = Modifier.padding(start = WORDMARK_START_PADDING),
+                //
+                // The wordmark is set in the text colour rather than in `primary`. Green made
+                // it read as a link to somewhere, which is what every other green thing in
+                // this app is; black at full weight reads as a name, which is what it is. One
+                // step up in size and no further: it sits above the title, and a wordmark that
+                // competes with the title turns the header into two headings.
+                navigationLabel != null -> Wordmark(
                     text = navigationLabel,
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = WORDMARK_TRACKING,
-                    ),
+                    modifier = Modifier.padding(start = WORDMARK_START_PADDING),
                 )
             }
         },
@@ -113,16 +154,63 @@ fun MagnaMediumTopBar(
             val fraction = scrollBehavior?.state?.collapsedFraction ?: 0f
             val style = lerp(expandedStyle, MaterialTheme.typography.titleLarge, fraction)
 
-            Text(
-                text = titleText,
-                // Light, against the section headers' Bold. The family ships ExtraLight
-                // through Bold and the app was rendering Bold in both roles, so the whole
-                // lower half of the range was sitting unused while the two collided.
-                style = style.copy(fontWeight = FontWeight.Light),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            val descricao = titleClickDescription
+
+            Row(
+                modifier = if (onTitleClick == null) {
+                    Modifier
+                } else {
+                    Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable(onClick = onTitleClick)
+                        .semantics { descricao?.let { contentDescription = it } }
+                },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = titleText,
+                    // Light, against the section headers' Bold. The family ships ExtraLight
+                    // through Bold and the app was rendering Bold in both roles, so the whole
+                    // lower half of the range was sitting unused while the two collided.
+                    style = style.copy(fontWeight = FontWeight.Light),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                if (onTitleClick != null) {
+                    // Sized off the title rather than fixed, so it keeps its proportion while
+                    // the bar collapses and the text shrinks under it.
+                    Icon(
+                        modifier = Modifier
+                            .size(with(LocalDensity.current) { style.fontSize.toDp() })
+                            .alpha(ALFA_DO_CARET),
+                        imageVector = Icons.Outlined.ArrowDropDown,
+                        contentDescription = null,
+                    )
+                }
+            }
         }
+    )
+}
+
+/**
+ * The app's name.
+ *
+ * Set in the text colour rather than in `primary`. Green made it read as a link to somewhere,
+ * which is what every other green thing in this app is; black at full weight reads as a name,
+ * which is what it is.
+ */
+@Composable
+private fun Wordmark(text: String, modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier,
+        text = text,
+        style = MaterialTheme.typography.titleMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = WORDMARK_TRACKING,
+        ),
     )
 }
 
@@ -159,3 +247,6 @@ private val WORDMARK_START_PADDING = 14.dp
 
 /** Enough to read as a mark rather than as a word someone left there. */
 private val WORDMARK_TRACKING = 1.sp
+
+/** Present, and clearly secondary to the word it follows. */
+private const val ALFA_DO_CARET = 0.55f

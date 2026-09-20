@@ -39,6 +39,7 @@ import com.tick.magna.data.domain.presidentesComissaoMock
 import com.tick.magna.data.domain.votacoesMock
 import com.tick.magna.data.source.local.mapper.toDisplayDate
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
+import com.tick.magna.features.proposicoes.details.ProposicaoDetailsArgs
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
 import com.tick.magna.ui.component.MagnaScreen
@@ -87,6 +88,9 @@ fun ComissaoPermanenteDetailScreen(
         navigateBack = { navController.popBackStack() },
         onTabSelected = viewModel::onTabSelected,
         onDeputadoClick = { deputadoId -> navController.navigate(DeputadoDetailsArgs(deputadoId)) },
+        onProposicaoClick = { proposicaoId ->
+            navController.navigate(ProposicaoDetailsArgs(proposicaoId))
+        },
     )
 }
 
@@ -97,6 +101,7 @@ private fun ComissaoPermanenteDetail(
     navigateBack: () -> Unit = {},
     onTabSelected: (ComissaoTab) -> Unit = {},
     onDeputadoClick: (String) -> Unit = {},
+    onProposicaoClick: (String) -> Unit = {},
 ) {
     val acento = MagnaArea.COMISSOES.accent
 
@@ -132,6 +137,7 @@ private fun ComissaoPermanenteDetail(
             ComissaoTab.VOTACOES -> VotacoesTab(
                 votacoesState = state.votacoesState,
                 paddingValues = paddingValues,
+                onProposicaoClick = onProposicaoClick,
             )
 
             ComissaoTab.COMPOSICAO -> ComposicaoTab(
@@ -160,6 +166,7 @@ private val ComissaoTab.label: StringResource
 private fun VotacoesTab(
     votacoesState: VotacoesState,
     paddingValues: PaddingValues,
+    onProposicaoClick: (String) -> Unit,
 ) {
     val dimensions = LocalDimensions.current
     val colorScheme = MaterialTheme.colorScheme
@@ -222,11 +229,22 @@ private fun VotacoesTab(
                 }
 
                 items(votacoes.votacoes) { votacao ->
+                    // The proposition, not the vote. `/votacoes/{id}/votos` answers 400 for
+                    // every committee vote measured: the Camara publishes no nominal roll for
+                    // them, because they are taken symbolically. The vote screen is a roll, so
+                    // sending somebody there would be sending them to an empty room — and the
+                    // card here already shows everything the register has about the vote
+                    // itself. What it does not show, and what the tap is for, is the
+                    // proposition underneath.
+                    val proposicao = votacao.proposicoes.firstOrNull()
+
                     Card(
                         elevation = magnaCardElevation(),
                         colors = CardDefaults.cardColors(
                             containerColor = colorScheme.surfaceContainer
-                        )
+                        ),
+                        onClick = { proposicao?.id?.let(onProposicaoClick) },
+                        enabled = proposicao != null,
                     ) {
                         Column(
                             modifier = Modifier

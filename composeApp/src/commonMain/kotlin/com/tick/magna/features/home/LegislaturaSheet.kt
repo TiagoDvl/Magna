@@ -25,7 +25,6 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.home_legislatura_current
 import magna.composeapp.generated.resources.home_legislatura_label
-import magna.composeapp.generated.resources.home_legislatura_period
 import magna.composeapp.generated.resources.home_legislatura_sheet_subtitle
 import magna.composeapp.generated.resources.home_legislatura_sheet_title
 import org.jetbrains.compose.resources.stringResource
@@ -131,7 +130,7 @@ private fun LegislaturaRow(
                 }
             }
             Text(
-                text = legislatura.period(),
+                text = legislatura.periodo(),
                 style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
             )
         }
@@ -146,14 +145,4 @@ private fun LegislaturaRow(
     }
 }
 
-/**
- * Years only. The exact days a term opens and closes are noise next to the question the
- * selector answers, and a date that does not look like an ISO one is shown as it arrived
- * rather than being cut to four characters that mean nothing.
- */
-@Composable
-private fun Legislatura.period(): String {
-    return stringResource(Res.string.home_legislatura_period, startDate.year(), endDate.year())
-}
 
-private fun String.year(): String = if (length >= 4 && take(4).all { it.isDigit() }) take(4) else this

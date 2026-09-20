@@ -25,6 +25,7 @@
     <string name="home_legislatura_sheet_title">Escolha a legislatura</string>
     <string name="home_legislatura_sheet_subtitle">Os dados de deputados, partidos e despesas mudam conforme o período escolhido.</string>
     <string name="home_legislatura_current">Atual</string>
+    <string name="home_periodo_rotulo">Período de</string>
     <string name="home_legislatura_period">%1$s a %2$s</string>
     <string name="home_legislatura_syncing">Baixando os dados desta legislatura…</string>
     <string name="home_legislatura_syncing_detail">As seções abaixo vão se preencher conforme os dados chegam.</string>
@@ -42,7 +43,7 @@
     <string name="recent_deputados_empty_title">Comece por um deputado</string>
     <string name="recent_deputados_empty_body">Quem você abrir fica guardado aqui.</string>
     <string name="recent_deputados_empty_action">Pesquisar deputados</string>
-    <string name="recent_deputados_title">Deputados recentes</string>
+    <string name="recent_deputados_title">Deputados</string>
 
     <string name="deputados_search_dialog_title">Escolha uma opção</string>
     <string name="deputados_search_title">Deputados</string>
@@ -87,7 +88,7 @@
     <string name="deputado_votos_nota">Só votações nominais, dos últimos três meses. A Câmara registra voto individual em 2% do que vota.</string>
     <string name="deputado_tab_despesas">Despesas</string>
     <string name="deputado_tab_votos">Como votou</string>
-    <string name="recent_proposicoes_section_title">Apresentadas recentemente</string>
+    <string name="recent_proposicoes_section_title">Proposições</string>
     <string name="recent_proposicoes_janela">%1$d apresentadas nos últimos %2$d meses</string>
     <string name="section_ver_todos">Ver todos</string>
     <string name="proposicao_bucket_constituicao">Constituição</string>

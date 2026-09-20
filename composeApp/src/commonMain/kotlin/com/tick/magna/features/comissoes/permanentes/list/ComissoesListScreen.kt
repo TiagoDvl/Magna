@@ -120,7 +120,7 @@ private fun ComissaoCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = magnaCardElevation(),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
         onClick = onClick,
     ) {
         Row(

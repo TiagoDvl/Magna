@@ -16,6 +16,7 @@ import com.tick.magna.ui.component.MagnaSectionHeader
 import com.tick.magna.ui.component.ProposicaoCard
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaArea
+import com.tick.magna.ui.core.theme.accent
 import com.tick.magna.ui.core.theme.MagnaTheme
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.section_ver_todos
@@ -92,8 +93,11 @@ private fun RecentProposicoesComponentContent(
         if (state.proposicoes.isEmpty() && state.isLoading) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(dimensions.grid2),
-                color = colorScheme.secondary,
-                trackColor = colorScheme.onSecondary,
+                color = MagnaArea.PROPOSICOES.accent,
+                // The track is a background and wants a surface token. It was `onSecondary`,
+                // a colour meant to be written *on* secondary, which is white here: the bar
+                // ran around nothing on a light surface.
+                trackColor = colorScheme.surfaceDim,
             )
         }
 

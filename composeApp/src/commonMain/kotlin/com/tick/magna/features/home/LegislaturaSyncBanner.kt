@@ -1,5 +1,7 @@
 package com.tick.magna.features.home
 
+
+import com.tick.magna.ui.component.MagnaSpinner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -73,9 +75,10 @@ internal fun LegislaturaSyncBanner(
                     horizontalArrangement = Arrangement.spacedBy(dimensions.grid16),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CircularProgressIndicator(
+                    // The same event as the dialog on this screen, so the same colour.
+                    // The two used to disagree.
+                    MagnaSpinner(
                         modifier = Modifier.size(PROGRESS_SIZE),
-                        color = colorScheme.tertiary,
                         strokeWidth = PROGRESS_STROKE,
                     )
                     Text(

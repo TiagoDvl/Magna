@@ -124,8 +124,11 @@ private fun PartidoChip(
     Card(
         modifier = modifier.width(120.dp),
         elevation = magnaCardElevation(),
+        // The same step of the tonal scale every other card on the Home stands on. Two of the
+        // four sections were a step lighter, which is not a distinction anybody made: it is
+        // one value drifting from another in files written weeks apart.
         colors = CardDefaults.cardColors(
-            containerColor = colorScheme.surfaceContainerLow,
+            containerColor = colorScheme.surfaceContainer,
         ),
         onClick = onClick,
     ) {

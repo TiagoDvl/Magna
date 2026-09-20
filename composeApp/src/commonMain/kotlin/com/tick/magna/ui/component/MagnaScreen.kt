@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -41,6 +43,10 @@ fun MagnaScreen(
     /** Paints the bar in this area's container, so the colour does not stop at the bar. */
     area: MagnaArea? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    /** Makes the title open something, with a caret after it saying so. */
+    onTitleClick: (() -> Unit)? = null,
+    /** Spoken for [onTitleClick]. */
+    titleClickDescription: String? = null,
     /** Sits under the bar and scrolls with it: a tab row, a filter strip. */
     belowTopBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
@@ -61,9 +67,23 @@ fun MagnaScreen(
                     actions = actions,
                     scrollBehavior = scrollBehavior,
                     area = area,
+                    onTitleClick = onTitleClick,
+                    titleClickDescription = titleClickDescription,
                 )
 
                 belowTopBar()
+
+                // Only when the bar shares the page's background, which is exactly when its
+                // bottom edge is invisible: the chrome and the content are the same cream and
+                // the boundary between them is a guess about how much empty space is a lot.
+                // A screen framed in an area already ends its bar with a change of colour, and
+                // a rule across that would be a second line saying the same thing.
+                //
+                // `surfaceDim` because it is the same rule the Home already draws between its
+                // own sections — one weight of line for one kind of boundary.
+                if (area == null) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceDim)
+                }
             }
         },
         content = content,

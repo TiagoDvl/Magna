@@ -134,7 +134,7 @@ private fun Convite(onSearchClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxSize(),
         elevation = magnaCardElevation(),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
         onClick = onSearchClick,
     ) {
         Row(

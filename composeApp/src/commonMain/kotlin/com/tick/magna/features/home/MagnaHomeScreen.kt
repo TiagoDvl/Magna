@@ -1,5 +1,20 @@
 package com.tick.magna.features.home
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import com.tick.magna.data.domain.Legislatura
+import magna.composeapp.generated.resources.home_periodo_rotulo
+
+
+import com.tick.magna.ui.component.MagnaSpinner
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,6 +90,60 @@ fun MagnaHomeScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Which term everything on this screen is about, and the way to change it.
+ *
+ * In the corner and small, where the calendar icon used to be. The icon named a category of
+ * thing rather than the thing: it said "dates live here" and left the term itself unsaid, so
+ * the answer to "which four years am I reading" was a headline on one side of the bar and the
+ * control for it on the other. Two lines because the years are the answer and "Período de" is
+ * only the question they answer — one line would give them the same weight.
+ */
+@Composable
+private fun PeriodoDaLegislatura(
+    legislatura: Legislatura,
+    onClick: (() -> Unit)?,
+) {
+    val dimensions = LocalDimensions.current
+    val typography = MaterialTheme.typography
+    val colorScheme = MaterialTheme.colorScheme
+    val descricao = stringResource(Res.string.home_legislatura_change_to, legislatura.id)
+
+    Row(
+        modifier = Modifier
+            .padding(end = dimensions.grid4)
+            .clip(MaterialTheme.shapes.small)
+            .let { if (onClick == null) it else it.clickable(onClick = onClick) }
+            .semantics { if (onClick != null) contentDescription = descricao }
+            .padding(horizontal = dimensions.grid8, vertical = dimensions.grid4),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.grid2),
+    ) {
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = stringResource(Res.string.home_periodo_rotulo),
+                style = typography.labelSmall.copy(color = colorScheme.onSurfaceVariant),
+            )
+            Text(
+                text = legislatura.periodo(),
+                style = typography.labelLarge.copy(
+                    color = colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+            )
+        }
+
+        if (onClick != null) {
+            Icon(
+                modifier = Modifier.size(dimensions.grid20).alpha(ALFA_DO_CARET),
+                imageVector = Icons.Outlined.ArrowDropDown,
+                tint = colorScheme.onSurfaceVariant,
+                contentDescription = null,
+            )
+        }
+    }
+}
+
 @Composable
 private fun MagnaHomeContent(
     modifier: Modifier = Modifier,
@@ -138,7 +207,9 @@ private fun MagnaHomeContent(
                         }
 
                         if (homeState.syncState is SyncUserInformationState.Downloading) {
-                            CircularProgressIndicator()
+                            // No area: this is Magna downloading its own data before
+                            // there is an area to be in.
+                            MagnaSpinner()
                         }
                     }
                 }
@@ -181,30 +252,24 @@ private fun MagnaHomeContent(
 
     MagnaScreen(
         modifier = modifier,
-        // The term rather than the app's name. Every list on this screen is scoped to it —
-        // propositions, deputados, comissoes, partidos — and with the selector reduced to an
-        // icon there was nowhere left that said which term you were reading.
-        title = selectedLegislatura
-            ?.let { stringResource(Res.string.home_title_legislatura, it.id) }
-            ?: stringResource(Res.string.app_name),
+        // No headline. The term used to be one, at 32sp, and it was a third heading on a
+        // screen whose real headings are its sections — it out-shouted every one of them to
+        // say something that belongs in a corner. Blank collapses the bar to a single row.
+        title = "",
         navigationLabel = stringResource(Res.string.app_name),
         actions = {
-            // Only once there is a list to choose from: before the first sync there is
-            // genuinely nothing to switch to, and an icon that opens an empty sheet is worse
-            // than no icon.
-            if (selectedLegislatura != null && homeState.legislaturas.size > 1) {
-                IconButton(onClick = { showLegislaturaSheet = true }) {
-                    Icon(
-                        imageVector = MagnaArea.LEGISLATURA.icon,
-                        tint = colorScheme.onSurfaceVariant,
-                        // The term is in the description rather than on screen, so the one
-                        // place it is still spoken is a screen reader.
-                        contentDescription = stringResource(
-                            Res.string.home_legislatura_change_to,
-                            selectedLegislatura.id,
-                        ),
-                    )
-                }
+            selectedLegislatura?.let { legislatura ->
+                PeriodoDaLegislatura(
+                    legislatura = legislatura,
+                    // Only once there is a list to choose from: before the first sync there is
+                    // genuinely nothing to switch to, and a caret that opens an empty sheet is
+                    // a lie.
+                    onClick = if (homeState.legislaturas.size > 1) {
+                        { showLegislaturaSheet = true }
+                    } else {
+                        null
+                    },
+                )
             }
         },
     ) { paddingValues ->
@@ -216,7 +281,7 @@ private fun MagnaHomeContent(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = colorScheme.tertiary)
+                MagnaSpinner()
             }
         } else {
             Column(
@@ -329,3 +394,7 @@ fun HomeLegislaturaIncompletePreview() {
         )
     }
 }
+
+
+/** Present, and clearly secondary to the years it follows. */
+private const val ALFA_DO_CARET = 0.55f
