@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_magna_launcher_background">#57B5F6</color>
+    <!--
+        The slate blue from the app's own palette. The green primary was tried first and lost:
+        against it the cream bowl and the gold arcs sit at nearly the same lightness, and the
+        three arcs stopped separating from each other below about 40dp. This blue is darker than
+        both, so the mark keeps its contrast all the way down to the notification tray.
+    -->
+    <color name="ic_magna_launcher_background">#5A7AA0</color>
 </resources>

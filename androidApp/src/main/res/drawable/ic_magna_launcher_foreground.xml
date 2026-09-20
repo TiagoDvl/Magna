@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The Camara's bowl, read as an antenna.
+
+    Of the three volumes of the Congresso Nacional, only one belongs to this app: the 62m bowl
+    that opens upward on the right-hand side of the building. It is drawn alone, and the three
+    arcs above it carry the other half of the idea — open data leaving the chamber, which is the
+    whole of what Magna does.
+
+    Drawn inside the 66dp safe circle of the 108dp adaptive canvas: every point here, stroke
+    width included, stays within 33dp of the centre, so no launcher mask crops any of it.
+
+    The arcs are stroked rather than filled so the three of them keep an even 3dp gap at every
+    radius; the same geometry, flattened to one colour, is ic_magna_launcher_monochrome.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- The signal, innermost arc first, each one spanning wider than the last. -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F2DC8F"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M43.29,50.11 A16,16 0 0 1 64.71,50.11" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F2DC8F"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M34.34,48.23 A24,24 0 0 1 73.66,48.23" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F2DC8F"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M25,48.48 A32,32 0 0 1 83,48.48" />
+
+    <!-- Camara: the bowl that opens upward, wider than it is deep, as it is in concrete. -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFCF4"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M32,62 A22,20 0 0 0 76,62" />
+</vector>
