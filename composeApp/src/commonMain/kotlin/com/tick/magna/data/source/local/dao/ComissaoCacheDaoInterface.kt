@@ -3,6 +3,8 @@ package com.tick.magna.data.source.local.dao
 import com.tick.magna.ComissaoMembro
 import com.tick.magna.ComissaoVotacao
 import com.tick.magna.ComissaoVotacaoProposicao
+import com.tick.magna.SelectComissoesDosDeputados
+import kotlinx.coroutines.flow.Flow
 
 interface ComissaoCacheDaoInterface {
 
@@ -41,6 +43,15 @@ interface ComissaoCacheDaoInterface {
         legislaturaId: String,
         fonte: ComissaoConteudo,
     ): List<ComissaoMembro>
+
+    /**
+     * Every committee seat in the term, by person, re-emitting as the rows land.
+     *
+     * A flow because the thirty committees are downloaded one by one behind whoever is already
+     * looking at the list: as a one-shot read the search would show the seats of whatever had
+     * finished by the time the screen opened and then never change.
+     */
+    fun observeComissoesDosDeputados(legislaturaId: String): Flow<List<SelectComissoesDosDeputados>>
 
     suspend fun saveMembros(
         orgaoId: String,

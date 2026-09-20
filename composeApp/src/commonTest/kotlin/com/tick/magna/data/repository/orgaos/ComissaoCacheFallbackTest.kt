@@ -1,5 +1,7 @@
 package com.tick.magna.data.repository.orgaos
 
+import com.tick.magna.SelectComissoesDosDeputados
+
 import com.tick.magna.ComissaoMembro as ComissaoMembroEntity
 import com.tick.magna.ComissaoVotacao as ComissaoVotacaoEntity
 import com.tick.magna.ComissaoVotacaoProposicao as ComissaoVotacaoProposicaoEntity
@@ -204,6 +206,10 @@ class ComissaoCacheFallbackTest {
         override suspend fun getVotacoes(orgaoId: String, legislaturaId: String) = votacoes
 
         override suspend fun getVotacaoProposicoes(orgaoId: String, legislaturaId: String) = proposicoes
+
+        override fun observeComissoesDosDeputados(
+            legislaturaId: String,
+        ): Flow<List<SelectComissoesDosDeputados>> = flowOf(emptyList())
 
         override suspend fun saveVotacoes(
             orgaoId: String,

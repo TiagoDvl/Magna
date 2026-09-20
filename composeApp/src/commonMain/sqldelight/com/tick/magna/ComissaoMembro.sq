@@ -49,3 +49,22 @@ ORDER BY dataInicio DESC;
 deleteComissaoMembros:
 DELETE FROM ComissaoMembro
 WHERE orgaoId = :orgaoId AND legislaturaId = :legislaturaId AND fonte = :fonte;
+
+-- The same rows read the other way round: by person rather than by committee.
+--
+-- The committee screens ask "who sits on the CCJC"; the deputado search asks "what does this
+-- person sit on", which is the same table with the index turned around. Joined to Orgao for
+-- the sigla, because the membership row carries only the id and `CCJC` is what a row on a
+-- list has space for.
+--
+-- LEFT JOIN rather than JOIN: a committee whose row is missing would otherwise silently drop
+-- the seat, and a seat with no sigla is still a seat. The screen decides what to do with it.
+--
+-- Only COMPOSICAO. The presidency rows are a history of the whole mandate, so including them
+-- would credit somebody who presided in 2023 with a seat they no longer hold.
+selectComissoesDosDeputados:
+SELECT membro.deputadoId, membro.orgaoId, orgao.sigla, membro.titulo, membro.codTitulo
+FROM ComissaoMembro AS membro
+LEFT JOIN Orgao AS orgao ON orgao.id = membro.orgaoId
+WHERE membro.legislaturaId = :legislaturaId AND membro.fonte = 'COMPOSICAO'
+ORDER BY membro.codTitulo ASC, orgao.sigla ASC;

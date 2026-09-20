@@ -7,12 +7,18 @@ import com.tick.magna.ComissaoVotacao
 import com.tick.magna.ComissaoVotacaoProposicao
 import com.tick.magna.ComissaoVotacaoQueries
 import com.tick.magna.MagnaDatabase
+import com.tick.magna.SelectComissoesDosDeputados
+import com.tick.magna.data.dispatcher.DispatcherInterface
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
 
 class ComissaoCacheDao(
     private val database: MagnaDatabase,
     private val votacaoQueries: ComissaoVotacaoQueries,
     private val membroQueries: ComissaoMembroQueries,
     private val cacheQueries: ComissaoCacheQueries,
+    private val dispatcher: DispatcherInterface,
 ) : ComissaoCacheDaoInterface {
 
     override suspend fun getFetchedAt(
@@ -73,6 +79,15 @@ class ComissaoCacheDao(
             else ->
                 membroQueries.selectComissaoComposicao(orgaoId, legislaturaId).executeAsList()
         }
+    }
+
+    override fun observeComissoesDosDeputados(
+        legislaturaId: String,
+    ): Flow<List<SelectComissoesDosDeputados>> {
+        return membroQueries
+            .selectComissoesDosDeputados(legislaturaId)
+            .asFlow()
+            .mapToList(dispatcher.io)
     }
 
     override suspend fun saveMembros(

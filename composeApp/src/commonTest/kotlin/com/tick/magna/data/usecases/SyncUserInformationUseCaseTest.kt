@@ -6,6 +6,7 @@ import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.DeputadoDetails
 import com.tick.magna.data.domain.DeputadoExpense
 import com.tick.magna.data.domain.DeputadoMembro
+import com.tick.magna.data.domain.ComissaoDoDeputado
 import com.tick.magna.data.domain.Legislatura
 import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Orgao
@@ -261,6 +262,12 @@ class SyncUserInformationUseCaseTest {
             override fun getComissoesPermanentes(): Flow<List<Orgao>> = flowOf(comissoes)
             override suspend fun hasComissoesPermanentes() = hasComissoes
             override suspend fun needsAtividade() = needsAtividadeCount
+            override suspend fun syncComissoesMembros() =
+                throw UnsupportedOperationException("not part of the sync")
+
+            override fun observeComissoesDosDeputados(): Flow<Map<String, List<ComissaoDoDeputado>>> =
+                throw UnsupportedOperationException("not part of the sync")
+
             override suspend fun getComissaoPermanenteVotacoes(idOrgao: String): Result<List<Votacao>> =
                 throw UnsupportedOperationException("not part of the sync")
 

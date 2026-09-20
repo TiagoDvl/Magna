@@ -1,6 +1,7 @@
 package com.tick.magna.data.repository.orgaos
 
 import com.tick.magna.Legislatura as LegislaturaEntity
+import com.tick.magna.data.domain.ComissaoDoDeputado
 import com.tick.magna.data.domain.MembroComissao
 import com.tick.magna.data.domain.Orgao
 import com.tick.magna.data.domain.Votacao
@@ -222,6 +223,84 @@ internal class OrgaosRepository(
             ?: return true
 
         return legislaturaId == latest
+    }
+
+    /**
+     * Every committee's composition for the term, downloaded behind whoever is looking at a
+     * list of people.
+     *
+     * Thirty requests is the whole cost of answering "what does this person sit on" for all
+     * 513 of them, and the alternative is one request per deputado, which is 513. The seats
+     * themselves are already stored per committee — this only turns the crank on the
+     * committees nobody has opened yet, and the freshness rule in [withCache] means a term
+     * that has ended is downloaded once and never again.
+     *
+     * Failures are per committee, not fatal. One committee that would not answer costs its own
+     * siglas on a few rows; refusing to show the other twenty-nine over it would not.
+     */
+    override suspend fun syncComissoesMembros(): Boolean {
+        val comissoes = getComissoesPermanentes().first()
+        if (comissoes.isEmpty()) return false
+
+        loggerInterface.i("syncComissoesMembros: ${comissoes.size} comissoes", TAG)
+
+        val semaphore = Semaphore(MAX_PARALLEL_DETAIL_REQUESTS)
+        val results = coroutineScope {
+            comissoes.map { comissao ->
+                async {
+                    semaphore.withPermit {
+                        getComissaoMembros(comissao.id)
+                            .onFailure {
+                                loggerInterface.w(
+                                    "syncComissoesMembros: ${comissao.id} failed",
+                                    TAG,
+                                )
+                            }
+                            .isSuccess
+                    }
+                }
+            }.awaitAll()
+        }
+
+        return results.all { it }
+    }
+
+    /**
+     * The membership table read by person instead of by committee.
+     *
+     * Grouped here rather than in SQL because the grouping is what the caller wants and the
+     * query cannot return it: 1400-odd rows collapse into about 480 entries, which is one pass
+     * over a list already in memory.
+     */
+    override fun observeComissoesDosDeputados(): Flow<Map<String, List<ComissaoDoDeputado>>> {
+        return userDao.getUser().flatMapLatest { user ->
+            val legislaturaId = user?.legislaturaId
+
+            if (legislaturaId == null) {
+                flow { emit(emptyMap()) }
+            } else {
+                comissaoCacheDao.observeComissoesDosDeputados(legislaturaId).map { rows ->
+                    rows
+                        .groupBy { it.deputadoId }
+                        .mapValues { (_, seats) ->
+                            seats.map { seat ->
+                                ComissaoDoDeputado(
+                                    orgaoId = seat.orgaoId,
+                                    sigla = seat.sigla,
+                                    titulo = seat.titulo,
+                                    codTitulo = seat.codTitulo.toInt(),
+                                )
+                            }
+                        }
+                        .also {
+                            loggerInterface.d(
+                                "observeComissoesDosDeputados: ${it.size} deputados with seats",
+                                TAG,
+                            )
+                        }
+                }
+            }
+        }
     }
 
     /**

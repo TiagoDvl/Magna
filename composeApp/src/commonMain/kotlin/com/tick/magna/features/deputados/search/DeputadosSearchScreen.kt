@@ -44,8 +44,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.tick.magna.data.domain.CargoComissao
+import com.tick.magna.data.domain.ComissaoDoDeputado
 import com.tick.magna.data.domain.Deputado
 import com.tick.magna.data.domain.deputadosMock
+import com.tick.magna.data.domain.principal
 import com.tick.magna.features.deputados.details.DeputadoDetailsArgs
 import com.tick.magna.ui.component.EmptyComponent
 import com.tick.magna.ui.component.LoadingComponent
@@ -56,10 +59,17 @@ import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.MagnaArea
 import com.tick.magna.ui.core.theme.MagnaTheme
 import com.tick.magna.ui.core.theme.accent
+import com.tick.magna.ui.core.theme.onContainer
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
 import magna.composeapp.generated.resources.action_clear_filter
 import magna.composeapp.generated.resources.action_clear_search
+import magna.composeapp.generated.resources.deputados_comissao_mesa
+import magna.composeapp.generated.resources.deputados_comissao_outras
+import magna.composeapp.generated.resources.deputados_comissao_preside
+import magna.composeapp.generated.resources.deputados_comissao_suplente
+import magna.composeapp.generated.resources.deputados_comissao_titular
+import magna.composeapp.generated.resources.deputados_search_comissao_label
 import magna.composeapp.generated.resources.deputados_search_em_exercicio
 import magna.composeapp.generated.resources.deputados_search_filtro_em_exercicio
 import magna.composeapp.generated.resources.deputados_search_empty
@@ -70,6 +80,7 @@ import magna.composeapp.generated.resources.deputados_search_regiao_label
 import magna.composeapp.generated.resources.deputados_search_resultado_unico
 import magna.composeapp.generated.resources.deputados_search_resultados
 import magna.composeapp.generated.resources.deputados_search_search_placeholder
+import magna.composeapp.generated.resources.deputados_search_sheet_comissao
 import magna.composeapp.generated.resources.deputados_search_sheet_partido
 import magna.composeapp.generated.resources.deputados_search_sheet_regiao
 import magna.composeapp.generated.resources.deputados_search_sheet_uf
@@ -195,6 +206,21 @@ private fun DeputadosSearchContent(
                         onClear = { sendAction(DeputadosSearchAction.OnPartido(null)) },
                     )
 
+                    // Only once the compositions have arrived. A chip whose sheet is empty
+                    // is a chip that cannot be answered, and on first open this table is
+                    // being filled by thirty requests running behind the screen.
+                    if (state.opcoesComissao.isNotEmpty()) {
+                        FiltroChip(
+                            label = stringResource(Res.string.deputados_search_comissao_label),
+                            valor = state.comissao,
+                            total = state.opcoesComissao
+                                .firstOrNull { it.valor == state.comissao }
+                                ?.total,
+                            onOpen = { sheet = DeputadosSearchFiltro.COMISSAO },
+                            onClear = { sendAction(DeputadosSearchAction.OnComissao(null)) },
+                        )
+                    }
+
                     // Binary, so no sheet: it is on or it is off. The term's list holds 648
                     // people for a house of 513, and this is how you ask for the 513.
                     FilterChip(
@@ -233,6 +259,7 @@ private fun DeputadosSearchContent(
                 else -> Resultados(
                     modifier = Modifier.weight(1f),
                     deputados = state.resultados,
+                    comissoes = state.comissoes,
                     onDeputadoClick = onDeputadoClick,
                 )
             }
@@ -260,6 +287,17 @@ private fun DeputadosSearchContent(
             onSelect = { label ->
                 sheet = null
                 sendAction(DeputadosSearchAction.OnRegiao(Regiao.porLabel(label)))
+            },
+            onDismiss = { sheet = null },
+        )
+
+        DeputadosSearchFiltro.COMISSAO -> OpcoesFiltroSheet(
+            titulo = stringResource(Res.string.deputados_search_sheet_comissao),
+            opcoes = state.opcoesComissao,
+            selecionada = state.comissao,
+            onSelect = { sigla ->
+                sheet = null
+                sendAction(DeputadosSearchAction.OnComissao(sigla))
             },
             onDismiss = { sheet = null },
         )
@@ -381,6 +419,7 @@ private fun FiltroChip(
 private fun Resultados(
     modifier: Modifier = Modifier,
     deputados: List<Deputado>,
+    comissoes: Map<String, List<ComissaoDoDeputado>> = emptyMap(),
     onDeputadoClick: (String) -> Unit,
 ) {
     val dimensions = LocalDimensions.current
@@ -493,6 +532,12 @@ private fun Resultados(
                                 )
                             }
                         }
+
+                        // On its own line rather than appended to the one above. The middle
+                        // line is already a party and a state and sometimes a badge, and this
+                        // is the part of the row that distinguishes two deputados of the same
+                        // party from the same state.
+                        ComissaoLinha(assentos = comissoes[deputado.id].orEmpty())
                     }
 
                     // Smaller and in the area's colour. It was 24dp of onSurfaceVariant at
@@ -509,6 +554,66 @@ private fun Resultados(
             }
         }
     }
+}
+
+/**
+ * What this person does on a committee, when they do.
+ *
+ * One line, and the office decides which committee it names — see [principal]. Presiding is
+ * drawn in the area's colour and the rest in the muted one, because thirty of the 513 preside
+ * something and the other 450 do not, and a row that says `Suplente na CFT` in green claims
+ * more than it means.
+ *
+ * The green is `onContainer`, not the accent the chevron uses. Measured on the card, the
+ * accent is 4.1:1 — fine for the chevron, which is a graphic and owes 3.0, and short of the
+ * 4.5 that eleven-point text owes. The darker green of the pair clears it at 11.9 in light and
+ * 10.8 in dark.
+ *
+ * Nothing is drawn for the 33 who hold no seat, and nothing while the compositions are still
+ * downloading. An empty line is the honest state of both.
+ */
+@Composable
+private fun ComissaoLinha(assentos: List<ComissaoDoDeputado>) {
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
+    val principal = assentos.principal() ?: return
+    val sigla = principal.sigla ?: return
+
+    val cargo = when {
+        principal.isPresidente -> stringResource(Res.string.deputados_comissao_preside, sigla)
+        principal.cargo == CargoComissao.MESA ->
+            stringResource(Res.string.deputados_comissao_mesa, sigla)
+
+        principal.cargo == CargoComissao.SUPLENTE ->
+            stringResource(Res.string.deputados_comissao_suplente, sigla)
+
+        else -> stringResource(Res.string.deputados_comissao_titular, sigla)
+    }
+
+    // Committees, not seats: a president is also listed as titular of the same committee, and
+    // counting rows would credit them with one more than they sit on.
+    val outras = assentos.map { it.orgaoId }.distinct().size - 1
+
+    Text(
+        text = buildString {
+            append(cargo)
+            if (outras > 0) {
+                append(" · ")
+                append(stringResource(Res.string.deputados_comissao_outras, outras))
+            }
+        },
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        style = typography.labelSmall.copy(
+            color = if (principal.isPresidente) {
+                MagnaArea.DEPUTADOS.onContainer
+            } else {
+                colorScheme.onSurfaceVariant
+            },
+            fontWeight = if (principal.isPresidente) FontWeight.Medium else null,
+        ),
+    )
 }
 
 private const val CONTAGEM_KEY = "contagem"

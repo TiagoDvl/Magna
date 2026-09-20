@@ -134,7 +134,7 @@ val databaseModule = module {
     single<DeputadoDetailsDaoInterface> { DeputadoDetailsDao(get(), get(), get()) }
     single<PartidoDaoInterface> { PartidoDao(get(), get(), get(), get()) }
     single<OrgaoDaoInterface> { OrgaoDao(get(), get(), get()) }
-    single<ComissaoCacheDaoInterface> { ComissaoCacheDao(get(), get(), get(), get()) }
+    single<ComissaoCacheDaoInterface> { ComissaoCacheDao(get(), get(), get(), get(), get()) }
     single<VotoDaoInterface> { VotoDao(get(), get(), get(), get()) }
     single<DeputadoExpenseDaoInterface> { DeputadoExpenseDao(get(), get()) }
     single<SiglaTipoDaoInterface> { SiglaTipoDao(get(), get()) }
@@ -186,7 +186,7 @@ val loggingModule = module {
 val viewModelModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { RecentDeputadosViewModel(get(), get(), get(), get()) }
-    viewModel { DeputadosSearchViewModel(get(), get(), get(), get(), get()) }
+    viewModel { DeputadosSearchViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> DeputadoDetailsViewModel(handle, get(), get(), get(), get(), get()) }
     viewModel { (handle: SavedStateHandle) -> VotacaoDetailViewModel(handle, get(), get(), get()) }
     viewModel { RecentProposicoesViewModel(get(), get(), get(), get()) }

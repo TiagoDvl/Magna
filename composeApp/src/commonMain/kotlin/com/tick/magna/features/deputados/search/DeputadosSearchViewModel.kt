@@ -7,6 +7,7 @@ import com.tick.magna.data.analytics.AnalyticsInterface
 import com.tick.magna.data.dispatcher.DispatcherInterface
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.deputados.DeputadosRepositoryInterface
+import com.tick.magna.data.repository.orgaos.OrgaosRepositoryInterface
 import com.tick.magna.data.repository.user.UserRepositoryInterface
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 class DeputadosSearchViewModel(
     private val dispatcher: DispatcherInterface,
     private val deputadosRepository: DeputadosRepositoryInterface,
+    private val orgaosRepository: OrgaosRepositoryInterface,
     private val userRepository: UserRepositoryInterface,
     private val logger: AppLoggerInterface,
     private val analytics: AnalyticsInterface,
@@ -36,6 +38,8 @@ class DeputadosSearchViewModel(
     init {
         trackSearchesAfterTypingStops()
         observeLegislatura()
+        observeComissoes()
+        baixarComissoes()
 
         viewModelScope.launch(dispatcher.io) {
             deputadosRepository.getDeputados().collect { deputados ->
@@ -50,6 +54,31 @@ class DeputadosSearchViewModel(
             userRepository.observeLegislaturaId().collect { id ->
                 _state.update { it.copy(legislaturaId = id) }
             }
+        }
+    }
+
+    private fun observeComissoes() {
+        viewModelScope.launch(dispatcher.io) {
+            orgaosRepository.observeComissoesDosDeputados().collect { comissoes ->
+                logger.d("loaded seats for ${comissoes.size} deputados", TAG)
+                _state.update { current -> current.copy(comissoes = comissoes).recalcular() }
+            }
+        }
+    }
+
+    /**
+     * The thirty committee compositions, fetched behind a screen that is already usable.
+     *
+     * Nothing waits for this and nothing reports it: the names, the states and the parties are
+     * already local, and what this adds is a line under each name and one more chip. Asked on
+     * every visit rather than guarded by a flag here, because the freshness rule already lives
+     * in the repository — a term that has ended answers from the database without a request,
+     * and a live one re-asks once a week.
+     */
+    private fun baixarComissoes() {
+        viewModelScope.launch(dispatcher.io) {
+            val completo = orgaosRepository.syncComissoesMembros()
+            logger.d("syncComissoesMembros: complete=$completo", TAG)
         }
     }
 
@@ -75,6 +104,7 @@ class DeputadosSearchViewModel(
                 is DeputadosSearchAction.OnRegiao -> current.copy(regiao = action.regiao)
                 is DeputadosSearchAction.OnEmExercicio ->
                     current.copy(somenteEmExercicio = action.somente)
+                is DeputadosSearchAction.OnComissao -> current.copy(comissao = action.sigla)
             }.recalcular()
         }
     }
@@ -85,10 +115,11 @@ class DeputadosSearchViewModel(
      */
     private fun DeputadosSearchState.recalcular(): DeputadosSearchState {
         return copy(
-            resultados = filtrarDeputados(deputados, query, uf, partido, regiao, somenteEmExercicio),
-            opcoesUf = opcoesUf(deputados, query, partido, regiao, somenteEmExercicio),
-            opcoesPartido = opcoesPartido(deputados, query, uf, regiao, somenteEmExercicio),
-            opcoesRegiao = opcoesRegiao(deputados, query, uf, partido, somenteEmExercicio),
+            resultados = filtrarDeputados(deputados, filtros, comissoes),
+            opcoesUf = opcoesUf(deputados, filtros, comissoes),
+            opcoesPartido = opcoesPartido(deputados, filtros, comissoes),
+            opcoesRegiao = opcoesRegiao(deputados, filtros, comissoes),
+            opcoesComissao = opcoesComissao(deputados, filtros, comissoes),
         )
     }
 
@@ -102,10 +133,7 @@ class DeputadosSearchViewModel(
             state
                 .debounce(SEARCH_TRACKING_DEBOUNCE_MS)
                 .filter { current -> current.temFiltro }
-                .distinctUntilChanged { old, new ->
-                    old.query == new.query && old.uf == new.uf && old.partido == new.partido &&
-                        old.regiao == new.regiao && old.somenteEmExercicio == new.somenteEmExercicio
-                }
+                .distinctUntilChanged { old, new -> old.filtros == new.filtros }
                 .collect { current ->
                     analytics.track(
                         AnalyticsEvent.SearchPerformed(

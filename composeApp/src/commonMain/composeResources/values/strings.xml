@@ -58,6 +58,13 @@
     <string name="deputados_search_regiao_label">Região</string>
     <string name="deputados_search_sheet_regiao">Regiões</string>
     <string name="deputados_search_filtro_em_exercicio">Em exercício</string>
+    <string name="deputados_search_comissao_label">Comissão</string>
+    <string name="deputados_search_sheet_comissao">Comissões</string>
+    <string name="deputados_comissao_preside">Preside a %1$s</string>
+    <string name="deputados_comissao_mesa">Mesa da %1$s</string>
+    <string name="deputados_comissao_titular">Titular na %1$s</string>
+    <string name="deputados_comissao_suplente">Suplente na %1$s</string>
+    <string name="deputados_comissao_outras">+%1$d</string>
     <string name="deputados_search_empty">Nenhum deputado encontrado</string>
     <string name="deputados_search_empty_description">Tente outro nome, ou remova um dos filtros.</string>
     <string name="action_clear_filter">Remover filtro</string>
