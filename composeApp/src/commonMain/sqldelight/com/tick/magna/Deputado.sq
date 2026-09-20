@@ -13,6 +13,9 @@ CREATE TABLE Deputado (
     uf TEXT,
     profile_picture TEXT,
     email TEXT,
+    -- Added in 13.sqm. 1 held a seat on the term's reference date, 0 did not, null was never
+    -- measured. See dataDeReferencia.
+    emExercicio INTEGER,
     PRIMARY KEY (id, legislaturaId),
     FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
 );
@@ -25,7 +28,8 @@ INSERT INTO Deputado(
     name,
     uf,
     profile_picture,
-    email
+    email,
+    emExercicio
 )
 VALUES ?
 ON CONFLICT(id, legislaturaId) DO UPDATE SET
@@ -33,7 +37,8 @@ ON CONFLICT(id, legislaturaId) DO UPDATE SET
     name = COALESCE(excluded.name, name),
     uf = COALESCE(excluded.uf, uf),
     profile_picture = COALESCE(excluded.profile_picture, profile_picture),
-    email = COALESCE(excluded.email, email);
+    email = COALESCE(excluded.email, email),
+    emExercicio = COALESCE(excluded.emExercicio, emExercicio);
 
 -- Scoped to a term like every other read here. Without it a deputado who served twice would
 -- come back twice, once per row.

@@ -12,6 +12,9 @@ fun Deputado.toDomain(): DeputadoDomain? {
         profilePicture = profile_picture,
         partido = partido,
         uf = uf,
-        email = email
+        email = email,
+        // Null stays null: a term synced before the column existed has not been measured, and
+        // that is different from having been measured as absent.
+        emExercicio = emExercicio?.let { it == 1L },
     )
 }

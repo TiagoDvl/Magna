@@ -48,6 +48,15 @@
     <string name="deputados_search_search_placeholder">Pesquisa por nome</string>
     <string name="deputados_search_uf_label">UF</string>
     <string name="deputados_search_partido_label">Partido</string>
+    <string name="deputados_search_resultados">%1$d deputados</string>
+    <string name="deputados_search_resultado_unico">1 deputado</string>
+    <string name="deputados_search_em_exercicio">%1$d em exercício</string>
+    <string name="deputados_search_fora_de_exercicio">Fora de exercício</string>
+    <string name="deputados_search_sheet_uf">Escolha o estado</string>
+    <string name="deputados_search_sheet_partido">Escolha o partido</string>
+    <string name="deputados_search_empty">Nenhum deputado encontrado</string>
+    <string name="deputados_search_empty_description">Tente outro nome, ou remova um dos filtros.</string>
+    <string name="action_clear_filter">Remover filtro</string>
 
     <string name="deputado_details_loading_details">Buscando detalhes do deputado</string>
     <string name="deputado_details_loading_expenses">Buscando gastos do deputado</string>

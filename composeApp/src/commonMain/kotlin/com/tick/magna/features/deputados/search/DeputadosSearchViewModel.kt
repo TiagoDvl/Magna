@@ -31,35 +31,50 @@ class DeputadosSearchViewModel(
     private val _state = MutableStateFlow(DeputadosSearchState())
     val state = _state.asStateFlow()
 
+    init {
+        trackSearchesAfterTypingStops()
+
+        viewModelScope.launch(dispatcher.io) {
+            deputadosRepository.getDeputados().collect { deputados ->
+                logger.d("loaded ${deputados.size} deputados", TAG)
+                _state.update { current -> current.copy(isLoading = false, deputados = deputados).recalcular() }
+            }
+        }
+    }
+
     fun onDeputadoOpened() {
         analytics.track(AnalyticsEvent.DeputadoOpened(AnalyticsEvent.Source.SEARCH))
     }
 
+    /**
+     * Every filter change happens inside one `update`, including the filtering itself.
+     *
+     * It used to read `state.value`, filter against it, and only then write — a read, a long
+     * computation and a write, which is the lost-update race: typing a letter while a chip was
+     * being tapped could drop whichever of the two lost.
+     */
     fun processAction(action: DeputadosSearchAction) {
         logger.d("processAction: $action", TAG)
-        when (action) {
-            is DeputadosSearchAction.OnFilter -> handleFilter(action.filter)
+
+        _state.update { current ->
+            when (action) {
+                is DeputadosSearchAction.OnQuery -> current.copy(query = action.query)
+                is DeputadosSearchAction.OnUf -> current.copy(uf = action.uf)
+                is DeputadosSearchAction.OnPartido -> current.copy(partido = action.partido)
+            }.recalcular()
         }
     }
 
-    init {
-        trackSearchesAfterTypingStops()
-        viewModelScope.launch(dispatcher.io) {
-            deputadosRepository.getDeputados().collect { deputados ->
-                val deputadosUfs = deputados.mapNotNull { it.uf }.sorted().toSet()
-                val deputadosPartidos = deputados.mapNotNull { it.partido }.sorted().toSet()
-                logger.d("loaded ${deputados.size} deputados, ${deputadosUfs.size} UFs, ${deputadosPartidos.size} partidos", TAG)
-
-                _state.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        deputados = deputados,
-                        deputadosUfs = deputadosUfs,
-                        deputadoPartidos = deputadosPartidos
-                    )
-                }
-            }
-        }
+    /**
+     * The results and both option lists, derived from the filters rather than stored beside
+     * them. 513 deputados is small enough that this is cheaper than keeping them in sync.
+     */
+    private fun DeputadosSearchState.recalcular(): DeputadosSearchState {
+        return copy(
+            resultados = filtrarDeputados(deputados, query, uf, partido),
+            opcoesUf = opcoesUf(deputados, query, partido),
+            opcoesPartido = opcoesPartido(deputados, query, uf),
+        )
     }
 
     /**
@@ -71,38 +86,23 @@ class DeputadosSearchViewModel(
         viewModelScope.launch(dispatcher.io) {
             state
                 .debounce(SEARCH_TRACKING_DEBOUNCE_MS)
-                .filter { current -> current.filters.isNotEmpty() }
-                .distinctUntilChanged { old, new -> old.filters == new.filters }
+                .filter { current -> current.temFiltro }
+                .distinctUntilChanged { old, new ->
+                    old.query == new.query && old.uf == new.uf && old.partido == new.partido
+                }
                 .collect { current ->
-                    val textFilter = current.filters[FilterKey.TEXT] as? Filter.Text
                     analytics.track(
                         AnalyticsEvent.SearchPerformed(
-                            queryLength = textFilter?.query?.length ?: 0,
-                            resultCount = current.deputadosSearch?.size ?: 0,
-                            activeFilters = current.filters.size,
+                            queryLength = current.query.length,
+                            resultCount = current.resultados.size,
+                            activeFilters = listOfNotNull(
+                                current.query.takeIf { it.isNotBlank() },
+                                current.uf,
+                                current.partido,
+                            ).size,
                         )
                     )
                 }
-        }
-    }
-
-    private fun handleFilter(filter: Filter) {
-        viewModelScope.launch(dispatcher.default) {
-            val updatedFilters = if (filter.isRemoved) {
-                state.value.filters - filter.filterKey
-            } else {
-                state.value.filters + (filter.filterKey to filter)
-            }
-
-            val filteredDeputados = _state.value.deputados.filter { deputado ->
-                updatedFilters.all { (_, f) -> f.filter(deputado) }
-            }
-
-            logger.d("handleFilter: ${updatedFilters.size} active filters → ${filteredDeputados.size} results", TAG)
-            _state.update { it.copy(
-                filters = updatedFilters,
-                deputadosSearch = if (updatedFilters.isEmpty()) null else filteredDeputados
-            ) }
         }
     }
 }

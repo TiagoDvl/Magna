@@ -142,5 +142,6 @@ class TermScopedTablesTest {
         uf = "SP",
         profile_picture = null,
         email = null,
+        emExercicio = null,
     )
 }

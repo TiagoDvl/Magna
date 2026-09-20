@@ -6,7 +6,14 @@ data class Deputado(
     val partido: String?,
     val uf: String?,
     val profilePicture: String?,
-    val email: String?
+    val email: String?,
+    /**
+     * Whether this deputado held a seat on the term's reference date.
+     *
+     * Null is "not measured", and it is drawn as nothing at all. Marking a whole roster as
+     * absent because one request failed would be worse than saying nothing about any of them.
+     */
+    val emExercicio: Boolean? = null,
 )
 
 val deputadosMock = listOf(

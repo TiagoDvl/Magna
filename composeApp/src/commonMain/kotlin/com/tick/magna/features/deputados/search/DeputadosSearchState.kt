@@ -1,66 +1,43 @@
 package com.tick.magna.features.deputados.search
 
+import androidx.compose.runtime.Immutable
 import com.tick.magna.data.domain.Deputado
-import com.tick.magna.util.normalizeForSearch
 
+@Immutable
 data class DeputadosSearchState(
     val isLoading: Boolean = true,
     val isError: Boolean = false,
-    val filters: Map<FilterKey, Filter> = emptyMap(),
+    /**
+     * The three filters live here and nowhere else.
+     *
+     * The screen used to keep the typed text and the two chosen chips in its own `remember`
+     * while the ViewModel kept a parallel map of filters. Rotating the phone reset the chips
+     * and the field and left the list filtered by what they no longer said.
+     */
+    val query: String = "",
+    val uf: String? = null,
+    val partido: String? = null,
     val deputados: List<Deputado> = emptyList(),
-    val deputadosSearch: List<Deputado>? = null,
-    val deputadosUfs: Set<String> = emptySet(),
-    val deputadoPartidos: Set<String> = emptySet()
-)
-
-enum class FilterKey {
-    TEXT, UF, PARTIDO
-}
-
-sealed class Filter(
-    val filterKey: FilterKey,
-    val filter: (Deputado) -> Boolean,
-    val isRemoved: Boolean
+    val resultados: List<Deputado> = emptyList(),
+    /** Counted under the other two filters, so no option on offer leads to an empty list. */
+    val opcoesUf: List<OpcaoFiltro> = emptyList(),
+    val opcoesPartido: List<OpcaoFiltro> = emptyList(),
 ) {
-    data class Text(
-        val query: String,
-        val isEmpty: Boolean = query.isEmpty()
-    ): Filter(
-        filterKey = FilterKey.TEXT,
-        filter = { deputado ->
-            query.isNotBlank() && deputado.name.normalizeForSearch().contains(query.normalizeForSearch())
-        },
-        isRemoved = isEmpty
-    )
 
-    data class UF(
-        val uf: String,
-        val isUnchecked: Boolean = uf.isEmpty()
-    ): Filter(
-        filterKey = FilterKey.UF,
-        filter = { deputado ->
-            uf.isNotBlank() && deputado.uf != null && deputado.uf.contains(uf)
-        },
-        isRemoved = isUnchecked
-    )
-
-    data class Partido(
-        val sigla: String,
-        val isUnchecked: Boolean = sigla.isEmpty()
-    ): Filter(
-        filterKey = FilterKey.PARTIDO,
-        filter = { deputado ->
-            sigla.isNotBlank() && deputado.partido != null && deputado.partido.contains(sigla)
-        },
-        isRemoved = isUnchecked
-    )
+    val temFiltro: Boolean
+        get() = query.isNotBlank() || uf != null || partido != null
 }
 
 sealed interface DeputadosSearchAction {
+    data class OnQuery(val query: String) : DeputadosSearchAction
 
-    data class OnFilter(val filter: Filter): DeputadosSearchAction
+    /** Null clears the filter, which is what the chip's own ✕ sends. */
+    data class OnUf(val uf: String?) : DeputadosSearchAction
+
+    data class OnPartido(val partido: String?) : DeputadosSearchAction
 }
 
-enum class DeputadosSearchDialogType {
+/** Which sheet is open, if any. */
+enum class DeputadosSearchFiltro {
     UF, PARTIDO
 }

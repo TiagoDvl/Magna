@@ -211,6 +211,11 @@ class PartidoMembrosTest {
     private class CountingDeputadosApi(private val failingIds: Set<String> = emptySet()) : DeputadosApiInterface {
         var detailCalls = 0
 
+        // The dated roster is not what these exercise; an empty page leaves the marker
+        // unmeasured, which is the same as a term synced before it existed.
+        override suspend fun getDeputadosEmExercicio(data: String, page: Int) =
+            DeputadosResponse(dados = emptyList(), links = emptyList())
+
         override suspend fun getDeputadoById(id: String): DeputadoByIdResponse {
             detailCalls++
             if (id in failingIds) throw IllegalStateException("record $id is down")

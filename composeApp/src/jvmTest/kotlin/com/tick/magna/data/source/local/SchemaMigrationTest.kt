@@ -19,6 +19,11 @@ import kotlin.test.assertNull
  *
  * The version 4 schema below is a frozen copy of the past, which is what the `.db` snapshots
  * would have been. It is not meant to follow the `.sq` files: it is meant not to.
+ *
+ * Every case migrates all the way to the current version rather than to the one migration it
+ * is about. Stopping partway used to pass, and then stopped compiling the moment a later
+ * migration added a column the generated queries read — which is the same thing a device does
+ * when it upgrades across several releases at once.
  */
 class SchemaMigrationTest {
 
@@ -49,7 +54,7 @@ class SchemaMigrationTest {
             0,
         )
 
-        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 5).value
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4L, newVersion = MagnaDatabase.Schema.version).value
 
         val database = MagnaDatabase(driver)
 
@@ -62,7 +67,7 @@ class SchemaMigrationTest {
         // one who never was is not.
         listOf("220593", "204521").forEach { id ->
             database.deputadoQueries.insertDeputado(
-                com.tick.magna.Deputado(id, "57", "PL", "Deputado $id", "MT", null, null)
+                com.tick.magna.Deputado(id, "57", "PL", "Deputado $id", "MT", null, null, null)
             )
         }
 
@@ -77,7 +82,7 @@ class SchemaMigrationTest {
         driver.execute(null, "INSERT INTO Legislatura VALUES ('57', '2023-02-01', '2027-01-31')", 0)
 
         // Version 4 is what is in the store today, so this is the jump a real update makes.
-        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 6).value
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4L, newVersion = MagnaDatabase.Schema.version).value
 
         val database = MagnaDatabase(driver)
         database.deputadoBioQueries.insertDeputadoBio(
@@ -93,7 +98,7 @@ class SchemaMigrationTest {
 
     @Test
     fun a_biography_is_not_keyed_by_term_because_it_does_not_change() {
-        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 6).value
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4L, newVersion = MagnaDatabase.Schema.version).value
         val database = MagnaDatabase(driver)
 
         database.deputadoBioQueries.insertDeputadoBio(
@@ -112,14 +117,14 @@ class SchemaMigrationTest {
         driver.execute(null, "INSERT INTO Legislatura VALUES ('57', '2023-02-01', '2027-01-31')", 0)
         driver.execute(null, "INSERT INTO Legislatura VALUES ('56', '2019-02-01', '2023-01-31')", 0)
 
-        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 5).value
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4L, newVersion = MagnaDatabase.Schema.version).value
 
         val database = MagnaDatabase(driver)
         database.deputadoQueries.insertDeputado(
-            com.tick.magna.Deputado("220593", "57", "PL", "Abilio", "MT", null, null)
+            com.tick.magna.Deputado("220593", "57", "PL", "Abilio", "MT", null, null, null)
         )
         database.deputadoQueries.insertDeputado(
-            com.tick.magna.Deputado("220593", "56", "PSL", "Abilio", "MT", null, null)
+            com.tick.magna.Deputado("220593", "56", "PSL", "Abilio", "MT", null, null, null)
         )
 
         assertEquals(1, database.deputadoQueries.getDeputados("57").executeAsList().size)
@@ -133,7 +138,7 @@ class SchemaMigrationTest {
         // to be true after an upgrade is that the tables are there and answer.
         // 8.sqm takes the schema from 8 to 9, so the whole chain from the shipped release is
         // 4 to 9. Getting this off by one is how the test found the migration had not run.
-        MagnaDatabase.Schema.migrate(driver, oldVersion = 4, newVersion = 9).value
+        MagnaDatabase.Schema.migrate(driver, oldVersion = 4L, newVersion = MagnaDatabase.Schema.version).value
         val database = MagnaDatabase(driver)
 
         assertEquals(
@@ -188,6 +193,19 @@ class SchemaMigrationTest {
                 logo TEXT,
                 website TEXT,
                 FOREIGN KEY(liderDeputadoId) REFERENCES Deputado(id),
+                FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
+            )
+            """.trimIndent(),
+            """
+            CREATE TABLE Proposicao (
+                id TEXT NOT NULL,
+                legislaturaId TEXT NOT NULL,
+                codTipo TEXT,
+                ementa TEXT,
+                dataApresentacao TEXT,
+                autores TEXT,
+                url TEXT,
+                PRIMARY KEY (id, legislaturaId),
                 FOREIGN KEY(legislaturaId) REFERENCES Legislatura(id)
             )
             """.trimIndent(),

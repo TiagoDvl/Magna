@@ -29,7 +29,11 @@ fun DeputadoDto.toDomain(): Deputado {
     )
 }
 
-fun DeputadoDto.toLocal(legislaturaId: String): DeputadoEntity {
+/**
+ * @param emExercicio whether this deputado held a seat on the term's reference date. Null when
+ * that could not be measured, which the UI draws as nothing rather than as "no".
+ */
+fun DeputadoDto.toLocal(legislaturaId: String, emExercicio: Boolean?): DeputadoEntity {
     return DeputadoEntity(
         id = id,
         legislaturaId = legislaturaId,
@@ -37,6 +41,7 @@ fun DeputadoDto.toLocal(legislaturaId: String): DeputadoEntity {
         name = nome,
         uf = siglaUf,
         profile_picture = urlFoto,
-        email = email
+        email = email,
+        emExercicio = emExercicio?.let { if (it) 1L else 0L },
     )
 }

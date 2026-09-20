@@ -10,12 +10,14 @@ import com.tick.magna.data.repository.cachedRecord
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
+import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.local.mapper.toDomain
 import com.tick.magna.data.source.local.mapper.toLocal
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.response.hasNextPage
 import com.tick.magna.data.source.remote.dto.toLocal
+import com.tick.magna.data.repository.today
 import com.tick.magna.util.currentYear
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -42,6 +44,7 @@ internal class DeputadosRepository(
     private val deputadoDao: DeputadoDaoInterface,
     private val deputadoDetailsDao: DeputadoDetailsDaoInterface,
     private val deputadoExpenseDao: DeputadoExpenseDaoInterface,
+    private val legislaturaDao: LegislaturaDaoInterface,
     private val loggerInterface: AppLoggerInterface,
 ) : DeputadosRepositoryInterface {
 
@@ -171,12 +174,18 @@ internal class DeputadosRepository(
      * all. A partially stored legislature looks exactly like the bug this replaces.
      */
     private suspend fun refreshDeputados(legislaturaId: String) {
+        val emExercicio = idsEmExercicio(legislaturaId)
         val deputados = mutableListOf<DeputadoEntity>()
         var page = FIRST_PAGE
 
         while (true) {
             val response = deputadosApi.getDeputados(legislaturaId = legislaturaId, page = page)
-            deputados += response.dados.map { it.toLocal(legislaturaId) }
+            deputados += response.dados.map { dto ->
+                dto.toLocal(
+                    legislaturaId = legislaturaId,
+                    emExercicio = emExercicio?.contains(dto.id),
+                )
+            }
 
             if (!response.links.hasNextPage()) break
 
@@ -192,6 +201,46 @@ internal class DeputadosRepository(
 
         deputadoDao.insertDeputados(deputados)
         loggerInterface.i("refreshDeputados: saved ${deputados.size} deputados in $page page(s)", TAG)
+    }
+
+    /**
+     * The ids that held a seat on the term's reference date, or null when that cannot be asked.
+     *
+     * Six pages of a hundred, not one request per deputado: the same endpoint answers "who was
+     * sitting on this day" for any term, so the 135 people who are in the 57th's list without
+     * being in the house today cost nothing extra to identify.
+     *
+     * A failure here is not a failure of the sync. The roster is the point; the marker is a
+     * detail, and leaving it null draws nothing rather than marking everyone as absent.
+     */
+    private suspend fun idsEmExercicio(legislaturaId: String): Set<String>? {
+        val legislatura = legislaturaDao.getLegislaturaById(legislaturaId) ?: return null
+        val data = dataDeReferencia(
+            startDate = legislatura.startDate,
+            endDate = legislatura.endDate,
+            today = today().toString(),
+        ) ?: return null
+
+        return try {
+            val ids = mutableSetOf<String>()
+            var page = FIRST_PAGE
+
+            while (true) {
+                val response = deputadosApi.getDeputadosEmExercicio(data = data, page = page)
+                ids += response.dados.map { it.id }
+
+                if (!response.links.hasNextPage() || page >= MAX_PAGES) break
+                page++
+            }
+
+            loggerInterface.i("idsEmExercicio: ${ids.size} em exercicio em $data", TAG)
+            ids.takeIf { it.isNotEmpty() }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (e: Exception) {
+            loggerInterface.w("idsEmExercicio: falhou para $data, marcador fica ausente", TAG)
+            null
+        }
     }
 
     private fun <T> Flow<Resource<T>>.logFailures(what: String): Flow<Resource<T>> = onEach { resource ->

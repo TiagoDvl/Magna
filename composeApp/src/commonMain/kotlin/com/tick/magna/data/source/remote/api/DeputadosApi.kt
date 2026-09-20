@@ -25,6 +25,18 @@ internal class DeputadosApi(private val httpClient: HttpClient): DeputadosApiInt
         }.body()
     }
 
+    override suspend fun getDeputadosEmExercicio(data: String, page: Int): DeputadosResponse {
+        return httpClient.get("deputados") {
+            // Both ends on the same day: the question is a snapshot, not a range. A range
+            // would return the union of every composition inside it, which is the problem
+            // idLegislatura already has.
+            parameter("dataInicio", data)
+            parameter("dataFim", data)
+            parameter("itens", DEPUTADOS_PER_PAGE)
+            parameter("pagina", page)
+        }.body()
+    }
+
     override suspend fun getDeputadoById(id: String): DeputadoByIdResponse {
         return httpClient.get("deputados/$id").body()
     }

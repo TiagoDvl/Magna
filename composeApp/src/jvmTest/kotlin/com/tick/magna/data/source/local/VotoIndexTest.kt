@@ -167,7 +167,7 @@ class VotoIndexTest {
 
     private fun givenDeputado(id: String, nome: String, partido: String, uf: String) {
         database.deputadoQueries.insertDeputado(
-            com.tick.magna.Deputado(id, "57", partido, nome, uf, null, null)
+            com.tick.magna.Deputado(id, "57", partido, nome, uf, null, null, null)
         )
     }
 

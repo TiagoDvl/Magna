@@ -8,6 +8,8 @@ import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.source.local.dao.DeputadoDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoDetailsDaoInterface
 import com.tick.magna.data.source.local.dao.DeputadoExpenseDaoInterface
+import com.tick.magna.Legislatura
+import com.tick.magna.data.source.local.dao.LegislaturaDaoInterface
 import com.tick.magna.data.source.local.dao.UserDaoInterface
 import com.tick.magna.data.source.remote.api.DeputadosApiInterface
 import com.tick.magna.data.source.remote.dto.DeputadoDto
@@ -83,6 +85,7 @@ class DeputadosSyncTest {
             deputadoDao = dao,
             deputadoDetailsDao = UnusedDetailsDao(),
             deputadoExpenseDao = UnusedExpenseDao(),
+            legislaturaDao = UnusedLegislaturaDao(),
             loggerInterface = SilentLogger(),
         )
 
@@ -107,6 +110,11 @@ class DeputadosSyncTest {
             )
         }
 
+        // The dated roster is not what these exercise; an empty page leaves the marker
+        // unmeasured, which is the same as a term synced before it existed.
+        override suspend fun getDeputadosEmExercicio(data: String, page: Int) =
+            DeputadosResponse(dados = emptyList(), links = emptyList())
+
         override suspend fun getDeputadoById(id: String) = unsupported()
         override suspend fun getDeputadoExpenses(id: String, legislaturaId: String, year: String) = unsupported()
     }
@@ -122,6 +130,11 @@ class DeputadosSyncTest {
                 links = listOf(next()),
             )
         }
+
+        // The dated roster is not what these exercise; an empty page leaves the marker
+        // unmeasured, which is the same as a term synced before it existed.
+        override suspend fun getDeputadosEmExercicio(data: String, page: Int) =
+            DeputadosResponse(dados = emptyList(), links = emptyList())
 
         override suspend fun getDeputadoById(id: String) = unsupported()
         override suspend fun getDeputadoExpenses(id: String, legislaturaId: String, year: String) = unsupported()
@@ -157,6 +170,17 @@ class DeputadosSyncTest {
         override fun insertDeputadoExpenses(deputadoExpenses: List<DeputadoExpense>) = Unit
         override fun getDeputadoExpense(deputadoId: String, legislaturaId: String): Flow<List<DeputadoExpense>> =
             flowOf(emptyList())
+    }
+
+    /** No term row, so dataDeReferencia is never reached and the marker stays unmeasured. */
+    private class UnusedLegislaturaDao : LegislaturaDaoInterface {
+        override fun getLegislaturas(): Flow<List<Legislatura>> =
+            throw UnsupportedOperationException("not part of the sync test")
+
+        override fun getLegislaturaById(legislaturaId: String): Legislatura? = null
+
+        override suspend fun insertLegislaturas(legislaturas: List<Legislatura>) =
+            throw UnsupportedOperationException("not part of the sync test")
     }
 
     private class SilentLogger : AppLoggerInterface {

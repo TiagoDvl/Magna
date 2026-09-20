@@ -1,0 +1,9 @@
+-- Whether a deputado held a seat on the term's reference date.
+--
+-- /deputados?idLegislatura=57 returns 879 rows for 648 people against 513 seats: everyone who
+-- held one at any point in the term, substitutes included. The search screen was presenting
+-- all 648 as the Camara, with 15 deputados for Amapa's 8 seats and 34 for Ceara's 22.
+--
+-- Null means not measured — a term synced before this column existed, or one whose reference
+-- date could not be resolved. The UI draws nothing rather than guessing.
+ALTER TABLE Deputado ADD COLUMN emExercicio INTEGER;
