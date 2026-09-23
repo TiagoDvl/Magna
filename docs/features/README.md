@@ -7,6 +7,9 @@ up, how its data flows, the rules that are easy to break, and the tests that gua
 These describe the code as of 2.0.2. Code is the source of truth. If a document and the code
 disagree, trust the code and fix the document in the same change.
 
+How the app is wired as a whole (modules, data pipeline, navigation, ViewModels, DI, release
+pipeline) is in [../architecture.md](../architecture.md). Read it first.
+
 ## Paths
 
 Paths are relative to `composeApp/src/commonMain/kotlin/com/tick/magna/` unless they start with
