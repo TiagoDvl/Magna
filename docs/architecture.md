@@ -166,10 +166,11 @@ Koin. Everything is registered in `di/Modules.kt` as `appModules`:
 | | Trigger | Runs tests | Produces | Goes to |
 |---|---|---|---|---|
 | `.github/workflows/android-release.yml` | manual only | yes: `verifySqlDelightMigration`, `:composeApp:jvmTest`, `:androidApp:testDebugUnitTest` | signed APK | Firebase App Distribution, "Testers" group |
-| `.github/workflows/playstore-upload.yml` | **any tag push** (`'*'`), or manual | **no** | signed AAB | Play Store **production**, no staged rollout, notes from `distribution/whatsnew/` |
+| `.github/workflows/playstore-upload.yml` | **any tag push** (`'*'`), or manual | yes: the same `test` job, and `deploy` needs it | signed AAB | Play Store **production**, no staged rollout, notes from `distribution/whatsnew/` |
 
-- **Pushing a tag publishes to everyone, with no test gate.** Run `android-release.yml` (or the
-  tests locally) before tagging. Nothing runs on a push to `main` or on a PR.
+- **Pushing a tag publishes to everyone.** The tests gate the upload, but they are unit tests
+  only: nothing opens the app. Try the `minified` build on a device before tagging. Nothing runs
+  on a push to `main` or on a PR, so a broken `main` is only discovered at release time.
 - **Versioning** is `versionCode` / `versionName` in `androidApp/build.gradle.kts` (6 / "2.0.2"
   at the time of writing). Bump both and update `distribution/whatsnew/whatsnew-pt-BR` (Play
   Store limit: 500 characters) before tagging.
