@@ -11,7 +11,7 @@ import org.koin.dsl.module
 actual val platformModule: Module = module {
     single<CofreLocalInterface> { CofreLocal() }
 
-    single<DatabaseDriverFactory> { DatabaseDriverFactory(get()) }
+    single<DatabaseDriverFactory> { DatabaseDriverFactory(get(), get()) }
 
     single<AppBuildConfig> {
         val context = get<Context>()
