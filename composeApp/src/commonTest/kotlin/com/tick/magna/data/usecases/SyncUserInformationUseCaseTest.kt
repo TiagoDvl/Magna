@@ -252,7 +252,7 @@ class SyncUserInformationUseCaseTest {
             override fun getDeputados(): Flow<List<Deputado>> = flowOf(deputados)
             override fun getRecentDeputados(): Flow<List<Deputado>> = flowOf(emptyList())
             override fun getDeputados(query: String): Flow<List<Deputado>> = flowOf(emptyList())
-            override fun getDeputado(deputadoId: String): Flow<Deputado> =
+            override fun getDeputado(deputadoId: String): Flow<Deputado?> =
                 throw UnsupportedOperationException("not part of the sync")
 
             override fun getDeputadoDetails(deputadoId: String): Flow<Resource<DeputadoDetails>> =

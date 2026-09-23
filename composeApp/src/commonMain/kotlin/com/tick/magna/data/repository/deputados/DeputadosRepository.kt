@@ -23,12 +23,10 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import com.tick.magna.Deputado as DeputadoEntity
@@ -116,11 +114,16 @@ internal class DeputadosRepository(
         }
     }
 
-    override fun getDeputado(deputadoId: String): Flow<Deputado> {
+    /**
+     * Emits null rather than nothing when there is no deputado to show. The details screen
+     * combines this with the details and expenses flows, and a flow that never emits holds the
+     * whole combine in Loading — including the parts that arrived fine from the network.
+     */
+    override fun getDeputado(deputadoId: String): Flow<Deputado?> {
         return userDao.getUser().flatMapLatest { user ->
-            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest emptyFlow()
+            val legislaturaId = user?.legislaturaId ?: return@flatMapLatest flowOf(null)
 
-            deputadoDao.getDeputado(legislaturaId, deputadoId).mapNotNull { it.toDomain() }
+            deputadoDao.getDeputado(legislaturaId, deputadoId).map { it?.toDomain() }
         }
     }
 

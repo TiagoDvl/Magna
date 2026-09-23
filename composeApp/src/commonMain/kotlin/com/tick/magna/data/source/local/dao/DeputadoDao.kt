@@ -4,7 +4,7 @@ package com.tick.magna.data.source.local.dao
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOne
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.tick.magna.Deputado
 import com.tick.magna.DeputadoLastSeenQueries
 import com.tick.magna.DeputadoQueries
@@ -41,11 +41,16 @@ class DeputadoDao(
             .executeAsList()
     }
 
-    override fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado> {
+    /**
+     * Null when the deputado is not cached for this term, which is ordinary rather than broken:
+     * the term changed under an open screen, the id came from another term's vote or committee,
+     * or the cache is empty after a reset. `mapToOne` threw on all three.
+     */
+    override fun getDeputado(legislaturaId: String, deputadoId: String): Flow<Deputado?> {
         return deputadoQueries
             .getDeputado(deputadoId, legislaturaId)
             .asFlow()
-            .mapToOne(dispatcherInterface.io)
+            .mapToOneOrNull(dispatcherInterface.io)
     }
 
     override fun getRecentDeputados(legislaturaId: String): Flow<List<Deputado>> {

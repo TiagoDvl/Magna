@@ -17,7 +17,7 @@ interface DeputadosRepositoryInterface {
     /** One-shot, used by the first-run sync. Everything else observes. */
     suspend fun syncDeputados(): Boolean
 
-    fun getDeputado(deputadoId: String): Flow<Deputado>
+    fun getDeputado(deputadoId: String): Flow<Deputado?>
 
     fun getDeputadoDetails(deputadoId: String): Flow<Resource<DeputadoDetails>>
 

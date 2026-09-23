@@ -289,7 +289,7 @@ class ComissaoCacheFallbackTest {
         override fun getDeputados(legislaturaId: String, deputadosIds: List<String>): List<DeputadoEntity> =
             emptyList()
 
-        override fun getDeputado(legislaturaId: String, deputadoId: String): Flow<DeputadoEntity> =
+        override fun getDeputado(legislaturaId: String, deputadoId: String): Flow<DeputadoEntity?> =
             throw UnsupportedOperationException("not part of this test")
 
         override fun getRecentDeputados(legislaturaId: String): Flow<List<DeputadoEntity>> = flowOf(emptyList())
