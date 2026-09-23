@@ -2,7 +2,7 @@
 
 How Magna is put together: modules, the data pipeline from the Câmara API to the screen,
 navigation, ViewModels, dependency injection, observability and the build/release pipeline.
-Per-feature detail is in [features/](features/README.md), and everything about the Câmara API is in [api/](api/README.md).
+Per-feature detail is in [features/](features/README.md), everything about the Câmara API is in [api/](api/README.md), and the domain objects and mapping rules are in [domain.md](domain.md).
 
 Paths are relative to `composeApp/src/commonMain/kotlin/com/tick/magna/` unless they start with
 a top-level directory.
