@@ -76,7 +76,8 @@ Database name: `MagnaDatabase`. Schema at `composeApp/src/commonMain/sqldelight/
 - **Strings** — UI strings use Compose Multiplatform resources (`stringResource(Res.string.*)`), not Android `strings.xml`.
 - **Images** — Coil3 with `AsyncImage`; profile pictures loaded from URLs.
 - **Santinho storage is append-only.** The note is encrypted as fixed-width text in the order of `ORDEM_GRAVADA` (`data/santinho/CodigoDoSantinho.kt`), not `CargoDaUrna.entries`. Reorder the enum freely for the screen, but add new offices only at the **end** of `ORDEM_GRAVADA`: inserting in the middle shifts every field after it and silently corrupts notes already on phones.
-- **Working notes** — reviews, plans and store copy live in `.notas/`, which is gitignored. Never put them in `docs/` or anywhere tracked.
+- **Working notes** — reviews, plans and store copy live in `.notas/`, which is gitignored. Never put them in `docs/` or anywhere tracked: they carry open bugs and product decisions.
+- **Feature docs** — `docs/features/` is tracked and describes each feature for agents: files, data flow, rules that are easy to break, tests. Read the relevant one before changing a feature, and update it in the same change when a rule moves. The index is `docs/features/README.md`.
 
 ## CI/CD
 
