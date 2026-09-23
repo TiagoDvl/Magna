@@ -11,6 +11,7 @@ import com.tick.magna.data.domain.DeputadoMembro
 import com.tick.magna.data.logger.AppLoggerInterface
 import com.tick.magna.data.repository.PartidosRepositoryInterface
 import com.tick.magna.data.repository.Resource
+import com.tick.magna.data.repository.today
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +30,6 @@ class PartidoDetailsViewModel(
     companion object {
         private const val TAG = "PartidoDetailsViewModel"
         private val AGE_LABELS = listOf("<30", "30-39", "40-49", "50-59", "60-69", "70+")
-        private const val CURRENT_YEAR = 2026
     }
 
     private val partidoId: String = savedStateHandle.toRoute<PartidoDetailsArgs>().partidoId
@@ -101,13 +101,17 @@ class PartidoDetailsViewModel(
     }
 
     private fun computeStats(members: List<DeputadoMembro>): PartidoStats {
+        // Read from the clock rather than written down. It was a constant set to 2026, which
+        // would have aged every deputado by a year less than the truth from January onwards.
+        val anoAtual = today().year
+
         val maleCount = members.count { it.sexo == "M" }
         val femaleCount = members.count { it.sexo == "F" }
 
         val ageGroups = members
             .mapNotNull { it.dataNascimento?.take(4)?.toIntOrNull() }
             .filter { it > 1900 }
-            .map { birthYear -> CURRENT_YEAR - birthYear }
+            .map { birthYear -> anoAtual - birthYear }
             .groupBy { age ->
                 when {
                     age < 30 -> "<30"

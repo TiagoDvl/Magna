@@ -36,9 +36,9 @@ party screen with its header, its members and charts about who they are.
 
 - **`selectedChart` belongs to the screen.** The `combine` builds a fresh state and copies
   `selectedChart` back from the current one. Don't let the combine's defaults overwrite it.
-- **`CURRENT_YEAR = 2026` is hard-coded** in `PartidoDetailsViewModel` for the age groups. It
-  will be wrong in 2027. Replace it with `today()` from `data/repository/Today.kt` when you touch
-  this screen.
+- **Ages are counted against `today().year`**, not against the selected term. On a finished term
+  the age chart shows how old the members are now, not how old they were then. Change that on
+  purpose if you change it.
 - Someone who left the party and came back counts as one member (`c25086d`). Keep that when you
   change how members are grouped.
 - Marking a party as "mine" became reordering. The analytics event names in

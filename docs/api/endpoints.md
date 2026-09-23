@@ -91,7 +91,7 @@ Every call the app makes, as of 2.0.3. The API interfaces are in
 | `GET /legislaturas` | `itens=100`, `ordem=DESC`, `ordenarPor=id` | `LegislaturasRepository.syncLegislaturas` | `Legislatura` (`id`, `startDate`, `endDate`) |
 
 All 57 terms fit in one page. **This is where every date window in the app comes from.** No date
-should be hard-coded (the one that still is: `CURRENT_YEAR` in `PartidoDetailsViewModel`).
+should be hard-coded. The current year comes from `today()` in `data/repository/Today.kt`.
 
 ## Outside the API: annual files
 
