@@ -146,12 +146,13 @@
     <string name="santinho_atalho">Abrir meu santinho</string>
     <string name="santinho_home_chamada">Anote os números dos seus candidatos</string>
     <string name="santinho_home_vazio">Para ter em mãos no dia da votação</string>
-    <string name="santinho_home_guardados">%1$d de 5 cargos anotados</string>
+    <string name="santinho_home_guardados">%1$d de %2$d números anotados</string>
     <string name="santinho_explicacao">Estes números ficam só neste aparelho, guardados em código. Não enviamos nada para lugar nenhum e nunca vemos o seu voto.</string>
     <string name="santinho_aviso_relacao">A Magna não confere estes números com candidato nenhum. O que você escreve aqui é só uma anotação sua.</string>
     <string name="santinho_cargo_deputado_federal">Deputado Federal</string>
-    <string name="santinho_cargo_deputado_estadual">Deputado Estadual</string>
-    <string name="santinho_cargo_senador">Senador</string>
+    <string name="santinho_cargo_deputado_estadual">Deputado Estadual ou Distrital</string>
+    <string name="santinho_cargo_senador">Senador (1ª vaga)</string>
+    <string name="santinho_cargo_segundo_senador">Senador (2ª vaga)</string>
     <string name="santinho_cargo_governador">Governador</string>
     <string name="santinho_cargo_presidente">Presidente</string>
     <string name="santinho_salvar">Guardar</string>

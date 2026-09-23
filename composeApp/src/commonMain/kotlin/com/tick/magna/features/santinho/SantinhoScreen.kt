@@ -70,6 +70,7 @@ import magna.composeapp.generated.resources.santinho_cargo_deputado_estadual
 import magna.composeapp.generated.resources.santinho_cargo_deputado_federal
 import magna.composeapp.generated.resources.santinho_cargo_governador
 import magna.composeapp.generated.resources.santinho_cargo_presidente
+import magna.composeapp.generated.resources.santinho_cargo_segundo_senador
 import magna.composeapp.generated.resources.santinho_cargo_senador
 import magna.composeapp.generated.resources.santinho_confirmar_botao
 import magna.composeapp.generated.resources.santinho_confirmar_descricao
@@ -415,6 +416,7 @@ private val CargoDaUrna.rotulo: StringResource
         CargoDaUrna.DEPUTADO_FEDERAL -> Res.string.santinho_cargo_deputado_federal
         CargoDaUrna.DEPUTADO_ESTADUAL -> Res.string.santinho_cargo_deputado_estadual
         CargoDaUrna.SENADOR -> Res.string.santinho_cargo_senador
+        CargoDaUrna.SEGUNDO_SENADOR -> Res.string.santinho_cargo_segundo_senador
         CargoDaUrna.GOVERNADOR -> Res.string.santinho_cargo_governador
         CargoDaUrna.PRESIDENTE -> Res.string.santinho_cargo_presidente
     }

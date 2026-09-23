@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import com.tick.magna.data.santinho.CargoDaUrna
 import com.tick.magna.ui.core.theme.LocalDimensions
 import com.tick.magna.ui.core.theme.magnaCardElevation
 import magna.composeapp.generated.resources.Res
@@ -94,7 +95,7 @@ fun SantinhoBanner(
                     text = if (preenchidos == 0) {
                         stringResource(Res.string.santinho_home_vazio)
                     } else {
-                        stringResource(Res.string.santinho_home_guardados, preenchidos)
+                        stringResource(Res.string.santinho_home_guardados, preenchidos, CargoDaUrna.entries.size)
                     },
                     style = typography.bodySmall.copy(color = colorScheme.onSurfaceVariant),
                 )

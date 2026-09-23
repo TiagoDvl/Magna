@@ -12,7 +12,7 @@ class CodigoDoSantinhoTest {
         // variable-length note would tell anybody reading the database file how much somebody
         // had written down without decrypting a byte of it.
         val vazio = Santinho().paraTexto()
-        val cheio = Santinho("1234", "56789", "123", "12", "13").paraTexto()
+        val cheio = Santinho("1234", "56789", "123", "456", "12", "13").paraTexto()
         val meio = Santinho(deputadoFederal = "1234").paraTexto()
 
         assertEquals(TAMANHO, vazio.length)
@@ -22,7 +22,7 @@ class CodigoDoSantinhoTest {
 
     @Test
     fun `a note survives the round trip`() {
-        val original = Santinho("1234", "56789", "123", "12", "13")
+        val original = Santinho("1234", "56789", "123", "456", "12", "13")
 
         assertEquals(original, santinhoDeTexto(original.paraTexto()))
     }
@@ -36,6 +36,7 @@ class CodigoDoSantinhoTest {
         assertEquals("4477", voltou.deputadoFederal)
         assertEquals("13", voltou.presidente)
         assertEquals("", voltou.senador)
+        assertEquals("", voltou.segundoSenador)
     }
 
     @Test
@@ -59,6 +60,28 @@ class CodigoDoSantinhoTest {
     }
 
     @Test
+    fun `a note saved before the second senator existed still reads right`() {
+        // Sixteen characters in the old five-office layout. The second senator was appended to
+        // the stored order precisely so that this note keeps its governor and president where
+        // they were, instead of having them shifted into the wrong offices.
+        val voltou = santinhoDeTexto("1234567891231213")
+
+        assertEquals("1234", voltou.deputadoFederal)
+        assertEquals("56789", voltou.deputadoEstadual)
+        assertEquals("123", voltou.senador)
+        assertEquals("12", voltou.governador)
+        assertEquals("13", voltou.presidente)
+        assertEquals("", voltou.segundoSenador)
+    }
+
+    @Test
+    fun `the screen asks for both senators in a row, as the machine does`() {
+        val ordem = CargoDaUrna.entries
+
+        assertEquals(ordem.indexOf(CargoDaUrna.SENADOR) + 1, ordem.indexOf(CargoDaUrna.SEGUNDO_SENADOR))
+    }
+
+    @Test
     fun `only digits get in, and only as many as the machine shows`() {
         val santinho = Santinho()
             .com(CargoDaUrna.PRESIDENTE, "1a3b5")
@@ -76,7 +99,7 @@ class CodigoDoSantinhoTest {
     }
 
     private companion object {
-        /** Four plus five plus three plus two plus two, which is the ballot. */
-        const val TAMANHO = 16
+        /** Four plus five plus three plus three plus two plus two, which is the ballot. */
+        const val TAMANHO = 19
     }
 }
