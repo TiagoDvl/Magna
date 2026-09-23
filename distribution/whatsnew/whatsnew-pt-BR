@@ -1,6 +1,7 @@
 Santinho com dois senadores: em 2026 cada eleitor vota em dois senadores, e agora dá para anotar os dois. O que você já tinha anotado continua lá.
 
 Correções:
-• O app não fecha mais sozinho ao abrir o perfil de um deputado que ainda não estava salvo no aparelho
-• Quem atualizou da versão 1.0 e tinha o app fechando ao abrir agora consegue usar de novo
-• No Distrito Federal, o campo aparece como deputado estadual ou distrital
+• O perfil de um deputado ainda não salvo no aparelho não fecha mais o app
+• Quem atualizou da versão 1.0 e tinha o app fechando ao abrir consegue usar de novo
+• No DF, o campo aparece como deputado estadual ou distrital
+• A idade nos gráficos dos partidos acompanha o ano corrente

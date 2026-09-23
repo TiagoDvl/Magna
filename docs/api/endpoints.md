@@ -1,6 +1,6 @@
 # Endpoints
 
-Every call the app makes, as of 2.0.3. The API interfaces are in
+Every call the app makes, as of 2.0.4. The API interfaces are in
 `data/source/remote/api/*ApiInterface.kt`. One `HttpClient` serves all of them (see
 [../architecture.md](../architecture.md#data-pipeline)).
 
