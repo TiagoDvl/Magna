@@ -4,7 +4,7 @@ One document per feature of Magna, written for an agent that has to change one o
 re-exploring the codebase first. Each one covers what the feature is for, the files that make it
 up, how its data flows, the rules that are easy to break, and the tests that guard them.
 
-These describe the code as of 2.0.2. Code is the source of truth. If a document and the code
+These describe the code as of 2.0.3. Code is the source of truth. If a document and the code
 disagree, trust the code and fix the document in the same change.
 
 How the app is wired as a whole (modules, data pipeline, navigation, ViewModels, DI, release

@@ -171,7 +171,7 @@ Koin. Everything is registered in `di/Modules.kt` as `appModules`:
 - **Pushing a tag publishes to everyone.** The tests gate the upload, but they are unit tests
   only: nothing opens the app. Try the `minified` build on a device before tagging. Nothing runs
   on a push to `main` or on a PR, so a broken `main` is only discovered at release time.
-- **Versioning** is `versionCode` / `versionName` in `androidApp/build.gradle.kts` (6 / "2.0.2"
+- **Versioning** is `versionCode` / `versionName` in `androidApp/build.gradle.kts` (7 / "2.0.3"
   at the time of writing). Bump both and update `distribution/whatsnew/whatsnew-pt-BR` (Play
   Store limit: 500 characters) before tagging.
 - **Signing.** `magna-keystore.jks` at the repo root, plus env vars `KEYSTORE_PASSWORD`,

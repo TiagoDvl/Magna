@@ -1,9 +1,6 @@
-Chegou o Santinho: anote os números dos seus candidatos para os cinco cargos e leve com você na hora de votar.
+Santinho com dois senadores: em 2026 cada eleitor vota em dois senadores, e agora dá para anotar os dois. O que você já tinha anotado continua lá.
 
-Eles ficam guardados em código só neste aparelho. Nada é enviado, nada é cruzado com candidato nenhum, e ver ou salvar pede sua digital ou o PIN.
-
-Também nesta versão:
-• Hemiciclo interativo: toque nos partidos e compare as bancadas
-• Cada partido com sua cor e sua composição
-• Comissões permanentes, ordenadas por quanto votam
-• Transições novas entre as telas
+Correções:
+• O app não fecha mais sozinho ao abrir o perfil de um deputado que ainda não estava salvo no aparelho
+• Quem atualizou da versão 1.0 e tinha o app fechando ao abrir agora consegue usar de novo
+• No Distrito Federal, o campo aparece como deputado estadual ou distrital
